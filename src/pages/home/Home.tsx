@@ -415,19 +415,16 @@ export const Home: React.FC = () => {
             </div>
           </div>
 
-          {/* Right Visual Column (Showcase Image & Info Card) */}
+          {/* Right Visual Column (Portrait with Floating Glass Card) */}
           <div className="hero-image-col">
-            <div className="hero-showcase-container">
-              {/* Khung hiển thị hình ảnh cố định vị trí và kích thước */}
-              <div className="hero-portrait-frame">
-                <img
-                  src={currentHeroProject.image}
-                  alt={currentHeroProject.name}
-                  className={`hero-main-photo ${isHeroFading ? 'fading' : ''}`}
-                />
-              </div>
+            <div className="hero-portrait-frame">
+              <img
+                src={currentHeroProject.image}
+                alt={currentHeroProject.name}
+                className={`hero-main-photo ${isHeroFading ? 'fading' : ''}`}
+              />
 
-              {/* Thẻ thông tin dự án bên dưới với khoảng cách cố định */}
+              {/* Floating Glass Banner Preview Card */}
               <div className="floating-consent-widget">
                 {/* Khung tên đè lên cạnh trên bên trái */}
                 <div className="widget-top-badge">
