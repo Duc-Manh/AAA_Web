@@ -656,7 +656,7 @@ export const Home: React.FC = () => {
          =================================================================== */}
       <section id="project" className="projects-showcase-section">
         <div className="section-header-centered">
-          <h2 className="gradient-flow-title">Công trình tự động hoá &amp; BMS tiêu biểu</h2>
+          <h2 className="gradient-flow-title">Dự án đã tham gia</h2>
           <p>3AHOME tự hào đồng hành cùng các công trình biểu tượng, toà nhà văn phòng và khu công nghiệp trên toàn quốc.</p>
         </div>
 
