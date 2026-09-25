@@ -6,6 +6,7 @@ import slide1 from '../../assets/images/slide1.png';
 import slide2 from '../../assets/images/slide2.png';
 import slide3 from '../../assets/images/slide3.png';
 import slide4 from '../../assets/images/slide4.png';
+import project1 from '../../assets/project/1.webp';
 import {
   ShieldCheck,
   ArrowRight,
@@ -156,9 +157,9 @@ interface ShowcaseProject {
 const SHOWCASE_PROJECTS: ShowcaseProject[] = [
   {
     id: 'proj-1',
-    name: 'Trụ sở Tập đoàn Công nghiệp - Viễn thông Quân đội (Viettel)',
+    name: 'KOI Resort và residence Đà Nẵng',
     category: 'Toà nhà văn phòng BMS',
-    image: slide1,
+    image: project1,
     description: 'Triển khai hệ thống quản trị BMS toà nhà thông minh, tích hợp điều khiển trung tâm Chiller, quản lý năng lượng và điều áp buồng thang.',
     location: 'Cầu Giấy, Hà Nội',
     time: '2023 - 2024'
