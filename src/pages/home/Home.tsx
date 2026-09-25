@@ -351,6 +351,28 @@ export const Home: React.FC = () => {
     }, 700);
   };
 
+  // State for hero project slideshow
+  const [heroProjIdx, setHeroProjIdx] = useState(0);
+  const [isHeroFading, setIsHeroFading] = useState(false);
+
+  const handleNextHeroProject = () => {
+    setIsHeroFading(true);
+    setTimeout(() => {
+      setHeroProjIdx((prev) => (prev + 1) % SHOWCASE_PROJECTS.length);
+      setIsHeroFading(false);
+    }, 220);
+  };
+
+  useEffect(() => {
+    if (SHOWCASE_PROJECTS.length <= 1) return;
+    const interval = setInterval(() => {
+      handleNextHeroProject();
+    }, 4500);
+    return () => clearInterval(interval);
+  }, [heroProjIdx]);
+
+  const currentHeroProject = SHOWCASE_PROJECTS[heroProjIdx];
+
   return (
     <div className="landing-page-root">
       {/* 1. TOP NAVIGATION BAR */}
@@ -391,35 +413,43 @@ export const Home: React.FC = () => {
           <div className="hero-image-col">
             <div className="hero-portrait-frame">
               <img
-                src="/images/hero_woman.jpg"
-                alt="Professional team compliance"
-                className="hero-main-photo"
+                src={currentHeroProject.image}
+                alt={currentHeroProject.name}
+                className={`hero-main-photo ${isHeroFading ? 'fading' : ''}`}
               />
 
               {/* Floating Glass Banner Preview Card */}
               <div className="floating-consent-widget">
                 {/* Khung tên đè lên cạnh trên bên trái */}
                 <div className="widget-top-badge">
-
                   <span>Dự án tiêu biểu</span>
+                  <span className="widget-slide-counter">
+                    {heroProjIdx + 1}/{SHOWCASE_PROJECTS.length}
+                  </span>
                 </div>
 
-                <div className="widget-content">
+                <div className={`widget-content ${isHeroFading ? 'fading' : ''}`}>
                   <div className="widget-header">
                     <div className="widget-brand">
-                      <strong>Tên dự án</strong>
+                      <strong>{currentHeroProject.name}</strong>
                     </div>
                   </div>
                   <p className="widget-text">
-                    Mô tả dự án.
+                    {currentHeroProject.description}
                   </p>
                   <div className="widget-bottom-row">
                     <div className="widget-category-preview">
-                      <div className="cat-chip active">Địa điểm</div>
-                      <div className="cat-chip active">Thời gian</div>
+                      <div className="cat-chip active">{currentHeroProject.location}</div>
+                      <div className="cat-chip active">{currentHeroProject.time}</div>
                     </div>
                     <div className="widget-actions">
-                      <button className="widget-btn-arrow" aria-label="Xem chi tiết dự án">
+                      <button
+                        type="button"
+                        className="widget-btn-arrow"
+                        onClick={handleNextHeroProject}
+                        title="Dự án tiếp theo"
+                        aria-label="Xem chi tiết dự án"
+                      >
                         <ArrowRight size={18} />
                       </button>
                     </div>
