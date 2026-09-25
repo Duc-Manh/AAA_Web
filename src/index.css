@@ -498,19 +498,21 @@ textarea {
   position: relative;
   display: flex;
   justify-content: center;
-  transform: translateX(50px);
+  transform: translateX(30px);
 }
 
 .hero-portrait-frame {
   position: relative;
   width: 100%;
-  max-width: 440px;
+  max-width: 540px;
 }
 
 .hero-main-photo {
   width: 100%;
-  height: 480px;
-  object-fit: cover;
+  height: auto;
+  min-height: 280px;
+  object-fit: contain;
+  display: block;
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-lg);
   border: 4px solid #ffffff;
@@ -525,8 +527,8 @@ textarea {
 /* Floating Glass Consent Widget */
 .floating-consent-widget {
   position: absolute;
-  bottom: -50px;
-  left: -70px;
+  bottom: -40px;
+  left: -40px;
   width: 360px;
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(16px);
