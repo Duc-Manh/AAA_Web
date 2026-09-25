@@ -32,38 +32,38 @@ export const Footer: React.FC = () => {
 
         <div className="footer-links-column">
           <h5>Giải pháp</h5>
-          <a href="#">E-Commerce</a>
-          <a href="#">SaaS &amp; Apps</a>
-          <a href="#">Agencies</a>
-          <a href="#">Enterprises</a>
-          <a href="#">Publishers</a>
+          <a href="#solution">Toà nhà văn phòng</a>
+          <a href="#solution">Trung tâm thương mại</a>
+          <a href="#solution">Khách sạn &amp; Nghỉ dưỡng</a>
+          <a href="#solution">Bệnh viện &amp; Phòng sạch</a>
+          <a href="#solution">Nhà máy &amp; Khu công nghiệp</a>
         </div>
 
         <div className="footer-links-column">
           <h5>Chính sách</h5>
-          <a href="#">Compliance Guides</a>
-          <a href="#">API Documentation</a>
-          <a href="#">Integration Hub</a>
-          <a href="#">Privacy Policy Generator</a>
-          <a href="#">Status Page</a>
+          <a href="#">Chính sách bảo hành</a>
+          <a href="#">Chính sách bảo mật</a>
+          <a href="#">Quy chuẩn kỹ thuật</a>
+          <a href="#">Chính sách tuyển dụng</a>
+          <a href="#">Điều khoản dịch vụ</a>
         </div>
 
         <div className="footer-links-column">
           <h5>Về công ty</h5>
-          <a href="#">About Us</a>
-          <a href="#">Careers</a>
-          <a href="#">Press Kit</a>
-          <a href="#">Contact Us</a>
-          <a href="#">Privacy Notice</a>
+          <a href="#about">Giới thiệu về 3AHOME</a>
+          <a href="#about">Hồ sơ năng lực</a>
+          <a href="#project">Dự án tiêu biểu</a>
+          <a href="#news">Tin tức và Sự kiện</a>
+          <a href="#trial">Liên hệ tư vấn</a>
         </div>
       </div>
 
       <div className="footer-bottom-bar">
         <p>© 2026 3AHOME. All rights reserved.</p>
         <div className="footer-legal-links">
-          <a href="#">Privacy Policy</a>
-          <a href="#">Terms of Service</a>
-          <a href="#">Cookie Settings</a>
+          <a href="#">Chính sách bảo mật</a>
+          <a href="#">Điều khoản sử dụng</a>
+          <a href="#">Cài đặt Cookie</a>
         </div>
       </div>
     </footer>
