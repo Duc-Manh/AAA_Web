@@ -7,6 +7,11 @@ import slide2 from '../../assets/images/slide2.png';
 import slide3 from '../../assets/images/slide3.png';
 import slide4 from '../../assets/images/slide4.png';
 import project1 from '../../assets/project/1.webp';
+import project2 from '../../assets/project/2.webp';
+import project3 from '../../assets/project/3.webp';
+import project4 from '../../assets/project/4.webp';
+import project5 from '../../assets/project/5.webp';
+import project6 from '../../assets/project/6.webp';
 import {
   ShieldCheck,
   ArrowRight,
@@ -166,45 +171,45 @@ const SHOWCASE_PROJECTS: ShowcaseProject[] = [
   },
   {
     id: 'proj-2',
-    name: 'Khu phức hợp Keangnam Hanoi Landmark Tower',
+    name: 'Nhà máy Kim Long Motor Huế',
     category: 'Cao ốc thương mại',
-    image: slide2,
-    description: 'Nâng cấp cụm điều khiển DDC BACnet MS/TP, tích hợp dải cảm biến nhiệt ẩm vi sai và tối ưu hoá điều hòa trung tâm AHU/VAV.',
-    location: 'Nam Từ Liêm, Hà Nội',
-    time: '2023'
+    image: project2,
+    description: 'Cung cấp và lắp đặt hệ thống BMS cho nhà máy sản xuất ô tô Kim Long Motor.',
+    location: 'Huế',
+    time: '2025'
   },
   {
     id: 'proj-3',
-    name: 'Tổ hợp Thương mại & Khách sạn Lotte Mall West Lake',
+    name: 'Trung tâm sinh học thành phố Đà Nẵng',
     category: 'Trung tâm phức hợp',
-    image: slide3,
-    description: 'Mạng lưới hơn 5.000 điểm I/O giám sát chất lượng không khí IAQ, van điều khiển áp lực cao và điều khiển chiếu sáng DALI thông minh.',
-    location: 'Tây Hồ, Hà Nội',
-    time: '2023 - 2024'
+    image: project3,
+    description: 'Cung cấp và lắp đặt hệ thống BMS cho Trung tâm sinh học..',
+    location: 'Đà Nẵng',
+    time: '2025'
   },
   {
     id: 'proj-4',
-    name: 'TechnoPark Tower - Đại đô thị thông minh Vinhomes',
+    name: 'Công viên phát triển phần mềm số 2 Đà Nẵng',
     category: 'Văn phòng LEED Platinum',
-    image: slide4,
-    description: 'Giải pháp toà nhà xanh tối ưu điện năng tự động, liên động kiểm soát an ninh ra vào và cảnh báo PCCC NFPA thời gian thực.',
-    location: 'Gia Lâm, Hà Nội',
-    time: '2024'
+    image: project4,
+    description: 'Cung cấp và lắp đặt hệ thống BMS cho Danang Software Park 2.',
+    location: 'Đà Nẵng',
+    time: '2024-2025'
   },
   {
     id: 'proj-5',
-    name: 'Khu tổ hợp Nhà máy Samsung Electronics Thái Nguyên (SEVT)',
+    name: 'Nhà máy Thạch Anh - Huế',
     category: 'Nhà máy & Phòng sạch',
-    image: 'https://images.unsplash.com/photo-1504307651254-35680f356dfd?auto=format&fit=crop&w=800&q=80',
-    description: 'Hệ thống tự động hoá kiểm soát nhiệt độ, độ ẩm chính xác và áp suất phòng sạch phục vụ dây chuyền sản xuất vi mạch công nghệ cao.',
-    location: 'Phổ Yên, Thái Nguyên',
-    time: '2022 - 2023'
+    image: project5,
+    description: 'Cung cấp thiết bị và lập trình hệ thống quản lý toà nhà BMS.',
+    location: 'Huế',
+    time: '2023'
   },
   {
     id: 'proj-6',
     name: 'Toà tháp Landmark 81 - Vinhomes Central Park',
     category: 'Cao ốc biểu tượng',
-    image: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=800&q=80',
+    image: project6,
     description: 'Cung cấp và tích hợp cảm biến áp suất gió, nước chuyên dụng cùng hệ thống van điều khiển HVAC tải lạnh lớn tầng cao.',
     location: 'Bình Thạnh, TP. Hồ Chí Minh',
     time: '2022 - 2023'
