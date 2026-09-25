@@ -1,4 +1,5 @@
 import React from 'react';
+import { MapPin } from 'lucide-react';
 import logo3aHome from '../../assets/images/logo_3ahome.png';
 
 export const Footer: React.FC = () => {
@@ -22,21 +23,12 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="footer-links-column">
-          <h5>Sản phẩm</h5>
-          <a href="#">Bộ điều khiển DDC</a>
-          <a href="#">Cảm biến &amp; Đo lường</a>
-          <a href="#">Van &amp; Động cơ điều khiển</a>
-          <a href="#">Phần mềm giám sát BMS</a>
-          <a href="#">Thiết bị Gateway &amp; Mạng</a>
-        </div>
-
-        <div className="footer-links-column">
           <h5>Giải pháp</h5>
           <a href="#solution">Toà nhà văn phòng</a>
           <a href="#solution">Trung tâm thương mại</a>
-          <a href="#solution">Khách sạn &amp; Nghỉ dưỡng</a>
-          <a href="#solution">Bệnh viện &amp; Phòng sạch</a>
-          <a href="#solution">Nhà máy &amp; Khu công nghiệp</a>
+          <a href="#solution">Khách sạn và Nghỉ dưỡng</a>
+          <a href="#solution">Bệnh viện và Phòng sạch</a>
+          <a href="#solution">Nhà máy và Khu công nghiệp</a>
         </div>
 
         <div className="footer-links-column">
@@ -55,6 +47,26 @@ export const Footer: React.FC = () => {
           <a href="#project">Dự án tiêu biểu</a>
           <a href="#news">Tin tức và Sự kiện</a>
           <a href="#trial">Liên hệ tư vấn</a>
+        </div>
+
+        <div className="footer-map-column">
+          <h5>Bản đồ vị trí</h5>
+          <div className="footer-map-frame">
+            <iframe
+              title="Bản đồ vị trí 3AHOME"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d119175.27431102917!2d105.74726207166155!3d21.02269666070624!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab9bd8161a63%3A0x871425077a03e614!2sHanoi%2C%20Vietnam!5e0!3m2!1svi!2s!4v1700000000000!5m2!1svi!2s"
+              width="100%"
+              height="150"
+              style={{ border: 0 }}
+              allowFullScreen={false}
+              loading="lazy"
+              referrerPolicy="no-referrer-when-downgrade"
+            />
+            <div className="footer-map-info">
+              <MapPin size={14} className="map-icon-pin" />
+              <span>Đà Nẵng, Việt Nam</span>
+            </div>
+          </div>
         </div>
       </div>
 
