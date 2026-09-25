@@ -429,9 +429,6 @@ export const Home: React.FC = () => {
                 {/* Khung tên đè lên cạnh trên bên trái */}
                 <div className="widget-top-badge">
                   <span>Dự án tiêu biểu</span>
-                  <span className="widget-slide-counter">
-                    {heroProjIdx + 1}/{SHOWCASE_PROJECTS.length}
-                  </span>
                 </div>
 
                 <div className={`widget-content ${isHeroFading ? 'fading' : ''}`}>
