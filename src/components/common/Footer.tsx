@@ -22,16 +22,16 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="footer-links-column">
-          <h5>Product</h5>
-          <a href="#">Cookie Scanner</a>
-          <a href="#">Consent Banners</a>
-          <a href="#">Script Blocker</a>
-          <a href="#">Google Consent Mode</a>
-          <a href="#">IAB TCF Framework</a>
+          <h5>Sản phẩm</h5>
+          <a href="#">Bộ điều khiển DDC</a>
+          <a href="#">Cảm biến &amp; Đo lường</a>
+          <a href="#">Van &amp; Động cơ điều khiển</a>
+          <a href="#">Phần mềm giám sát BMS</a>
+          <a href="#">Thiết bị Gateway &amp; Mạng</a>
         </div>
 
         <div className="footer-links-column">
-          <h5>Solutions</h5>
+          <h5>Giải pháp</h5>
           <a href="#">E-Commerce</a>
           <a href="#">SaaS &amp; Apps</a>
           <a href="#">Agencies</a>
@@ -40,7 +40,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="footer-links-column">
-          <h5>Resources</h5>
+          <h5>Chính sách</h5>
           <a href="#">Compliance Guides</a>
           <a href="#">API Documentation</a>
           <a href="#">Integration Hub</a>
@@ -49,7 +49,7 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="footer-links-column">
-          <h5>Company</h5>
+          <h5>Về công ty</h5>
           <a href="#">About Us</a>
           <a href="#">Careers</a>
           <a href="#">Press Kit</a>
@@ -59,7 +59,7 @@ export const Footer: React.FC = () => {
       </div>
 
       <div className="footer-bottom-bar">
-        <p>© 2026 CookieConsent.io. All rights reserved. Building a more transparent web.</p>
+        <p>© 2026 3AHOME. All rights reserved.</p>
         <div className="footer-legal-links">
           <a href="#">Privacy Policy</a>
           <a href="#">Terms of Service</a>
