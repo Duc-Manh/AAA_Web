@@ -41,21 +41,22 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete, duration
 
         {/* Subtitle / Slogan */}
         <div className="splash-subtitle">
-          Công Nghệ Thông Minh Cho Toà Nhà Hiện Đại
+          Công ty TNHH Công nghệ thông minh <br />
+          <span className="brand-name-green" style={{ color: '#0b8645', fontWeight: 700 }}>3A</span><span className="brand-name-blue" style={{ color: '#105ca8', fontWeight: 700 }}>HOME</span> Việt Nam
         </div>
 
         {/* Beautiful Animated Loading Bar */}
         <div className="splash-progress-track">
-          <div 
-            className="splash-progress-fill" 
-            style={{ width: `${progress}%` }} 
+          <div
+            className="splash-progress-fill"
+            style={{ width: `${progress}%` }}
           />
           <div className="splash-progress-shimmer" />
         </div>
 
         {/* Status text & percentage */}
         <div className="splash-status-row">
-          <span className="splash-status-text">Đang tải hệ thống...</span>
+          <span className="splash-status-text">Đang truy cập...</span>
           <span className="splash-status-pct">{progress}%</span>
         </div>
       </div>
