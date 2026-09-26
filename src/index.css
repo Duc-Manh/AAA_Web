@@ -394,11 +394,12 @@ textarea {
 }
 
 .brand-name-green {
-  color: #0b8645;
+  color: #0b8645 !important;
 }
 
-.brand-name-blue {
-  color: #105ca8;
+.brand-name-blue,
+.section-header-centered h2.brand-name-blue {
+  color: #105ca8 !important;
 }
 
 .hero-gradient-text {

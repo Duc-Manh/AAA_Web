@@ -874,7 +874,7 @@ export const Home: React.FC = () => {
          =================================================================== */}
       <section className="features-grid-section">
         <div className="section-header-centered" ref={bmsHeaderRef}>
-          <h2 className="brand-name-blue">Hệ thống quản lý toà nhà thông minh</h2>
+          <h2 className="brand-name-blue" style={{ color: '#105ca8' }}>Hệ thống quản lý toà nhà thông minh</h2>
           <p>Cung cấp đầy đủ phần mềm đến thiết bị điều khiển và cảm biến.</p>
         </div>
 
