@@ -584,15 +584,15 @@ textarea {
 /* Floating Glass Consent Widget nổi đè lên góc khung ảnh */
 .floating-consent-widget {
   position: absolute;
-  bottom: -40px;
+  bottom: -80px;
   left: -40px;
-  width: 360px;
+  width: 400px;
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(226, 232, 240, 0.9);
   border-radius: var(--radius-lg);
-  padding: 18px 20px;
+  padding: 20px 20px;
   box-shadow: var(--shadow-floating);
   animation: floatSubtle 4s ease-in-out infinite;
   z-index: 10;

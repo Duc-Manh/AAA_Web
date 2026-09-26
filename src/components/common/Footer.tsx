@@ -23,15 +23,6 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="footer-links-column">
-          <h5>Giải pháp</h5>
-          <a href="#solution">Toà nhà văn phòng</a>
-          <a href="#solution">Trung tâm thương mại</a>
-          <a href="#solution">Khách sạn và Nghỉ dưỡng</a>
-          <a href="#solution">Bệnh viện và Phòng sạch</a>
-          <a href="#solution">Nhà máy và Khu công nghiệp</a>
-        </div>
-
-        <div className="footer-links-column">
           <h5>Chính sách</h5>
           <a href="#">Chính sách bảo hành</a>
           <a href="#">Chính sách bảo mật</a>
