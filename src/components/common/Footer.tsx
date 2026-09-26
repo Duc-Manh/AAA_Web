@@ -42,7 +42,7 @@ export const Footer: React.FC = () => {
 
         <div className="footer-links-column">
           <h5>Về công ty</h5>
-          <a href="#about">Giới thiệu về 3AHOME</a>
+          <a href="#about">Giới thiệu về <span className="brand-name-green">3A</span><span className="brand-name-blue">HOME</span></a>
           <a href="#about">Hồ sơ năng lực</a>
           <a href="#project">Dự án tiêu biểu</a>
           <a href="#news">Tin tức và Sự kiện</a>
