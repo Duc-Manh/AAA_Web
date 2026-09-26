@@ -54,13 +54,13 @@ export const Footer: React.FC = () => {
           <div className="footer-map-frame">
             <iframe
               title="Bản đồ vị trí 3AHOME"
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d119175.27431102917!2d105.74726207166155!3d21.02269666070624!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3135ab9bd8161a63%3A0x871425077a03e614!2sHanoi%2C%20Vietnam!5e0!3m2!1svi!2s!4v1700000000000!5m2!1svi!2s"
+              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3833.189949387617!2d108.12919537532451!3d16.107471884577617!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x31421f506df47cfb%3A0x4ed3dfbc1809b9e5!2zQ8O0bmcgVHkgVG5oaCBDw7RuZyBOZ2jhu4cgVGjDtG5nIFRpbiAzYWhvbWUgVmnhu4d0IE5hbQ!5e0!3m2!1svi!2s!4v1790386874122!5m2!1svi!2s"
               width="100%"
               height="150"
               style={{ border: 0 }}
               allowFullScreen={false}
               loading="lazy"
-              referrerPolicy="no-referrer-when-downgrade"
+              referrerPolicy="strict-origin-when-cross-origin"
             />
             <div className="footer-map-info">
               <MapPin size={14} className="map-icon-pin" />
