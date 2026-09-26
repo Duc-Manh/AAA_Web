@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { SplashScreen } from './components/common/SplashScreen';
+import { Collect } from './components/common/Collect';
 import { Home } from './pages/home/Home';
 import { Intro } from './pages/intro/Intro';
 import { Solution } from './pages/solution/Solution';
@@ -44,6 +45,7 @@ export const App: React.FC = () => {
         <SplashScreen duration={2000} onComplete={() => setIsLoading(false)} />
       )}
       {renderCurrentPage()}
+      <Collect />
     </div>
   );
 };

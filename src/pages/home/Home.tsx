@@ -1011,7 +1011,7 @@ export const Home: React.FC = () => {
             <h2>Đăng ký nhận tư vấn miễn phí</h2>
             <p>
               Hãy chia sẻ thông tin dự án của Quý khách. Đội ngũ kỹ sư giàu kinh nghiệm về giải pháp BMS &amp; Tự động hoá của 3AHOME
-              sẽ trực tiếp khảo sát và gửi phương án báo giá tối ưu nhất trong vòng 24 giờ.
+              sẽ trực tiếp khảo sát và gửi phương án báo giá tối ưu nhất.
             </p>
           </div>
 
@@ -1160,7 +1160,7 @@ export const Home: React.FC = () => {
 
                 <div className="consult-guarantees-bar">
                   <span>✓ Khảo sát và tư vấn hoàn toàn miễn phí</span>
-                  <span>✓ Gửi báo giá chi tiết trong vòng 24h</span>
+                  <span>✓ Gửi báo giá chi tiết</span>
                   <span>✓ Bảo mật 100% thông tin dự án</span>
                 </div>
               </form>
