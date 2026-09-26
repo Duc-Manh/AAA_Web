@@ -398,7 +398,7 @@ export const Home: React.FC = () => {
 
             <h1 className="hero-saas-title">
               Công ty TNHH Công nghệ thông minh <br />
-              <span className="hero-gradient-text">3AHOME Việt Nam</span>
+              <span className="brand-name-green">3A</span><span className="brand-name-blue">HOME</span> Việt Nam
             </h1>
 
             <p className="hero-saas-subtitle">
