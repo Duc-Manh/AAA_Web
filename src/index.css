@@ -4041,11 +4041,17 @@ textarea {
 }
 
 .contact-company-main {
-  font-size: 1.95rem;
+  width: fit-content;
+  background-color: #ffffff;
+  padding: 8px 18px;
+  border-radius: 8px;
+  font-size: 1.85rem;
   font-weight: 800;
   letter-spacing: 0.025em;
-  color: #ffffff;
+  color: #0f172a;
   line-height: 1.25;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15);
+  margin-top: 6px;
   font-family: inherit;
 }
 
@@ -4125,7 +4131,9 @@ textarea {
   }
 
   .contact-company-main {
-    font-size: 1.48rem;
+    font-size: 1.35rem;
+    padding: 6px 14px;
+    border-radius: 6px;
   }
 
   .contact-card-row {

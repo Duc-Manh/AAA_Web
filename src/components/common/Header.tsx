@@ -154,7 +154,7 @@ export const Header: React.FC = () => {
               <div className="contact-card-header">
                 <div className="contact-company-sub">CÔNG TY TNHH CÔNG NGHỆ THÔNG MINH</div>
                 <div className="contact-company-main">
-                  <span className="brand-name-green" style={{ color: '#22c55e' }}>3A</span><span className="brand-name-blue" style={{ color: '#38bdf8' }}>HOME</span> VIỆT NAM
+                  <span className="brand-name-green" style={{ color: '#0b8645' }}>3A</span><span className="brand-name-blue" style={{ color: '#105ca8' }}>HOME VIỆT NAM</span>
                 </div>
               </div>
 
