@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, X } from 'lucide-react';
+import { X } from 'lucide-react';
 import logo3aHome from '../../assets/images/logo_3ahome.png';
 
 interface NavItem {
@@ -71,8 +71,8 @@ export const Header: React.FC = () => {
       <header className="saas-navbar">
         <div className="navbar-content">
           {/* Brand Logo */}
-          <a 
-            href="#" 
+          <a
+            href="#"
             className="nav-brand"
             onClick={(e) => {
               e.preventDefault();
@@ -96,10 +96,10 @@ export const Header: React.FC = () => {
                   style={
                     active
                       ? {
-                          color: '#105ca8',
-                          transform: 'translateY(3px)',
-                          fontWeight: 700,
-                        }
+                        color: '#105ca8',
+                        transform: 'translateY(3px)',
+                        fontWeight: 700,
+                      }
                       : undefined
                   }
                   onClick={(e) => {
@@ -116,8 +116,8 @@ export const Header: React.FC = () => {
           {/* Right Action Buttons */}
           <div className="nav-actions">
             <a href="#login" className="btn-nav-login"></a>
-            <a 
-              href="#trial" 
+            <a
+              href="#trial"
               className="btn-nav-primary"
               onClick={(e) => {
                 e.preventDefault();
@@ -125,7 +125,7 @@ export const Header: React.FC = () => {
               }}
             >
               <span>Liên hệ</span>
-              <ArrowRight size={15} />
+
             </a>
           </div>
         </div>
@@ -133,12 +133,12 @@ export const Header: React.FC = () => {
 
       {/* Contact Info Modal */}
       {isContactModalOpen && (
-        <div 
-          className="contact-modal-backdrop" 
+        <div
+          className="contact-modal-backdrop"
           onClick={() => setIsContactModalOpen(false)}
         >
-          <div 
-            className="contact-modal-dialog" 
+          <div
+            className="contact-modal-dialog"
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -153,7 +153,9 @@ export const Header: React.FC = () => {
             <div className="contact-modal-card">
               <div className="contact-card-header">
                 <div className="contact-company-sub">CÔNG TY TNHH CÔNG NGHỆ THÔNG MINH</div>
-                <div className="contact-company-main">3AHOME VIỆT NAM</div>
+                <div className="contact-company-main">
+                  <span className="brand-name-green" style={{ color: '#22c55e' }}>3A</span><span className="brand-name-blue" style={{ color: '#38bdf8' }}>HOME</span> VIỆT NAM
+                </div>
               </div>
 
               <div className="contact-card-divider" />
