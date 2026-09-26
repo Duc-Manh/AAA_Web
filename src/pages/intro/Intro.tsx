@@ -1,10 +1,6 @@
 import React, { useEffect } from 'react';
 import { Header } from '../../components/common/Header';
 import { Footer } from '../../components/common/Footer';
-import { 
-  Building2, 
-  Home as HomeIcon
-} from 'lucide-react';
 
 export const Intro: React.FC = () => {
   useEffect(() => {
@@ -19,20 +15,6 @@ export const Intro: React.FC = () => {
       {/* 2. Intro Hero Section */}
       <section className="intro-hero-section">
         <div className="intro-hero-container">
-          <div className="intro-breadcrumb">
-            <a href="#" className="breadcrumb-link">
-              <HomeIcon size={14} />
-              <span>Trang chủ</span>
-            </a>
-            <span className="breadcrumb-separator">/</span>
-            <span className="breadcrumb-current">Giới thiệu</span>
-          </div>
-
-          <div className="intro-hero-badge">
-            <Building2 size={16} />
-            <span>Hồ sơ doanh nghiệp</span>
-          </div>
-
           <h1 className="intro-hero-title">
             Công ty TNHH Công nghệ thông minh <br />
             <span className="brand-name-green">3A</span><span className="brand-name-blue">HOME</span> Việt Nam
