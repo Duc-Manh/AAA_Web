@@ -297,41 +297,32 @@ const AnimatedStatNumber: React.FC<AnimatedStatNumberProps> = ({ target, suffix 
   useEffect(() => {
     let animId: number;
     let startTime: number | null = null;
-    const cycleDuration = 6000; // Chu kỳ 6 giây
-    const upDuration = 1600;    // Tăng lên (1.6s)
-    const holdDuration = 3000;  // Giữ nguyên con số mục tiêu (3.0s)
-    const downDuration = 1000;  // Giảm về 0 (1.0s)
+    const duration = 1800; // Hoạt động 1 lần trong 1.8s khi tải/refresh trang
 
     const step = (timestamp: number) => {
       if (!startTime) startTime = timestamp;
-      const elapsed = (timestamp - startTime) % cycleDuration;
+      const elapsed = timestamp - startTime;
 
-      if (elapsed < upDuration) {
-        // Tăng lên rồi giảm xuống về đúng con số mục tiêu
-        const t = elapsed / upDuration;
-        if (t < 0.75) {
-          const subT = t / 0.75;
-          const current = Math.round(subT * maxVal);
+      if (elapsed < duration) {
+        const t = elapsed / duration;
+        if (t < 0.7) {
+          // Giai đoạn tăng lên: từ 0 lên maxVal (vượt nhẹ con số mục tiêu)
+          const subT = t / 0.7;
+          const easeOut = 1 - Math.pow(1 - subT, 3);
+          const current = Math.round(easeOut * maxVal);
           setDisplayValue(current);
         } else {
-          const subT = (t - 0.75) / 0.25;
-          const current = Math.round(maxVal - subT * (maxVal - target));
+          // Giai đoạn giảm xuống: từ maxVal giảm dần về đúng con số mục tiêu
+          const subT = (t - 0.7) / 0.3;
+          const easeInOut = subT < 0.5 ? 2 * subT * subT : 1 - Math.pow(-2 * subT + 2, 2) / 2;
+          const current = Math.round(maxVal - easeInOut * (maxVal - target));
           setDisplayValue(current);
         }
-      } else if (elapsed < upDuration + holdDuration) {
-        // Giữ cố định con số chính xác
-        setDisplayValue(target);
-      } else if (elapsed < upDuration + holdDuration + downDuration) {
-        // Giảm xuống về 0
-        const t = (elapsed - (upDuration + holdDuration)) / downDuration;
-        const current = Math.round(target * (1 - t));
-        setDisplayValue(Math.max(0, current));
+        animId = requestAnimationFrame(step);
       } else {
-        // Tạm dừng trước chu kỳ tăng mới
-        setDisplayValue(0);
+        // Đã đạt mục tiêu: dừng lại cố định vĩnh viễn ở con số chính xác
+        setDisplayValue(target);
       }
-
-      animId = requestAnimationFrame(step);
     };
 
     animId = requestAnimationFrame(step);
