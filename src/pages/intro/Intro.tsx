@@ -65,13 +65,12 @@ export const Intro: React.FC = () => {
       {/* 4. Strategic Partners Section */}
       <section className="intro-partner-section">
         <div className="intro-details-container">
-          {/* Khung hiển thị tên Đối tác chiến lược */}
-          <div className="intro-partner-badge">
-            Đối tác chiến lược
-          </div>
+          <div className="intro-details-box">
+            {/* Khung tên "Đối tác chiến lược" đè lên bên trái cạnh trên */}
+            <div className="intro-tag-badge">
+              Đối tác chiến lược
+            </div>
 
-          {/* Dưới khung tên là khung hiển thị nội dung */}
-          <div className="intro-details-box intro-partner-box">
             <div className="intro-details-text">
               <p>
                 Năm 2019, chúng tôi là đối tác chiến lược của <strong>Optergy - USA</strong> trong việc phân phối và tư vấn giải pháp cho hệ thống tự động hoá toà nhà (BMS) tại Việt Nam.
