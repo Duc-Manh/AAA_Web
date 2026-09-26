@@ -83,7 +83,91 @@ export const Intro: React.FC = () => {
         </div>
       </section>
 
-      {/* 5. Footer */}
+      {/* 5. Development Milestones Section */}
+      <section className="intro-milestones-section">
+        <div className="intro-details-container">
+          <div className="intro-details-box">
+            {/* Khung tên "Các cột mốc phát triển" đè lên bên trái cạnh trên */}
+            <div className="intro-tag-badge">
+              Các cột mốc phát triển
+            </div>
+
+            {/* Khung hiển thị nội dung timeline */}
+            <div className="intro-timeline">
+              <div className="intro-timeline-item">
+                <div className="intro-timeline-indicator">
+                  <div className="intro-timeline-dot" />
+                  <div className="intro-timeline-line" />
+                </div>
+                <div className="intro-timeline-content">
+                  <span className="intro-timeline-year">2018</span>
+                  <h4 className="intro-timeline-title">Thành lập công ty</h4>
+                  <p className="intro-timeline-desc">
+                    Khởi đầu hành trình với sứ mệnh mang giải pháp tự động hóa đến các công trình Việt Nam.
+                  </p>
+                </div>
+              </div>
+
+              <div className="intro-timeline-item">
+                <div className="intro-timeline-indicator">
+                  <div className="intro-timeline-dot" />
+                  <div className="intro-timeline-line" />
+                </div>
+                <div className="intro-timeline-content">
+                  <span className="intro-timeline-year">2019</span>
+                  <h4 className="intro-timeline-title">Đối tác Optergy (USA)</h4>
+                  <p className="intro-timeline-desc">
+                    Trở thành đối tác chiến lược của Optergy, nhà cung cấp giải pháp BMS hàng đầu từ Mỹ.
+                  </p>
+                </div>
+              </div>
+
+              <div className="intro-timeline-item">
+                <div className="intro-timeline-indicator">
+                  <div className="intro-timeline-dot" />
+                  <div className="intro-timeline-line" />
+                </div>
+                <div className="intro-timeline-content">
+                  <span className="intro-timeline-year">2020</span>
+                  <h4 className="intro-timeline-title">Mở rộng với SAUTER</h4>
+                  <p className="intro-timeline-desc">
+                    Hợp tác với SAUTER Controls (Đức), mở rộng danh mục sản phẩm HVAC cao cấp.
+                  </p>
+                </div>
+              </div>
+
+              <div className="intro-timeline-item">
+                <div className="intro-timeline-indicator">
+                  <div className="intro-timeline-dot" />
+                  <div className="intro-timeline-line" />
+                </div>
+                <div className="intro-timeline-content">
+                  <span className="intro-timeline-year">2023</span>
+                  <h4 className="intro-timeline-title">50+ Dự án hoàn thành</h4>
+                  <p className="intro-timeline-desc">
+                    Cột mốc 50 dự án triển khai thành công trên khắp Việt Nam.
+                  </p>
+                </div>
+              </div>
+
+              <div className="intro-timeline-item">
+                <div className="intro-timeline-indicator">
+                  <div className="intro-timeline-dot" />
+                </div>
+                <div className="intro-timeline-content">
+                  <span className="intro-timeline-year">2025</span>
+                  <h4 className="intro-timeline-title">Mở rộng thị trường</h4>
+                  <p className="intro-timeline-desc">
+                    Tiếp tục phát triển, mở rộng thị phần và nâng cao năng lực kỹ thuật.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Footer */}
       <Footer />
     </div>
   );
