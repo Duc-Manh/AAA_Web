@@ -284,6 +284,67 @@ const SIDEBAR_NEWS: NewsArticle[] = [
   }
 ];
 
+interface AnimatedStatNumberProps {
+  target: number;
+  suffix?: string;
+  overshoot?: number;
+}
+
+const AnimatedStatNumber: React.FC<AnimatedStatNumberProps> = ({ target, suffix = '', overshoot }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  const maxVal = overshoot ?? (target > 5 ? target + Math.round(target * 0.15) : target + 1);
+
+  useEffect(() => {
+    let animId: number;
+    let startTime: number | null = null;
+    const cycleDuration = 6000; // Chu kỳ 6 giây
+    const upDuration = 1600;    // Tăng lên (1.6s)
+    const holdDuration = 3000;  // Giữ nguyên con số mục tiêu (3.0s)
+    const downDuration = 1000;  // Giảm về 0 (1.0s)
+
+    const step = (timestamp: number) => {
+      if (!startTime) startTime = timestamp;
+      const elapsed = (timestamp - startTime) % cycleDuration;
+
+      if (elapsed < upDuration) {
+        // Tăng lên rồi giảm xuống về đúng con số mục tiêu
+        const t = elapsed / upDuration;
+        if (t < 0.75) {
+          const subT = t / 0.75;
+          const current = Math.round(subT * maxVal);
+          setDisplayValue(current);
+        } else {
+          const subT = (t - 0.75) / 0.25;
+          const current = Math.round(maxVal - subT * (maxVal - target));
+          setDisplayValue(current);
+        }
+      } else if (elapsed < upDuration + holdDuration) {
+        // Giữ cố định con số chính xác
+        setDisplayValue(target);
+      } else if (elapsed < upDuration + holdDuration + downDuration) {
+        // Giảm xuống về 0
+        const t = (elapsed - (upDuration + holdDuration)) / downDuration;
+        const current = Math.round(target * (1 - t));
+        setDisplayValue(Math.max(0, current));
+      } else {
+        // Tạm dừng trước chu kỳ tăng mới
+        setDisplayValue(0);
+      }
+
+      animId = requestAnimationFrame(step);
+    };
+
+    animId = requestAnimationFrame(step);
+    return () => cancelAnimationFrame(animId);
+  }, [target, maxVal]);
+
+  return (
+    <span className="stat-number-text">
+      {displayValue}{suffix}
+    </span>
+  );
+};
+
 export const Home: React.FC = () => {
   // State for consultation request form
   const [consultForm, setConsultForm] = useState({
@@ -470,19 +531,19 @@ export const Home: React.FC = () => {
       <section className="stats-bar-section">
         <div className="stats-bar-container">
           <div className="stat-metric-cell">
-            <span className="stat-number-text">6+</span>
+            <AnimatedStatNumber target={6} suffix="+" overshoot={8} />
             <span className="stat-label-text">Năm kinh nghiệm</span>
           </div>
           <div className="stat-metric-cell">
-            <span className="stat-number-text">50+</span>
+            <AnimatedStatNumber target={50} suffix="+" overshoot={58} />
             <span className="stat-label-text">Dự án hoàn thành</span>
           </div>
           <div className="stat-metric-cell">
-            <span className="stat-number-text">2</span>
+            <AnimatedStatNumber target={2} suffix="" overshoot={3} />
             <span className="stat-label-text">Đối tác quốc tế</span>
           </div>
           <div className="stat-metric-cell">
-            <span className="stat-number-text">100%</span>
+            <AnimatedStatNumber target={100} suffix="%" overshoot={108} />
             <span className="stat-label-text">Khách hàng hài lòng</span>
           </div>
         </div>

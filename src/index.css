@@ -757,47 +757,14 @@ textarea {
   font-size: 2.6rem;
   font-weight: 800;
   letter-spacing: -0.03em;
-  background: linear-gradient(135deg,
-      #2563eb 0%,
-      #06b6d4 25%,
-      #8b5cf6 50%,
-      #ec4899 75%,
-      #2563eb 100%);
-  background-size: 300% 300%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  animation: statsGradientFlow 6s ease-in-out infinite;
+  color: var(--color-primary);
   display: inline-block;
+  font-variant-numeric: tabular-nums;
+  transition: transform 0.2s ease;
 }
 
-.stat-metric-cell:nth-child(1) .stat-number-text {
-  animation-delay: 0s;
-}
-
-.stat-metric-cell:nth-child(2) .stat-number-text {
-  animation-delay: -1.5s;
-}
-
-.stat-metric-cell:nth-child(3) .stat-number-text {
-  animation-delay: -3s;
-}
-
-.stat-metric-cell:nth-child(4) .stat-number-text {
-  animation-delay: -4.5s;
-}
-
-@keyframes statsGradientFlow {
-  0% {
-    background-position: 0% 50%;
-  }
-
-  50% {
-    background-position: 100% 50%;
-  }
-
-  100% {
-    background-position: 0% 50%;
-  }
+.stat-metric-cell:hover .stat-number-text {
+  transform: translateY(-2px);
 }
 
 .stat-label-text {
