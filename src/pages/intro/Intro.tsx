@@ -44,7 +44,35 @@ export const Intro: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. Strategic Partners Section */}
+      {/* 4. Operating Criteria Section */}
+      <section className="intro-criteria-section">
+        <div className="intro-details-container">
+          <div className="intro-details-box">
+            {/* Khung tên "Tiêu chí hoạt động" đè lên bên trái cạnh trên */}
+            <div className="intro-tag-badge">
+              Tiêu chí hoạt động
+            </div>
+
+            {/* Khung hiển thị nội dung */}
+            <div className="intro-details-text">
+              <p>
+                Công ty chúng tôi mong muốn đóng góp cho xã hội những công trình chất lượng cao, hoạt động hiệu quả, tiết kiệm năng lượng và mang lại công nghệ tiên tiến nhất.
+              </p>
+              <p>
+                Sự hài lòng của khách hàng là nguồn sức mạnh, sự cổ vũ lớn lao đối với toàn bộ nhân viên trong công ty. Chúng tôi sẽ cung cấp dịch vụ và kỹ thuật tốt nhất, đáp ứng tối đa nhu cầu của khách hàng bằng cách không ngừng cải tiến để nâng cao chất lượng dịch vụ, sử dụng năng lượng và công nghệ hiệu quả nhất.
+              </p>
+              <p>
+                Sáng tạo không ngừng. Chúng tôi luôn cầu thị mọi sáng kiến, cải tiến trong các lĩnh vực hoạt động. Không ngừng học hỏi và ứng dụng các công nghệ mới nhất từ các đối tác nước ngoài.
+              </p>
+              <p>
+                Sự thống nhất trong mục tiêu và hành động.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Strategic Partners Section */}
       <section className="intro-partner-section">
         <div className="intro-details-container">
           <div className="intro-details-box">

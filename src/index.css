@@ -3827,6 +3827,7 @@ textarea {
    INTRO PARTNER SECTION (KHUNG TÊN ĐỐI TÁC CHIẾN LƯỢC & KHUNG NỘI DUNG)
    ========================================================================== */
 
+.intro-criteria-section,
 .intro-partner-section {
   padding: 30px 24px 40px;
   background: var(--bg-body, #ffffff);
