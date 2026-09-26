@@ -652,7 +652,9 @@ export const Home: React.FC = () => {
          =================================================================== */}
       <section id="features" className="commitments-section">
         <div className="section-header-centered">
-          <h2 className="gradient-flow-title">Cam kết mang lại giá trị thực</h2>
+          <h2>
+            <span className="brand-name-green">3A</span><span className="brand-name-blue">HOME luôn là đối tác tin cậy</span>
+          </h2>
         </div>
 
         <div className="commitments-frames-grid">
