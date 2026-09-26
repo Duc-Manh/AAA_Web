@@ -401,9 +401,43 @@ const TypewriterText: React.FC<TypewriterTextProps> = ({
     return () => clearTimeout(timeout);
   }, [displayText, isDeleting, hasStarted, text, speed, deleteSpeed, pauseDuration]);
 
+  const renderFormattedText = (current: string) => {
+    const target3A = current.indexOf('3A');
+
+    if (target3A === -1) {
+      if (current.endsWith('3')) {
+        return (
+          <>
+            <span>{current.slice(0, -1)}</span>
+            <span className="brand-name-green" style={{ fontWeight: 700 }}>3</span>
+          </>
+        );
+      }
+      return <span>{current}</span>;
+    }
+
+    const before3A = current.slice(0, target3A);
+    const afterBefore3A = current.slice(target3A);
+
+    const part3A = afterBefore3A.slice(0, 2);
+    const after3A = afterBefore3A.slice(2);
+
+    const partHOME = after3A.slice(0, 4);
+    const afterHOME = after3A.slice(4);
+
+    return (
+      <>
+        <span>{before3A}</span>
+        {part3A && <span className="brand-name-green" style={{ fontWeight: 700 }}>{part3A}</span>}
+        {partHOME && <span className="brand-name-blue" style={{ fontWeight: 700 }}>{partHOME}</span>}
+        {afterHOME && <span>{afterHOME}</span>}
+      </>
+    );
+  };
+
   return (
     <p ref={containerRef} className="typewriter-p">
-      {displayText}
+      {renderFormattedText(displayText)}
       <span className="typewriter-cursor">|</span>
     </p>
   );
