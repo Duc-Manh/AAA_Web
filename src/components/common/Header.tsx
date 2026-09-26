@@ -7,16 +7,32 @@ export const Header: React.FC = () => {
     <header className="saas-navbar">
       <div className="navbar-content">
         {/* Brand Logo */}
-        <a href="#" className="nav-brand">
+        <a 
+          href="#" 
+          className="nav-brand"
+          onClick={() => {
+            if (window.location.hash) {
+              window.location.hash = '';
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          }}
+        >
           <div className="brand-icon">
             <img src={logo3aHome} alt="3AHOME Logo" className="brand-logo-img" />
           </div>
-
         </a>
 
         {/* Navigation Menu */}
         <nav className="nav-links">
-          <a href="#home">Trang chủ</a>
+          <a 
+            href="#intro"
+            onClick={() => {
+              window.location.hash = '#intro';
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+          >
+            Giới thiệu
+          </a>
           <a href="#solution">Giải pháp</a>
           <a href="#product">Sản phẩm</a>
           <a href="#project">Dự án</a>

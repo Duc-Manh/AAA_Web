@@ -35,7 +35,6 @@ export const Footer: React.FC = () => {
           <h5>Chính sách</h5>
           <a href="#">Chính sách bảo hành</a>
           <a href="#">Chính sách bảo mật</a>
-          <a href="#">Quy chuẩn kỹ thuật</a>
           <a href="#">Chính sách tuyển dụng</a>
           <a href="#">Điều khoản dịch vụ</a>
         </div>
@@ -73,7 +72,6 @@ export const Footer: React.FC = () => {
       <div className="footer-bottom-bar">
         <p>© 2026 3AHOME. All rights reserved.</p>
         <div className="footer-legal-links">
-          <a href="#">Chính sách bảo mật</a>
           <a href="#">Điều khoản sử dụng</a>
           <a href="#">Cài đặt Cookie</a>
         </div>
