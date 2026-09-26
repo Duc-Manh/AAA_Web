@@ -2,15 +2,12 @@ import React, { useEffect } from 'react';
 import { Header } from '../../components/common/Header';
 import { Footer } from '../../components/common/Footer';
 import {
-  Layers,
   Cpu,
   Zap,
   Wind,
   ShieldAlert,
   Sliders,
   CheckCircle2,
-  ArrowRight,
-  Home as HomeIcon,
   Server
 } from 'lucide-react';
 
@@ -96,20 +93,6 @@ export const Solution: React.FC = () => {
       {/* 2. Solution Hero Section */}
       <section className="intro-hero-section">
         <div className="intro-hero-container">
-          <div className="intro-breadcrumb">
-            <a href="#" className="breadcrumb-link">
-              <HomeIcon size={14} />
-              <span>Trang chủ</span>
-            </a>
-            <span className="breadcrumb-separator">/</span>
-            <span className="breadcrumb-current">Giải pháp</span>
-          </div>
-
-          <div className="intro-hero-badge">
-            <Layers size={16} />
-            <span>Giải pháp công nghệ</span>
-          </div>
-
           <h1 className="intro-hero-title">
             Giải pháp Quản lý & Tự động hoá <br />
             Toà nhà Thông minh <span className="brand-name-green">3A</span><span className="brand-name-blue">HOME</span>
@@ -119,16 +102,6 @@ export const Solution: React.FC = () => {
             Hệ sinh thái giải pháp tích hợp toàn diện từ phần mềm giám sát trung tâm đến từng cảm biến và thiết bị điều khiển hiện trường,
             giúp giảm thiểu tối đa năng lượng tiêu thụ và tối ưu hoá chi phí vận hành toà nhà.
           </p>
-
-          <div className="intro-hero-actions">
-            <a href="#trial" className="btn-hero-primary-saas">
-              <span>Đăng ký nhận giải pháp</span>
-              <ArrowRight size={16} />
-            </a>
-            <a href="#" className="btn-hero-outline-saas">
-              <span>Quay lại Trang chủ</span>
-            </a>
-          </div>
         </div>
       </section>
 
