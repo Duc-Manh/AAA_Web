@@ -3762,11 +3762,11 @@ textarea {
   box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
 }
 
-/* Khung "Giới thiệu" đè lên bên phải cạnh trên của khung hiển thị nội dung */
+/* Khung "Giới thiệu" đè lên bên trái cạnh trên của khung hiển thị nội dung */
 .intro-tag-badge {
   position: absolute;
   top: 0;
-  right: 48px;
+  left: 48px;
   transform: translateY(-50%);
   background: linear-gradient(135deg, #105ca8 0%, #2563eb 100%);
   color: #ffffff;
@@ -3805,7 +3805,7 @@ textarea {
   }
 
   .intro-tag-badge {
-    right: 24px;
+    left: 24px;
     padding: 8px 24px;
     font-size: 1rem;
   }
