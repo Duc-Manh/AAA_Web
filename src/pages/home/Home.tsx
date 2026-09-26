@@ -539,70 +539,73 @@ export const Home: React.FC = () => {
 
   const currentHeroProject = SHOWCASE_PROJECTS[heroProjIdx];
 
-  // SplitText effect for BMS Smart Building section header
+  // SplitText effect for BMS Smart Building section header - triggers once on view/refresh
   const bmsHeaderRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const container = bmsHeaderRef.current;
     if (!container) return;
 
-    const h2 = container.querySelector('h2');
-    const p = container.querySelector('p');
-    if (!h2 || !p) return;
+    let tl: any = null;
+    let splitH2: any = null;
+    let splitP: any = null;
+    let hasAnimated = false;
 
-    // Split text with Anime.js v4 splitText
-    const splitH2 = splitText(h2, {
-      words: { wrap: 'clip' },
-      chars: true,
-    });
+    const playRevealAnimation = () => {
+      if (hasAnimated) return;
+      hasAnimated = true;
 
-    const splitP = splitText(p, {
-      words: { wrap: 'clip' },
-      chars: true,
-    });
+      const h2 = container.querySelector('h2');
+      const p = container.querySelector('p');
+      if (!h2 || !p) return;
 
-    const words = [...splitH2.words, ...splitP.words];
-    const chars = [...splitH2.chars, ...splitP.chars];
+      // Split text with Anime.js v4 splitText
+      splitH2 = splitText(h2, {
+        words: { wrap: 'clip' },
+        chars: true,
+      });
 
-    const tl = createTimeline({
-      loop: true,
-      defaults: { ease: 'inOut(3)', duration: 650 },
-    })
-      .add(
-        words,
-        {
-          y: [(el: any) => (+el.dataset.line % 2 ? '100%' : '-100%'), '0%'],
-        },
-        stagger(125)
-      )
-      .add(
-        chars,
-        {
-          y: (el: any) => (+el.dataset.line % 2 ? '100%' : '-100%'),
-        },
-        stagger(10, { from: 'random', start: 1200 })
-      )
-      .init();
+      splitP = splitText(p, {
+        words: { wrap: 'clip' },
+        chars: true,
+      });
+
+      const words = [...splitH2.words, ...splitP.words];
+
+      // Single entrance timeline, no looping, stays permanently displayed
+      tl = createTimeline({
+        loop: false,
+        defaults: { ease: 'inOut(3)', duration: 650 },
+      })
+        .add(
+          words,
+          {
+            y: [(el: any) => (+el.dataset.line % 2 ? '100%' : '-100%'), '0%'],
+          },
+          stagger(100)
+        )
+        .init();
+    };
 
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            tl.play();
-          } else {
-            tl.pause();
+          if (entry.isIntersecting && !hasAnimated) {
+            playRevealAnimation();
+            observer.disconnect();
           }
         });
       },
-      { threshold: 0.1 }
+      { threshold: 0.15 }
     );
+
     observer.observe(container);
 
     return () => {
       observer.disconnect();
-      tl.revert();
-      splitH2.revert();
-      splitP.revert();
+      if (tl) tl.revert();
+      if (splitH2) splitH2.revert();
+      if (splitP) splitP.revert();
     };
   }, []);
 
