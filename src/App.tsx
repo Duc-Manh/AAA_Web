@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { SplashScreen } from './components/common/SplashScreen';
 import { Home } from './pages/home/Home';
 import { Intro } from './pages/intro/Intro';
 import { Solution } from './pages/solution/Solution';
@@ -9,6 +10,7 @@ import { About } from './pages/about/About';
 import { Hire } from './pages/hire/Hire';
 
 export const App: React.FC = () => {
+  const [isLoading, setIsLoading] = useState(true);
   const [currentHash, setCurrentHash] = useState(() => window.location.hash || window.location.pathname);
 
   useEffect(() => {
@@ -38,6 +40,9 @@ export const App: React.FC = () => {
 
   return (
     <div className="app-root">
+      {isLoading && (
+        <SplashScreen duration={2000} onComplete={() => setIsLoading(false)} />
+      )}
       {renderCurrentPage()}
     </div>
   );
