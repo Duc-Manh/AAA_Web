@@ -37,11 +37,6 @@ export const Intro: React.FC = () => {
             Công ty TNHH Công nghệ thông minh <br />
             <span className="brand-name-green">3A</span><span className="brand-name-blue">HOME</span> Việt Nam
           </h1>
-
-          <p className="intro-hero-subtitle">
-            Nhà cung cấp giải pháp và thiết bị tiên phong trong lĩnh vực tự động hoá toà nhà (BMS), 
-            điều khiển thông minh và quản lý năng lượng toàn diện cho các công trình hiện đại tại Việt Nam.
-          </p>
         </div>
       </section>
 
