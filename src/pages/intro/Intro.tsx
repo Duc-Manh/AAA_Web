@@ -44,7 +44,7 @@ export const Intro: React.FC = () => {
       <section className="intro-details-section">
         <div className="intro-details-container">
           <div className="intro-details-box">
-            {/* Khung tên "Giới thiệu" đè lên bên phải cạnh trên */}
+            {/* Khung tên "Giới thiệu" đè lên bên trái cạnh trên */}
             <div className="intro-tag-badge">
               Giới thiệu
             </div>
@@ -62,7 +62,29 @@ export const Intro: React.FC = () => {
         </div>
       </section>
 
-      {/* 4. Footer */}
+      {/* 4. Strategic Partners Section */}
+      <section className="intro-partner-section">
+        <div className="intro-details-container">
+          {/* Khung hiển thị tên Đối tác chiến lược */}
+          <div className="intro-partner-badge">
+            Đối tác chiến lược
+          </div>
+
+          {/* Dưới khung tên là khung hiển thị nội dung */}
+          <div className="intro-details-box intro-partner-box">
+            <div className="intro-details-text">
+              <p>
+                Năm 2019, chúng tôi là đối tác chiến lược của <strong>Optergy - USA</strong> trong việc phân phối và tư vấn giải pháp cho hệ thống tự động hoá toà nhà (BMS) tại Việt Nam.
+              </p>
+              <p>
+                Tháng 12/2020, chúng tôi tiếp tục mở rộng phân khúc sản phẩm với việc trở thành đối tác cung cấp thiết bị hệ thống quản lý toà nhà của hãng <strong>Sauter Controls - Germany</strong>.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Footer */}
       <Footer />
     </div>
   );

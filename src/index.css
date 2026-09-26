@@ -3822,3 +3822,50 @@ textarea {
     text-align: left;
   }
 }
+
+/* ==========================================================================
+   INTRO PARTNER SECTION (KHUNG TÊN ĐỐI TÁC CHIẾN LƯỢC & KHUNG NỘI DUNG)
+   ========================================================================== */
+
+.intro-partner-section {
+  padding: 10px 24px 80px;
+  background: var(--bg-body, #ffffff);
+}
+
+.intro-partner-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #105ca8 0%, #2563eb 100%);
+  color: #ffffff;
+  padding: 10px 32px;
+  border-radius: 999px;
+  font-size: 1.15rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 6px 20px rgba(16, 92, 168, 0.25);
+  margin-bottom: 20px;
+  border: 2px solid #ffffff;
+  user-select: none;
+}
+
+.intro-partner-box {
+  padding: 40px 48px;
+}
+
+.intro-details-text strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+@media (max-width: 768px) {
+  .intro-partner-badge {
+    padding: 8px 24px;
+    font-size: 1rem;
+    margin-bottom: 16px;
+  }
+
+  .intro-partner-box {
+    padding: 32px 24px;
+  }
+}
