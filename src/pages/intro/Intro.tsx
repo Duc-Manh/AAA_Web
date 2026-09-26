@@ -45,7 +45,29 @@ export const Intro: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. Footer */}
+      {/* 3. Intro Details Section */}
+      <section className="intro-details-section">
+        <div className="intro-details-container">
+          <div className="intro-details-box">
+            {/* Khung tên "Giới thiệu" đè lên bên phải cạnh trên */}
+            <div className="intro-tag-badge">
+              Giới thiệu
+            </div>
+
+            {/* Khung hiển thị nội dung */}
+            <div className="intro-details-text">
+              <p>
+                Công ty TNHH Công Nghệ Thông Minh <span className="brand-name-green" style={{ color: '#0b8645', fontWeight: 600 }}>3A</span><span className="brand-name-blue" style={{ color: '#105ca8', fontWeight: 600 }}>Home</span> Việt Nam là một trong những nhà cung cấp giải pháp và thiết bị trong lĩnh vực tự động hoá, điều khiển.
+              </p>
+              <p>
+                Với bề dày kinh nghiệm, năng lực của mình cùng nguồn nhân lực có chuyên môn cao, chúng tôi tư vấn cho khách hàng những giải pháp tối ưu, vừa đáp ứng yêu cầu kỹ thuật vừa phù hợp với chi phí đầu tư. Giải pháp của chúng tôi dựa trên sản phẩm của các thương hiệu công nghệ hàng đầu thế giới, đảm bảo sử dụng công nghệ tự động hoá tiên tiến nhất, giúp nâng cao hiệu quả sử dụng cũng như giá trị công trình.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 4. Footer */}
       <Footer />
     </div>
   );
