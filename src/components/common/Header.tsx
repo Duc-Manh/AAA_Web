@@ -1,8 +1,50 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowRight } from 'lucide-react';
 import logo3aHome from '../../assets/images/logo_3ahome.png';
 
+interface NavItem {
+  id: string;
+  name: string;
+}
+
+const NAV_ITEMS: NavItem[] = [
+  { id: '#intro', name: 'Giới thiệu' },
+  { id: '#solution', name: 'Giải pháp' },
+  { id: '#product', name: 'Sản phẩm' },
+  { id: '#project', name: 'Dự án' },
+  { id: '#news', name: 'Tin tức' },
+  { id: '#about', name: 'Về chúng tôi' },
+  { id: '#hire', name: 'Tuyển dụng' },
+];
+
 export const Header: React.FC = () => {
+  const [currentHash, setCurrentHash] = useState(() => window.location.hash || window.location.pathname);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      setCurrentHash(window.location.hash || window.location.pathname);
+    };
+
+    window.addEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleHashChange);
+
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handleHashChange);
+    };
+  }, []);
+
+  const navigateTo = (hash: string) => {
+    setCurrentHash(hash);
+    window.location.hash = hash;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const isItemActive = (id: string) => {
+    const cleanId = id.replace('#', '');
+    return currentHash === id || currentHash === `/${cleanId}`;
+  };
+
   return (
     <header className="saas-navbar">
       <div className="navbar-content">
@@ -10,11 +52,9 @@ export const Header: React.FC = () => {
         <a 
           href="#" 
           className="nav-brand"
-          onClick={() => {
-            if (window.location.hash) {
-              window.location.hash = '';
-            }
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+          onClick={(e) => {
+            e.preventDefault();
+            navigateTo('');
           }}
         >
           <div className="brand-icon">
@@ -24,69 +64,31 @@ export const Header: React.FC = () => {
 
         {/* Navigation Menu */}
         <nav className="nav-links">
-          <a 
-            href="#intro"
-            onClick={() => {
-              window.location.hash = '#intro';
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          >
-            Giới thiệu
-          </a>
-          <a 
-            href="#solution"
-            onClick={() => {
-              window.location.hash = '#solution';
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          >
-            Giải pháp
-          </a>
-          <a 
-            href="#product"
-            onClick={() => {
-              window.location.hash = '#product';
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          >
-            Sản phẩm
-          </a>
-          <a 
-            href="#project"
-            onClick={() => {
-              window.location.hash = '#project';
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          >
-            Dự án
-          </a>
-          <a 
-            href="#news"
-            onClick={() => {
-              window.location.hash = '#news';
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          >
-            Tin tức
-          </a>
-          <a 
-            href="#about"
-            onClick={() => {
-              window.location.hash = '#about';
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          >
-            Về chúng tôi
-          </a>
-          <a 
-            href="#hire"
-            onClick={() => {
-              window.location.hash = '#hire';
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-          >
-            Tuyển dụng
-          </a>
+          {NAV_ITEMS.map((item) => {
+            const active = isItemActive(item.id);
+            return (
+              <a
+                key={item.id}
+                href={item.id}
+                className={active ? 'active' : ''}
+                style={
+                  active
+                    ? {
+                        color: '#105ca8',
+                        transform: 'translateY(3px)',
+                        fontWeight: 700,
+                      }
+                    : undefined
+                }
+                onClick={(e) => {
+                  e.preventDefault();
+                  navigateTo(item.id);
+                }}
+              >
+                {item.name}
+              </a>
+            );
+          })}
         </nav>
 
         {/* Right Action Buttons */}

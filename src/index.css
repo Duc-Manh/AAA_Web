@@ -296,11 +296,18 @@ textarea {
   font-size: 1.05rem;
   font-weight: 500;
   color: var(--text-muted);
-  transition: color 0.2s ease;
+  display: inline-block;
+  transition: color 0.2s ease, transform 0.2s ease;
 }
 
 .nav-links a:hover {
   color: var(--color-primary);
+}
+
+.nav-links a.active {
+  color: #105ca8 !important;
+  font-weight: 700;
+  transform: translateY(3px) !important;
 }
 
 .nav-actions {
