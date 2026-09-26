@@ -94,13 +94,11 @@ export const Solution: React.FC = () => {
       <section className="intro-hero-section">
         <div className="intro-hero-container">
           <h1 className="intro-hero-title">
-            Giải pháp Quản lý & Tự động hoá <br />
-            Toà nhà Thông minh <span className="brand-name-green">3A</span><span className="brand-name-blue">HOME</span>
+            <span className="brand-name-blue">Giải pháp và Dịch vụ</span>
           </h1>
 
           <p className="intro-hero-subtitle">
-            Hệ sinh thái giải pháp tích hợp toàn diện từ phần mềm giám sát trung tâm đến từng cảm biến và thiết bị điều khiển hiện trường,
-            giúp giảm thiểu tối đa năng lượng tiêu thụ và tối ưu hoá chi phí vận hành toà nhà.
+            Cung cấp dịch vụ trọn gói từ tư vấn, thiết kế, cung cấp thiết bị đến triển khai và bảo trì hệ thống BMS/HVAC.
           </p>
         </div>
       </section>
@@ -108,11 +106,6 @@ export const Solution: React.FC = () => {
       {/* 3. Solution Cards Grid */}
       <section className="intro-content-section">
         <div className="intro-content-container">
-          <div className="section-header-centered">
-            <h2 className="gradient-flow-title">Danh mục Giải pháp Trọng tâm</h2>
-            <p>Được thiết kế linh hoạt, đáp ứng mọi quy mô toà nhà văn phòng, chung cư cao cấp, bệnh viện và khu công nghiệp.</p>
-          </div>
-
           <div className="intro-grid-two-col" style={{ gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))', gap: '24px' }}>
             {solutions.map((item, idx) => (
               <div key={idx} className="intro-card-box highlight" style={{ display: 'flex', flexDirection: 'column' }}>
