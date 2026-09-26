@@ -192,6 +192,28 @@ textarea {
   line-height: 1.6;
 }
 
+.typewriter-p {
+  min-height: 1.6em;
+  display: inline-block;
+}
+
+.typewriter-cursor {
+  display: inline-block;
+  margin-left: 2px;
+  font-weight: 300;
+  color: var(--color-primary);
+  animation: typewriterBlink 0.85s infinite;
+}
+
+@keyframes typewriterBlink {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
 /* ==========================================================================
    1. TOP NAVIGATION BAR
    ========================================================================== */

@@ -336,6 +336,79 @@ const AnimatedStatNumber: React.FC<AnimatedStatNumberProps> = ({ target, suffix 
   );
 };
 
+interface TypewriterTextProps {
+  text: string;
+  speed?: number;
+  deleteSpeed?: number;
+  pauseDuration?: number;
+}
+
+const TypewriterText: React.FC<TypewriterTextProps> = ({
+  text,
+  speed = 45,
+  deleteSpeed = 22,
+  pauseDuration = 3500,
+}) => {
+  const [displayText, setDisplayText] = useState('');
+  const [isDeleting, setIsDeleting] = useState(false);
+  const containerRef = useRef<HTMLParagraphElement>(null);
+  const [hasStarted, setHasStarted] = useState(false);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setHasStarted(true);
+        }
+      },
+      { threshold: 0.15 }
+    );
+
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!hasStarted) return;
+
+    let timeout: ReturnType<typeof setTimeout>;
+
+    if (!isDeleting) {
+      if (displayText.length < text.length) {
+        timeout = setTimeout(() => {
+          setDisplayText(text.slice(0, displayText.length + 1));
+        }, speed);
+      } else {
+        timeout = setTimeout(() => {
+          setIsDeleting(true);
+        }, pauseDuration);
+      }
+    } else {
+      if (displayText.length > 0) {
+        timeout = setTimeout(() => {
+          setDisplayText(text.slice(0, displayText.length - 1));
+        }, deleteSpeed);
+      } else {
+        timeout = setTimeout(() => {
+          setIsDeleting(false);
+        }, 500);
+      }
+    }
+
+    return () => clearTimeout(timeout);
+  }, [displayText, isDeleting, hasStarted, text, speed, deleteSpeed, pauseDuration]);
+
+  return (
+    <p ref={containerRef} className="typewriter-p">
+      {displayText}
+      <span className="typewriter-cursor">|</span>
+    </p>
+  );
+};
+
 export const Home: React.FC = () => {
   // State for consultation request form
   const [consultForm, setConsultForm] = useState({
@@ -752,7 +825,7 @@ export const Home: React.FC = () => {
         <div className="news-showcase-container">
           <div className="section-header-centered">
             <h2 className="gradient-flow-title">Tin tức và Sự kiện</h2>
-            <p>Cập nhật xu hướng công nghệ và các hoạt động nổi bật từ 3AHOME.</p>
+            <TypewriterText text="Cập nhật xu hướng công nghệ và các hoạt động nổi bật từ 3AHOME." />
           </div>
 
           <div className="news-two-col-layout">
