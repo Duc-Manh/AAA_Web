@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { splitText, createTimeline, stagger } from 'animejs';
 import { Header } from '../../components/common/Header';
 import { Footer } from '../../components/common/Footer';
 import { SmartBuilding3D } from '../../components/home/SmartBuilding3D';
@@ -538,6 +539,73 @@ export const Home: React.FC = () => {
 
   const currentHeroProject = SHOWCASE_PROJECTS[heroProjIdx];
 
+  // SplitText effect for BMS Smart Building section header
+  const bmsHeaderRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = bmsHeaderRef.current;
+    if (!container) return;
+
+    const h2 = container.querySelector('h2');
+    const p = container.querySelector('p');
+    if (!h2 || !p) return;
+
+    // Split text with Anime.js v4 splitText
+    const splitH2 = splitText(h2, {
+      words: { wrap: 'clip' },
+      chars: true,
+    });
+
+    const splitP = splitText(p, {
+      words: { wrap: 'clip' },
+      chars: true,
+    });
+
+    const words = [...splitH2.words, ...splitP.words];
+    const chars = [...splitH2.chars, ...splitP.chars];
+
+    const tl = createTimeline({
+      loop: true,
+      defaults: { ease: 'inOut(3)', duration: 650 },
+    })
+      .add(
+        words,
+        {
+          y: [(el: any) => (+el.dataset.line % 2 ? '100%' : '-100%'), '0%'],
+        },
+        stagger(125)
+      )
+      .add(
+        chars,
+        {
+          y: (el: any) => (+el.dataset.line % 2 ? '100%' : '-100%'),
+        },
+        stagger(10, { from: 'random', start: 1200 })
+      )
+      .init();
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            tl.play();
+          } else {
+            tl.pause();
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+    observer.observe(container);
+
+    return () => {
+      observer.disconnect();
+      tl.revert();
+      splitH2.revert();
+      splitP.revert();
+    };
+  }, []);
+
   return (
     <div className="landing-page-root">
       {/* 1. TOP NAVIGATION BAR */}
@@ -802,7 +870,7 @@ export const Home: React.FC = () => {
           6. SECTION 4: 3D HIGH-RISE SMART BUILDING
          =================================================================== */}
       <section className="features-grid-section">
-        <div className="section-header-centered">
+        <div className="section-header-centered" ref={bmsHeaderRef}>
           <h2 className="brand-name-blue">Hệ thống quản lý toà nhà thông minh</h2>
           <p>Cung cấp đầy đủ phần mềm đến thiết bị điều khiển và cảm biến.</p>
         </div>
