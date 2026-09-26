@@ -3120,7 +3120,14 @@ textarea {
   font-size: 0.92rem;
   font-weight: 700;
   color: #0f172a;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
+}
+
+.footer-address-text {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
 }
 
 .footer-map-frame {

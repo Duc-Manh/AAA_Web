@@ -40,7 +40,8 @@ export const Footer: React.FC = () => {
         </div>
 
         <div className="footer-map-column">
-          <h5>Bản đồ vị trí</h5>
+          <h5>Văn phòng Đà Nẵng</h5>
+          <p className="footer-address-text">Địa chỉ: 698 Nguyễn Lương Bằng, P.Hải Vân, TP. Đà Nẵng</p>
           <div className="footer-map-frame">
             <iframe
               title="Bản đồ vị trí 3AHOME"
