@@ -4,7 +4,6 @@ import { Footer } from '../../components/common/Footer';
 import { Collect } from '../../components/common/Collect';
 import { Entertain } from '../../components/common/Entertain';
 import { 
-  Cpu, 
   Wind, 
   Zap, 
   Gauge, 
@@ -55,11 +54,6 @@ export const Simu: React.FC = () => {
       {/* 2. Simu Hero Banner */}
       <section className="simu-hero-section">
         <div className="simu-hero-container">
-          <div className="simu-hero-badge">
-            <Cpu size={16} />
-            <span>Phòng Mô Phỏng Trực Tuyến 3AHOME</span>
-          </div>
-
           <h1 className="simu-hero-title">
             Mô phỏng Vận hành Toà nhà Thông minh <br />
             <span className="brand-name-green">3A</span><span className="brand-name-blue">HOME</span> SCADA / BMS
