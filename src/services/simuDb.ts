@@ -13,30 +13,7 @@ const DB_VERSION = 1;
 const STORE_NAME = 'simu';
 const STORAGE_BACKUP_KEY = '3ahome_simu_db';
 
-// Mở kết nối IndexedDB "3ahome"
-function openDb(): Promise<IDBDatabase> {
-  return new Promise((resolve, reject) => {
-    if (typeof window === 'undefined' || !window.indexedDB) {
-      reject(new Error('IndexedDB không được hỗ trợ trong trình duyệt này.'));
-      return;
-    }
-
-    const request = window.indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onupgradeneeded = () => {
-      const db = request.result;
-      if (!db.objectStoreNames.contains(STORE_NAME)) {
-        // Tạo bảng simu với cột id tự động tăng
-        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
-      }
-    };
-
-    request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
-}
-
-// Định dạng thời gian hiện tại
+// Định dạng thời gian
 export function getCurrentFormattedTime(): string {
   const now = new Date();
   const pad = (n: number) => n.toString().padStart(2, '0');
@@ -49,8 +26,56 @@ export function getCurrentFormattedTime(): string {
   return `${h}:${min}:${s} ${d}/${m}/${y}`;
 }
 
-// Đọc danh sách bản ghi từ IndexedDB (kèm fallback LocalStorage)
+export function formatDbTime(timeVal: any): string {
+  if (!timeVal) return getCurrentFormattedTime();
+  if (typeof timeVal === 'string' && timeVal.includes('/')) return timeVal;
+  const d = new Date(timeVal);
+  if (isNaN(d.getTime())) return String(timeVal);
+  const pad = (n: number) => n.toString().padStart(2, '0');
+  return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+}
+
+// Mở kết nối IndexedDB "3ahome" (Dự phòng khi offline)
+function openDb(): Promise<IDBDatabase> {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined' || !window.indexedDB) {
+      reject(new Error('IndexedDB không được hỗ trợ trong trình duyệt này.'));
+      return;
+    }
+
+    const request = window.indexedDB.open(DB_NAME, DB_VERSION);
+
+    request.onupgradeneeded = () => {
+      const db = request.result;
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { keyPath: 'id', autoIncrement: true });
+      }
+    };
+
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// Đọc danh sách bản ghi: Ưu tiên API MySQL Server -> dự phòng IndexedDB/LocalStorage
 export async function getAllSimuRecords(): Promise<SimuRecord[]> {
+  try {
+    const res = await fetch('/api/simu');
+    if (res.ok) {
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        const records: SimuRecord[] = json.data.map((r: any) => ({
+          ...r,
+          time: formatDbTime(r.time),
+        }));
+        localStorage.setItem(STORAGE_BACKUP_KEY, JSON.stringify(records));
+        return records;
+      }
+    }
+  } catch (err) {
+    console.warn('[simuDb] Không thể kết nối API MySQL, chuyển sang đọc IndexedDB:', err);
+  }
+
   try {
     const db = await openDb();
     return new Promise((resolve) => {
@@ -67,7 +92,6 @@ export async function getAllSimuRecords(): Promise<SimuRecord[]> {
       };
 
       req.onerror = () => {
-        // Fallback đọc từ LocalStorage
         const backup = localStorage.getItem(STORAGE_BACKUP_KEY);
         resolve(backup ? JSON.parse(backup) : []);
       };
@@ -78,7 +102,7 @@ export async function getAllSimuRecords(): Promise<SimuRecord[]> {
   }
 }
 
-// Lưu hoặc cập nhật người dùng vào database 3ahome bảng simu
+// Lưu hoặc cập nhật người dùng vào MySQL Server database 3ahome bảng simu
 export async function saveOrUpdateSimuUser(
   fullName: string,
   email: string,
@@ -89,9 +113,41 @@ export async function saveOrUpdateSimuUser(
   const cleanPhone = phone.trim();
   const currentTime = getCurrentFormattedTime();
 
+  // 1. Thử gửi trực tiếp đến Backend MySQL Server qua /api/simu
+  try {
+    const res = await fetch('/api/simu', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        full_name: cleanName,
+        email: cleanEmail,
+        phone: cleanPhone,
+      }),
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      if (data.success && data.record) {
+        const record: SimuRecord = {
+          ...data.record,
+          time: formatDbTime(data.record.time),
+        };
+
+        // Lưu session người dùng hiện tại
+        localStorage.setItem('current_simu_user', JSON.stringify(record));
+        return {
+          isReturning: !!data.isReturning,
+          record,
+        };
+      }
+    }
+  } catch (apiErr) {
+    console.warn('[simuDb] Gặp lỗi khi gọi MySQL API /api/simu, sử dụng cơ chế lưu dự phòng:', apiErr);
+  }
+
+  // 2. Dự phòng khi MySQL Server chưa bật hoặc không có kết nối backend:
   const allRecords = await getAllSimuRecords();
 
-  // Quét database kiểm tra trùng khớp Họ tên, Email, Số điện thoại
   const existingRecord = allRecords.find((rec) => {
     const matchName = rec.full_name.trim().toLowerCase() === cleanName.toLowerCase();
     const matchEmail = rec.email.trim().toLowerCase() === cleanEmail.toLowerCase();
@@ -100,7 +156,6 @@ export async function saveOrUpdateSimuUser(
   });
 
   if (existingRecord && existingRecord.id !== undefined) {
-    // Đã tồn tại: count tiếp tục tăng lên 1, cập nhật thời gian
     const updatedRecord: SimuRecord = {
       ...existingRecord,
       time: currentTime,
@@ -117,17 +172,15 @@ export async function saveOrUpdateSimuUser(
         putReq.onerror = () => reject(putReq.error);
       });
     } catch (e) {
-      console.warn('Lỗi ghi IndexedDB, lưu fallback LocalStorage:', e);
+      console.warn('Lỗi ghi IndexedDB:', e);
     }
 
-    // Đồng bộ LocalStorage backup
     const updatedList = allRecords.map((r) => (r.id === existingRecord.id ? updatedRecord : r));
     localStorage.setItem(STORAGE_BACKUP_KEY, JSON.stringify(updatedList));
     localStorage.setItem('current_simu_user', JSON.stringify(updatedRecord));
 
     return { isReturning: true, record: updatedRecord };
   } else {
-    // Người dùng mới: id tự động tăng, time lưu thời điểm bấm, count = 1
     const newRecord: Omit<SimuRecord, 'id'> = {
       time: currentTime,
       full_name: cleanName,
@@ -150,7 +203,6 @@ export async function saveOrUpdateSimuUser(
 
       insertedRecord = { ...newRecord, id: newId };
     } catch {
-      // Fallback tính id kế tiếp
       const nextId = allRecords.length > 0 ? Math.max(...allRecords.map((r) => r.id || 0)) + 1 : 1;
       insertedRecord = { ...newRecord, id: nextId };
     }
