@@ -444,12 +444,36 @@ export const Building3D: React.FC = () => {
         <div className="simu-3d-overlay-top">
           <div className="simu-3d-badge">
             <span className="dot-pulse"></span>
-            <span>MÔ HÌNH 3D WIREFRAME TOÀ NHÀ 3 TẦNG (SCADA / BMS)</span>
+            <span>MÔ HÌNH 3D TOÀ NHÀ 3 TẦNG</span>
           </div>
 
-          <div className="simu-3d-hint">
-            <Compass size={14} />
-            <span>Kéo chuột để xoay 360° • Cuộn chuột để thu phóng</span>
+          {/* Floor Quick Navigation Selector */}
+          <div className="simu-3d-floors-panel">
+            <div className="floor-nav-title">Cấu trúc 3 tầng:</div>
+            <button
+              type="button"
+              className={`floor-btn ${selectedFloor === 2 ? 'active' : ''}`}
+              onClick={() => setSelectedFloor(selectedFloor === 2 ? null : 2)}
+            >
+              <span className="floor-tag">TẦNG 3</span>
+              <span className="floor-name">Trung tâm Điều hành BMS</span>
+            </button>
+            <button
+              type="button"
+              className={`floor-btn ${selectedFloor === 1 ? 'active' : ''}`}
+              onClick={() => setSelectedFloor(selectedFloor === 1 ? null : 1)}
+            >
+              <span className="floor-tag">TẦNG 2</span>
+              <span className="floor-name">Văn phòng Thông minh</span>
+            </button>
+            <button
+              type="button"
+              className={`floor-btn ${selectedFloor === 0 ? 'active' : ''}`}
+              onClick={() => setSelectedFloor(selectedFloor === 0 ? null : 0)}
+            >
+              <span className="floor-tag">TẦNG 1</span>
+              <span className="floor-name">Cảm biến 1 </span>
+            </button>
           </div>
         </div>
 
@@ -494,33 +518,9 @@ export const Building3D: React.FC = () => {
           </button>
         </div>
 
-        {/* Floor Quick Navigation Selector */}
-        <div className="simu-3d-floors-panel">
-          <div className="floor-nav-title">Cấu trúc 3 tầng:</div>
-          <button
-            type="button"
-            className={`floor-btn ${selectedFloor === 2 ? 'active' : ''}`}
-            onClick={() => setSelectedFloor(selectedFloor === 2 ? null : 2)}
-          >
-            <span className="floor-tag">TẦNG 3</span>
-            <span className="floor-name">Trung tâm Điều hành BMS</span>
-          </button>
-          <button
-            type="button"
-            className={`floor-btn ${selectedFloor === 1 ? 'active' : ''}`}
-            onClick={() => setSelectedFloor(selectedFloor === 1 ? null : 1)}
-          >
-            <span className="floor-tag">TẦNG 2</span>
-            <span className="floor-name">Văn phòng Thông minh</span>
-          </button>
-          <button
-            type="button"
-            className={`floor-btn ${selectedFloor === 0 ? 'active' : ''}`}
-            onClick={() => setSelectedFloor(selectedFloor === 0 ? null : 0)}
-          >
-            <span className="floor-tag">TẦNG 1</span>
-            <span className="floor-name">Sảnh Lễ tân & Triển lãm</span>
-          </button>
+        <div className="simu-3d-hint">
+          <Compass size={14} />
+          <span>Kéo chuột để xoay 360° • Cuộn chuột để thu phóng</span>
         </div>
       </div>
     </div>
