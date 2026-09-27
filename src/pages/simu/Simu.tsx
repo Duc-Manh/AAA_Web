@@ -75,7 +75,7 @@ export const Simu: React.FC = () => {
       {/* 4. Bảng hiển thị thông tin thiết bị và thông số đo được của từng tầng */}
       <section className="simu-device-table-section">
         <div className="simu-content-container">
-          <FloorDeviceTable selectedFloor={selectedFloor} onSelectFloor={setSelectedFloor} />
+          <FloorDeviceTable selectedFloor={selectedFloor} />
         </div>
       </section>
 

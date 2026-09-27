@@ -1,10 +1,10 @@
 import React from 'react';
-import { 
-  Cpu, 
-  Activity, 
-  CheckCircle2, 
-  Clock, 
-  Layers, 
+import {
+  Cpu,
+  Activity,
+  CheckCircle2,
+  Clock,
+  Layers,
   Radio
 } from 'lucide-react';
 
@@ -23,13 +23,13 @@ export interface DeviceData {
 
 const FLOOR_DATA: Record<number, { title: string; subtitle: string; devices: DeviceData[] }> = {
   0: {
-    title: 'TẦNG 1 - KHU VỰC SẢNH TIẾP ĐÓN & TRIỂN LÃM',
-    subtitle: 'Bố trí Cảm biến 1, Cảm biến 2, Cảm biến 3 và các thiết bị điều tiết sảnh chính',
+    title: 'TẦNG 1',
+    subtitle: 'Cảm biến 1, Cảm biến 2, Cảm biến 3, ...',
     devices: [
       {
         id: 'CB-01',
-        name: 'Cảm biến 1: Cảm biến Nhiệt độ Sảnh lễ tân',
-        location: 'Khu vực quầy lễ tân & Cửa đón khách chính',
+        name: 'Cảm biến 1',
+        location: 'Khu vực quầy lễ tân và Cửa đón khách chính',
         type: 'Nhiệt độ môi trường',
         value: '24.2 °C',
         standard: '22.0 - 26.0 °C',
@@ -40,7 +40,7 @@ const FLOOR_DATA: Record<number, { title: string; subtitle: string; devices: Dev
       },
       {
         id: 'CB-02',
-        name: 'Cảm biến 2: Cảm biến Độ ẩm Sảnh trung tâm',
+        name: 'Cảm biến 2',
         location: 'Không gian sảnh tiếp khách tầng 1',
         type: 'Độ ẩm không khí vi khí hậu',
         value: '56.5 %RH',
@@ -52,7 +52,7 @@ const FLOOR_DATA: Record<number, { title: string; subtitle: string; devices: Dev
       },
       {
         id: 'CB-03',
-        name: 'Cảm biến 3: Cảm biến Chuyển động & Đếm người ra vào',
+        name: 'Cảm biến 3',
         location: 'Khu vực cửa kính tự động sảnh chính',
         type: 'Radar vi sóng & PIR phát hiện chuyển động',
         value: '18 lượt / giờ',
@@ -64,7 +64,7 @@ const FLOOR_DATA: Record<number, { title: string; subtitle: string; devices: Dev
       },
       {
         id: 'TB-01',
-        name: 'Thiết bị 1: Van tuyến tính điều tiết nước lạnh FCU',
+        name: 'Thiết bị 1',
         location: 'Trần giả sảnh chính tầng 1',
         type: 'Điều khiển làm mát tự động PID',
         value: 'Độ mở 42 %',
@@ -76,7 +76,7 @@ const FLOOR_DATA: Record<number, { title: string; subtitle: string; devices: Dev
       },
       {
         id: 'TB-02',
-        name: 'Thiết bị 2: Đồng hồ đo đếm điện năng Tầng 1',
+        name: 'Thiết bị 2',
         location: 'Tủ điện hạ thế phân phối DB-F1',
         type: 'Đo lường điện năng 3 pha đa chức năng',
         value: '14.6 kW (Cosφ = 0.96)',
@@ -89,12 +89,12 @@ const FLOOR_DATA: Record<number, { title: string; subtitle: string; devices: Dev
     ],
   },
   1: {
-    title: 'TẦNG 2 - KHU VỰC VĂN PHÒNG LÀM VIỆC THÔNG MINH',
-    subtitle: 'Bố trí Cảm biến 4, Cảm biến 5 và hệ thống kiểm soát vi khí hậu làm việc',
+    title: 'TẦNG 2',
+    subtitle: 'Cảm biến 4, Cảm biến 5, ...',
     devices: [
       {
         id: 'CB-04',
-        name: 'Cảm biến 4: Cảm biến Nồng độ CO2 Vi khí hậu',
+        name: 'Cảm biến 4',
         location: 'Khu vực làm việc mở (Open Workspace)',
         type: 'Đo nồng độ CO2 quang học (NDIR)',
         value: '515 ppm',
@@ -106,7 +106,7 @@ const FLOOR_DATA: Record<number, { title: string; subtitle: string; devices: Dev
       },
       {
         id: 'CB-05',
-        name: 'Cảm biến 5: Cảm biến Nhiệt độ Phòng làm việc',
+        name: 'Cảm biến 5',
         location: 'Khu làm việc trung tâm tầng 2',
         type: 'Nhiệt độ tiện nghi văn phòng',
         value: '23.6 °C',
@@ -155,12 +155,12 @@ const FLOOR_DATA: Record<number, { title: string; subtitle: string; devices: Dev
     ],
   },
   2: {
-    title: 'TẦNG 3 - TRUNG TÂM ĐIỀU HÀNH BMS / SCADA & PHÒNG MÁY CHỦ',
-    subtitle: 'Bố trí Cảm biến 6, Cảm biến 7, Cảm biến an toàn kỹ thuật cao',
+    title: 'TẦNG 3',
+    subtitle: 'Cảm biến 6, Cảm biến 7, ...',
     devices: [
       {
         id: 'CB-06',
-        name: 'Cảm biến 6: Cảm biến Nhiệt độ Phòng Server & Điều hành',
+        name: 'Cảm biến 6',
         location: 'Racks trung tâm phòng máy chủ Tầng 3',
         type: 'Nhiệt độ chính xác cao phòng kỹ thuật',
         value: '20.5 °C',
@@ -172,7 +172,7 @@ const FLOOR_DATA: Record<number, { title: string; subtitle: string; devices: Dev
       },
       {
         id: 'CB-07',
-        name: 'Cảm biến 7: Cảm biến Độ ẩm Phòng Máy chủ',
+        name: 'Cảm biến 7',
         location: 'Khu vực cụm máy chủ & UPS',
         type: 'Độ ẩm chống tĩnh điện phòng Server',
         value: '48.5 %RH',
@@ -184,7 +184,7 @@ const FLOOR_DATA: Record<number, { title: string; subtitle: string; devices: Dev
       },
       {
         id: 'CB-08',
-        name: 'Cảm biến 8: Cảm biến Phát hiện rò rỉ nước (Water Leak)',
+        name: 'Cảm biến 8',
         location: 'Dưới sàn nâng kỹ thuật phòng máy Tầng 3',
         type: 'Dây dò rò rỉ chất lỏng',
         value: '0% (Khô ráo 100%)',
@@ -196,7 +196,7 @@ const FLOOR_DATA: Record<number, { title: string; subtitle: string; devices: Dev
       },
       {
         id: 'CB-09',
-        name: 'Cảm biến 9: Cảm biến Khói quang học & Báo cháy sớm',
+        name: 'Cảm biến 9',
         location: 'Trần phòng điều hành trung tâm Tầng 3',
         type: 'Cảnh báo sớm PCCC quang điện tử',
         value: '0.01 mg/m³ (Môi trường sạch)',
@@ -208,7 +208,7 @@ const FLOOR_DATA: Record<number, { title: string; subtitle: string; devices: Dev
       },
       {
         id: 'TB-05',
-        name: 'Thiết bị 5: Máy lạnh chính xác PAC Phòng Server',
+        name: 'Thiết bị 5',
         location: 'Phòng kỹ thuật lạnh Tầng 3',
         type: 'Điều hòa chính xác Precision Air Cooling',
         value: 'Nhiệt độ gió cấp 16.2 °C • Tải 62%',
@@ -220,7 +220,7 @@ const FLOOR_DATA: Record<number, { title: string; subtitle: string; devices: Dev
       },
       {
         id: 'TB-06',
-        name: 'Thiết bị 6: Tủ cấp nguồn liên tục UPS 3-Phase BMS',
+        name: 'Thiết bị 6',
         location: 'Phòng nguồn điện phụ trợ Tầng 3',
         type: 'Bộ lưu điện Online Double Conversion',
         value: 'Dung lượng Pin 100% • Tải 38%',
@@ -241,13 +241,12 @@ interface FloorDeviceTableProps {
 
 export const FloorDeviceTable: React.FC<FloorDeviceTableProps> = ({
   selectedFloor,
-  onSelectFloor,
 }) => {
   const currentFloorData = FLOOR_DATA[selectedFloor] || FLOOR_DATA[0];
 
   return (
     <div className="simu-floor-table-wrapper">
-      {/* Header controls & Quick switcher */}
+      {/* Header info */}
       <div className="table-top-bar">
         <div className="table-info-col">
           <div className="table-badge">
@@ -256,30 +255,6 @@ export const FloorDeviceTable: React.FC<FloorDeviceTableProps> = ({
           </div>
           <h2 className="table-main-title">{currentFloorData.title}</h2>
           <p className="table-subtitle">{currentFloorData.subtitle}</p>
-        </div>
-
-        {/* Floor selection buttons synchronized with 3D model */}
-        <div className="table-floor-selector">
-          <span className="selector-label">Chọn tầng hiển thị:</span>
-          <div className="selector-btn-group">
-            {[0, 1, 2].map((fIndex) => (
-              <button
-                key={fIndex}
-                type="button"
-                className={`table-floor-tab-btn ${selectedFloor === fIndex ? 'active' : ''}`}
-                onClick={() => onSelectFloor && onSelectFloor(fIndex)}
-              >
-                <span className="tab-tag">TẦNG {fIndex + 1}</span>
-                <span className="tab-name">
-                  {fIndex === 0
-                    ? 'Cảm biến 1, 2, ...'
-                    : fIndex === 1
-                    ? 'Cảm biến 4, 5, ...'
-                    : 'Cảm biến 6, 7, ...'}
-                </span>
-              </button>
-            ))}
-          </div>
         </div>
       </div>
 
@@ -304,8 +279,8 @@ export const FloorDeviceTable: React.FC<FloorDeviceTableProps> = ({
                 dev.status === 'safe'
                   ? 'status-safe'
                   : dev.status === 'active'
-                  ? 'status-active'
-                  : 'status-normal';
+                    ? 'status-active'
+                    : 'status-normal';
 
               return (
                 <tr key={dev.id} className="device-row">
