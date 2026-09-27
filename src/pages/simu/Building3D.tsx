@@ -2,10 +2,28 @@ import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { RotateCw, ZoomIn, ZoomOut, Compass, Play, Pause } from 'lucide-react';
 
-export const Building3D: React.FC = () => {
+export interface Building3DProps {
+  selectedFloor?: number;
+  onSelectFloor?: (floor: number) => void;
+}
+
+export const Building3D: React.FC<Building3DProps> = ({
+  selectedFloor: propSelectedFloor,
+  onSelectFloor,
+}) => {
   const mountRef = useRef<HTMLDivElement | null>(null);
   const [autoRotate, setAutoRotate] = useState(true);
-  const [selectedFloor, setSelectedFloor] = useState<number | null>(null);
+  const [internalFloor, setInternalFloor] = useState<number>(0);
+
+  const selectedFloor = propSelectedFloor !== undefined ? propSelectedFloor : internalFloor;
+
+  const handleFloorClick = (floor: number) => {
+    if (onSelectFloor) {
+      onSelectFloor(floor);
+    } else {
+      setInternalFloor(floor);
+    }
+  };
 
   // References to keep animation and interaction state
   const isDraggingRef = useRef(false);
@@ -414,19 +432,6 @@ export const Building3D: React.FC = () => {
     };
   }, []);
 
-  // Floor Selection effect
-  useEffect(() => {
-    floorGroupsRef.current.forEach((fg, idx) => {
-      if (selectedFloor === null) {
-        fg.position.y = 0;
-      } else if (idx === selectedFloor) {
-        fg.position.y = 0.5; // elevate selected floor
-      } else {
-        fg.position.y = 0;
-      }
-    });
-  }, [selectedFloor]);
-
   const handleResetView = () => {
     targetRotationRef.current = { x: 0.25, y: -0.6 };
     targetZoomRef.current = 22;
@@ -449,30 +454,30 @@ export const Building3D: React.FC = () => {
 
           {/* Floor Quick Navigation Selector */}
           <div className="simu-3d-floors-panel">
-            <div className="floor-nav-title">Cấu trúc 3 tầng:</div>
+            <div className="floor-nav-title">Bố trí thiết bị:</div>
             <button
               type="button"
               className={`floor-btn ${selectedFloor === 2 ? 'active' : ''}`}
-              onClick={() => setSelectedFloor(selectedFloor === 2 ? null : 2)}
+              onClick={() => handleFloorClick(2)}
             >
               <span className="floor-tag">TẦNG 3</span>
-              <span className="floor-name">Trung tâm Điều hành BMS</span>
+              <span className="floor-name">Cảm biến 6, cảm biến 7, ...</span>
             </button>
             <button
               type="button"
               className={`floor-btn ${selectedFloor === 1 ? 'active' : ''}`}
-              onClick={() => setSelectedFloor(selectedFloor === 1 ? null : 1)}
+              onClick={() => handleFloorClick(1)}
             >
               <span className="floor-tag">TẦNG 2</span>
-              <span className="floor-name">Văn phòng Thông minh</span>
+              <span className="floor-name">Cảm biến 4, cảm biến 5,...</span>
             </button>
             <button
               type="button"
               className={`floor-btn ${selectedFloor === 0 ? 'active' : ''}`}
-              onClick={() => setSelectedFloor(selectedFloor === 0 ? null : 0)}
+              onClick={() => handleFloorClick(0)}
             >
               <span className="floor-tag">TẦNG 1</span>
-              <span className="floor-name">Cảm biến 1 </span>
+              <span className="floor-name">Cảm biến 1, cảm biến 2, ... </span>
             </button>
           </div>
         </div>

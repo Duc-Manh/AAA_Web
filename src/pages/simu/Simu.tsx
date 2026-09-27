@@ -6,9 +6,11 @@ import { Entertain } from '../../components/common/Entertain';
 import { User, Clock, History } from 'lucide-react';
 import type { SimuRecord } from '../../services/simuDb';
 import { Building3D } from './Building3D';
+import { FloorDeviceTable } from './FloorDeviceTable';
 
 export const Simu: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<SimuRecord | null>(null);
+  const [selectedFloor, setSelectedFloor] = useState<number>(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -66,15 +68,22 @@ export const Simu: React.FC = () => {
       {/* 3. Khung hiển thị toà nhà 3 tầng 3D dạng Wireframe có thể xoay */}
       <section className="simu-content-section">
         <div className="simu-content-container">
-          <Building3D />
+          <Building3D selectedFloor={selectedFloor} onSelectFloor={setSelectedFloor} />
         </div>
       </section>
 
-      {/* 4. Common Components as requested */}
+      {/* 4. Bảng hiển thị thông tin thiết bị và thông số đo được của từng tầng */}
+      <section className="simu-device-table-section">
+        <div className="simu-content-container">
+          <FloorDeviceTable selectedFloor={selectedFloor} onSelectFloor={setSelectedFloor} />
+        </div>
+      </section>
+
+      {/* 5. Common Components as requested */}
       <Collect />
       <Entertain />
 
-      {/* 5. Footer */}
+      {/* 6. Footer */}
       <Footer />
     </div>
   );
