@@ -14,8 +14,8 @@ export const Entertain: React.FC = () => {
       >
         <svg
           viewBox="0 0 24 24"
-          width="20"
-          height="20"
+          width="28"
+          height="28"
           fill="currentColor"
           className="entertain-icon"
           aria-hidden="true"
@@ -39,8 +39,8 @@ export const Entertain: React.FC = () => {
       >
         <svg
           viewBox="0 0 24 24"
-          width="22"
-          height="22"
+          width="30"
+          height="30"
           fill="currentColor"
           className="entertain-icon"
           aria-hidden="true"

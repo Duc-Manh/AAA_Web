@@ -4361,22 +4361,22 @@ textarea {
   flex-direction: column;
   align-items: center;
   background: #ffffff;
-  padding: 10px 7px;
-  border-radius: 12px 0 0 12px;
+  padding: 12px 9px;
+  border-radius: 14px 0 0 14px;
   border: 1px solid #e2e8f0;
   border-right: none;
-  box-shadow: -4px 0 20px rgba(15, 23, 42, 0.1);
+  box-shadow: -4px 0 22px rgba(15, 23, 42, 0.12);
   transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .entertain-widget:hover {
-  box-shadow: -6px 0 24px rgba(15, 23, 42, 0.15);
+  box-shadow: -6px 0 28px rgba(15, 23, 42, 0.18);
 }
 
 .entertain-btn {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
+  width: 48px;
+  height: 48px;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4417,10 +4417,10 @@ textarea {
 
 /* Đường phân cách giữa 2 nút */
 .entertain-divider {
-  width: 20px;
+  width: 26px;
   height: 1px;
   background: #e2e8f0;
-  margin: 4px 0;
+  margin: 5px 0;
 }
 
 /* Tooltip hiển thị khi rê chuột vào */
@@ -4460,16 +4460,16 @@ textarea {
 
 @media (max-width: 640px) {
   .entertain-widget {
-    padding: 8px 5px;
+    padding: 9px 6px;
   }
 
   .entertain-btn {
-    width: 32px;
-    height: 32px;
+    width: 38px;
+    height: 38px;
   }
 
   .entertain-icon {
-    width: 18px;
-    height: 18px;
+    width: 22px;
+    height: 22px;
   }
 }
