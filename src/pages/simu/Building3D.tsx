@@ -58,12 +58,7 @@ export const Building3D: React.FC = () => {
     dirLight2.position.set(-20, -10, -20);
     scene.add(dirLight2);
 
-    // 5. Grid helper (ground floor)
-    const grid = new THREE.GridHelper(28, 28, 0x22c55e, 0x1e293b);
-    grid.position.y = 0;
-    scene.add(grid);
-
-    // 6. Master building group
+    // 5. Master building group
     const buildingGroup = new THREE.Group();
     scene.add(buildingGroup);
     buildingGroupRef.current = buildingGroup;
