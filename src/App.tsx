@@ -10,6 +10,7 @@ import { Project } from './pages/project/Project';
 import { News } from './pages/news/News';
 import { About } from './pages/about/About';
 import { Hire } from './pages/hire/Hire';
+import { Simu } from './pages/simu/Simu';
 
 export const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -37,6 +38,7 @@ export const App: React.FC = () => {
     if (currentHash === '#news' || currentHash === '/news') return <News />;
     if (currentHash === '#about' || currentHash === '/about') return <About />;
     if (currentHash === '#hire' || currentHash === '/hire') return <Hire />;
+    if (currentHash === '#simu' || currentHash === '/simu') return <Simu />;
     return <Home />;
   };
 

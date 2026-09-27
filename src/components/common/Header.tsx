@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, RotateCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import logo3aHome from '../../assets/images/logo_3ahome.png';
+import { saveOrUpdateSimuUser } from '../../services/simuDb';
 
 interface NavItem {
   id: string;
@@ -15,11 +16,53 @@ const NAV_ITEMS: NavItem[] = [
   { id: '#news', name: 'Tin tức' },
   { id: '#about', name: 'Về chúng tôi' },
   { id: '#hire', name: 'Tuyển dụng' },
+  { id: '#simu', name: 'Mô phỏng' },
 ];
 
 export const Header: React.FC = () => {
   const [currentHash, setCurrentHash] = useState(() => window.location.hash || window.location.pathname);
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
+
+  // State quản lý khung đăng nhập Mô phỏng
+  const [isSimuPopupOpen, setIsSimuPopupOpen] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [captchaInput, setCaptchaInput] = useState('');
+  const [generatedCaptcha, setGeneratedCaptcha] = useState('7K9A');
+  const [simuError, setSimuError] = useState('');
+  const [simuSuccess, setSimuSuccess] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const generateCaptchaCode = () => {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let code = '';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setGeneratedCaptcha(code);
+    setCaptchaInput('');
+    setSimuError('');
+  };
+
+  useEffect(() => {
+    generateCaptchaCode();
+  }, []);
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('.nav-simu-container')) {
+        setIsSimuPopupOpen(false);
+      }
+    };
+    if (isSimuPopupOpen) {
+      document.addEventListener('mousedown', handleOutsideClick);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, [isSimuPopupOpen]);
 
   useEffect(() => {
     const handleHashChange = () => {
@@ -39,6 +82,7 @@ export const Header: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         setIsContactModalOpen(false);
+        setIsSimuPopupOpen(false);
       }
     };
 
@@ -66,6 +110,55 @@ export const Header: React.FC = () => {
     return currentHash === id || currentHash === `/${cleanId}`;
   };
 
+  // Xử lý gửi form vào phòng mô phỏng
+  const handleSimuSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSimuError('');
+    setSimuSuccess('');
+
+    if (!fullName.trim()) {
+      setSimuError('Vui lòng nhập Họ và tên!');
+      return;
+    }
+    if (!email.trim() || !email.includes('@')) {
+      setSimuError('Vui lòng nhập địa chỉ Email hợp lệ!');
+      return;
+    }
+    if (!phone.trim() || phone.replace(/\D/g, '').length < 8) {
+      setSimuError('Vui lòng nhập Số điện thoại hợp lệ!');
+      return;
+    }
+    if (captchaInput.trim().toUpperCase() !== generatedCaptcha.toUpperCase()) {
+      setSimuError('Mã xác thực không đúng. Vui lòng nhập lại!');
+      generateCaptchaCode();
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Lưu vào database 3ahome bảng simu
+      const result = await saveOrUpdateSimuUser(fullName, email, phone);
+
+      if (result.isReturning) {
+        // Đã tồn tại: hiển thị thông báo Chào mừng bạn quay trở lại
+        setSimuSuccess('Chào mừng bạn quay trở lại!');
+      } else {
+        setSimuSuccess('Đăng ký thành công! Đang chuyển tiếp...');
+      }
+
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setIsSimuPopupOpen(false);
+        setSimuSuccess('');
+        navigateTo('#simu');
+      }, 700);
+    } catch (err) {
+      setIsSubmitting(false);
+      setSimuError('Có lỗi xảy ra khi lưu dữ liệu. Vui lòng thử lại!');
+      console.error(err);
+    }
+  };
+
   return (
     <>
       <header className="saas-navbar">
@@ -88,6 +181,131 @@ export const Header: React.FC = () => {
           <nav className="nav-links">
             {NAV_ITEMS.map((item) => {
               const active = isItemActive(item.id);
+              const isSimu = item.id === '#simu';
+
+              if (isSimu) {
+                return (
+                  <div key={item.id} className="nav-simu-container">
+                    <a
+                      href={item.id}
+                      className={active ? 'active simu-nav-link' : 'simu-nav-link'}
+                      style={
+                        active
+                          ? {
+                            color: '#105ca8',
+                            transform: 'translateY(3px)',
+                            fontWeight: 700,
+                          }
+                          : undefined
+                      }
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setIsSimuPopupOpen((prev) => !prev);
+                        if (!isSimuPopupOpen) {
+                          generateCaptchaCode();
+                        }
+                      }}
+                    >
+                      {item.name}
+                    </a>
+
+                    {/* Khung đăng nhập hiển thị ngay dưới mục Mô phỏng */}
+                    {isSimuPopupOpen && (
+                      <div className="simu-login-dropdown">
+                        <div className="simu-login-header">
+                          <h4>Đăng nhập Mô phỏng</h4>
+                          <button
+                            type="button"
+                            className="simu-popup-close"
+                            onClick={() => setIsSimuPopupOpen(false)}
+                            aria-label="Đóng"
+                          >
+                            <X size={16} />
+                          </button>
+                        </div>
+
+                        {simuError && (
+                          <div className="simu-msg-box error">
+                            <AlertCircle size={15} />
+                            <span>{simuError}</span>
+                          </div>
+                        )}
+
+                        {simuSuccess && (
+                          <div className="simu-msg-box success">
+                            <CheckCircle2 size={15} />
+                            <span>{simuSuccess}</span>
+                          </div>
+                        )}
+
+                        <form onSubmit={handleSimuSubmit} className="simu-login-form">
+                          <div className="simu-field-group">
+                            <label>Họ tên:</label>
+                            <input
+                              type="text"
+                              value={fullName}
+                              onChange={(e) => setFullName(e.target.value)}
+                              placeholder="Nhập họ và tên..."
+                              autoFocus
+                            />
+                          </div>
+
+                          <div className="simu-field-group">
+                            <label>Email:</label>
+                            <input
+                              type="email"
+                              value={email}
+                              onChange={(e) => setEmail(e.target.value)}
+                              placeholder="example@gmail.com..."
+                            />
+                          </div>
+
+                          <div className="simu-field-group">
+                            <label>Số điện thoại:</label>
+                            <input
+                              type="tel"
+                              value={phone}
+                              onChange={(e) => setPhone(e.target.value)}
+                              placeholder="0901 994 998..."
+                            />
+                          </div>
+
+                          <div className="simu-field-group">
+                            <label>Mã xác thực:</label>
+                            <div className="simu-captcha-row">
+                              <input
+                                type="text"
+                                value={captchaInput}
+                                onChange={(e) => setCaptchaInput(e.target.value)}
+                                placeholder="Nhập mã..."
+                                maxLength={6}
+                              />
+                              <button
+                                type="button"
+                                className="simu-captcha-box"
+                                onClick={generateCaptchaCode}
+                                title="Bấm để đổi mã mới"
+                              >
+                                <span className="captcha-text">{generatedCaptcha}</span>
+                                <RotateCw size={14} className="captcha-icon" />
+                              </button>
+                            </div>
+                          </div>
+
+                          <button
+                            type="submit"
+                            disabled={isSubmitting}
+                            className="btn-simu-enter"
+                          >
+                            <span>{isSubmitting ? 'Đang xác thực...' : 'Vào phòng mô phỏng'}</span>
+                          </button>
+                        </form>
+                      </div>
+                    )}
+                  </div>
+                );
+              }
+
               return (
                 <a
                   key={item.id}
@@ -125,7 +343,6 @@ export const Header: React.FC = () => {
               }}
             >
               <span>Liên hệ</span>
-
             </a>
           </div>
         </div>
