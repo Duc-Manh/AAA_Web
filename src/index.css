@@ -4970,11 +4970,11 @@ textarea {
    ========================================================================== */
 .simu-3d-container {
   width: 100%;
-  background: #0a101f;
+  background: #ffffff;
   border-radius: 20px;
   overflow: hidden;
-  border: 2px solid #1e293b;
-  box-shadow: 0 16px 48px rgba(10, 16, 31, 0.4), 0 0 0 1px rgba(56, 189, 248, 0.15);
+  border: 2px solid #e2e8f0;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.06);
   position: relative;
 }
 
@@ -5012,10 +5012,10 @@ textarea {
 }
 
 .simu-3d-badge {
-  background: rgba(10, 16, 31, 0.85);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(56, 189, 248, 0.4);
-  color: #38bdf8;
+  border: 1px solid rgba(16, 92, 168, 0.25);
+  color: #105ca8;
   padding: 8px 16px;
   border-radius: 9999px;
   font-size: 0.82rem;
@@ -5024,7 +5024,7 @@ textarea {
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
 }
 
 .dot-pulse {
@@ -5048,17 +5048,17 @@ textarea {
 }
 
 .simu-3d-hint {
-  background: rgba(10, 16, 31, 0.85);
+  background: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #94a3b8;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  color: #64748b;
   padding: 8px 16px;
   border-radius: 9999px;
   font-size: 0.82rem;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
 }
 
 .simu-3d-toolbar {
@@ -5072,10 +5072,10 @@ textarea {
 }
 
 .simu-tool-btn {
-  background: rgba(15, 23, 42, 0.88);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: #e2e8f0;
+  border: 1px solid #cbd5e1;
+  color: #334155;
   padding: 8px 14px;
   border-radius: 10px;
   font-size: 0.82rem;
@@ -5085,20 +5085,21 @@ textarea {
   gap: 6px;
   cursor: pointer;
   transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
 .simu-tool-btn:hover {
   background: #105ca8;
-  border-color: #38bdf8;
+  border-color: #105ca8;
   color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(16, 92, 168, 0.4);
+  box-shadow: 0 4px 12px rgba(16, 92, 168, 0.3);
 }
 
 .simu-tool-btn.active {
-  background: rgba(34, 197, 94, 0.25);
+  background: #f0fdf4;
   border-color: #22c55e;
-  color: #4ade80;
+  color: #166534;
 }
 
 .simu-3d-floors-panel {
@@ -5108,19 +5109,19 @@ textarea {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background: rgba(10, 16, 31, 0.88);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(56, 189, 248, 0.25);
+  border: 1px solid #e2e8f0;
   padding: 12px 14px;
   border-radius: 14px;
   z-index: 10;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .floor-nav-title {
   font-size: 0.72rem;
   font-weight: 700;
-  color: #94a3b8;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 2px;
@@ -5130,11 +5131,11 @@ textarea {
   display: flex;
   align-items: center;
   gap: 8px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   padding: 6px 10px;
   border-radius: 8px;
-  color: #cbd5e1;
+  color: #334155;
   font-size: 0.78rem;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -5142,16 +5143,16 @@ textarea {
 }
 
 .floor-btn:hover {
-  background: rgba(56, 189, 248, 0.15);
+  background: #f0f9ff;
   border-color: #38bdf8;
-  color: #ffffff;
+  color: #0369a1;
 }
 
 .floor-btn.active {
-  background: rgba(34, 197, 94, 0.25);
+  background: #f0fdf4;
   border-color: #22c55e;
-  color: #ffffff;
-  box-shadow: 0 0 12px rgba(34, 197, 94, 0.3);
+  color: #166534;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
 }
 
 .floor-tag {

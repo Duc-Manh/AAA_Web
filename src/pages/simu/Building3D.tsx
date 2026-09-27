@@ -30,7 +30,7 @@ export const Building3D: React.FC = () => {
 
     // 1. Scene setup
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0a101f); // Sleek tech dark slate background
+    scene.background = new THREE.Color(0xffffff); // Nền màu trắng
 
     // 2. Camera setup
     const width = container.clientWidth || 800;
@@ -47,14 +47,14 @@ export const Building3D: React.FC = () => {
     container.appendChild(renderer.domElement);
 
     // 4. Lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
     scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0x38bdf8, 1.5);
+    const dirLight1 = new THREE.DirectionalLight(0x105ca8, 1.2);
     dirLight1.position.set(20, 30, 20);
     scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0x22c55e, 1.2);
+    const dirLight2 = new THREE.DirectionalLight(0x0b8645, 1.0);
     dirLight2.position.set(-20, -10, -20);
     scene.add(dirLight2);
 
@@ -63,39 +63,39 @@ export const Building3D: React.FC = () => {
     scene.add(buildingGroup);
     buildingGroupRef.current = buildingGroup;
 
-    // Materials
+    // Materials - Đậm nét, tương phản sắc nét trên nền trắng
     const floorSlabMat = new THREE.MeshBasicMaterial({
       color: 0x0284c7,
-      transparent: true,
-      opacity: 0.25,
-      side: THREE.DoubleSide,
-    });
-
-    const floorEdgesMat = new THREE.LineBasicMaterial({
-      color: 0x38bdf8,
-      linewidth: 2,
-    });
-
-    const columnMat = new THREE.LineBasicMaterial({
-      color: 0x22c55e,
-      linewidth: 2,
-    });
-
-    const glassPanelMat = new THREE.MeshBasicMaterial({
-      color: 0x06b6d4,
       transparent: true,
       opacity: 0.12,
       side: THREE.DoubleSide,
     });
 
-    const windowMullionMat = new THREE.LineBasicMaterial({
-      color: 0x38bdf8,
+    const floorEdgesMat = new THREE.LineBasicMaterial({
+      color: 0x105ca8,
+      linewidth: 2,
+    });
+
+    const columnMat = new THREE.LineBasicMaterial({
+      color: 0x0b8645,
+      linewidth: 2,
+    });
+
+    const glassPanelMat = new THREE.MeshBasicMaterial({
+      color: 0x0ea5e9,
       transparent: true,
-      opacity: 0.7,
+      opacity: 0.08,
+      side: THREE.DoubleSide,
+    });
+
+    const windowMullionMat = new THREE.LineBasicMaterial({
+      color: 0x0284c7,
+      transparent: true,
+      opacity: 0.85,
     });
 
     const accentGreenMat = new THREE.LineBasicMaterial({
-      color: 0x4ade80,
+      color: 0x0b8645,
       linewidth: 3,
     });
 
