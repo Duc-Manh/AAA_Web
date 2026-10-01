@@ -9,7 +9,9 @@ import {
   CheckCircle2,
   AlertCircle,
   ShieldCheck,
-  RotateCw
+  RotateCw,
+  Clock,
+  ShieldAlert
 } from 'lucide-react';
 import loginVideo from '../../assets/images/login.mp4';
 
@@ -24,6 +26,17 @@ export const Login: React.FC = () => {
   const [errorMessage, setErrorMessage] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
 
+  // Số lần đăng nhập sai & thời gian tạm khóa (tính bằng giây)
+  const [failedAttempts, setFailedAttempts] = useState<number>(0);
+  const [lockoutRemaining, setLockoutRemaining] = useState<number>(0);
+
+  // Định dạng thời gian đếm ngược dạng mm:ss
+  const formatRemainingTime = (totalSeconds: number) => {
+    const mins = Math.floor(totalSeconds / 60);
+    const secs = totalSeconds % 60;
+    return `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+  };
+
   const generateCaptchaCode = () => {
     const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
     let result = '';
@@ -33,15 +46,100 @@ export const Login: React.FC = () => {
     setGeneratedCaptcha(result);
   };
 
+  // Khởi tạo kiểm tra trạng thái khóa từ localStorage (chống F5 tải lại trang để né đếm giờ)
   useEffect(() => {
     window.scrollTo(0, 0);
     generateCaptchaCode();
+
+    try {
+      const storedUntil = localStorage.getItem('3ahome_login_lockout_until');
+      const storedAttempts = localStorage.getItem('3ahome_login_failed_attempts');
+      if (storedAttempts) {
+        setFailedAttempts(Number(storedAttempts) || 0);
+      }
+      if (storedUntil) {
+        const diffSeconds = Math.ceil((Number(storedUntil) - Date.now()) / 1000);
+        if (diffSeconds > 0) {
+          setLockoutRemaining(diffSeconds);
+        } else {
+          localStorage.removeItem('3ahome_login_lockout_until');
+          localStorage.removeItem('3ahome_login_failed_attempts');
+          setFailedAttempts(0);
+        }
+      }
+    } catch {
+      // ignore
+    }
   }, []);
+
+  // Bộ đếm ngược thời gian khóa 5 phút (300 giây)
+  useEffect(() => {
+    if (lockoutRemaining <= 0) return;
+
+    const timer = setInterval(() => {
+      setLockoutRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          try {
+            localStorage.removeItem('3ahome_login_lockout_until');
+            localStorage.removeItem('3ahome_login_failed_attempts');
+          } catch {
+            // ignore
+          }
+          setFailedAttempts(0);
+          setErrorMessage('');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [lockoutRemaining]);
+
+  // Xử lý khi đăng nhập sai (tăng biến đếm, nếu đạt 3 lần thì khóa 5 phút)
+  const handleLoginFailure = (customMsg?: string) => {
+    setIsLoading(false);
+    const nextAttempts = failedAttempts + 1;
+    setFailedAttempts(nextAttempts);
+
+    if (nextAttempts >= 3) {
+      const lockoutTime = 5 * 60; // 5 phút = 300 giây
+      const lockoutUntil = Date.now() + lockoutTime * 1000;
+      try {
+        localStorage.setItem('3ahome_login_lockout_until', String(lockoutUntil));
+        localStorage.setItem('3ahome_login_failed_attempts', '3');
+      } catch {
+        // ignore
+      }
+      setLockoutRemaining(lockoutTime);
+      setErrorMessage('Đăng nhập sai 3 lần liên tiếp. Hệ thống tạm khóa 5 phút để chống bot rà mật khẩu!');
+    } else {
+      try {
+        localStorage.setItem('3ahome_login_failed_attempts', String(nextAttempts));
+      } catch {
+        // ignore
+      }
+      const remain = 3 - nextAttempts;
+      setErrorMessage(
+        (customMsg || 'Gmail hoặc Mật khẩu không chính xác.') +
+        ` Cảnh báo: Bạn còn ${remain} lần thử trước khi bị tạm khóa 5 phút!`
+      );
+    }
+    generateCaptchaCode();
+    setCaptchaInput('');
+  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
+
+    // Nếu đang trong thời gian tạm khóa thì chặn ngay lập tức
+    if (lockoutRemaining > 0) {
+      setErrorMessage(`Hệ thống đang tạm khóa an toàn. Vui lòng chờ ${formatRemainingTime(lockoutRemaining)} để thử lại.`);
+      return;
+    }
 
     if (!username.trim() || !password.trim()) {
       setErrorMessage('Vui lòng điền đầy đủ Gmail và Mật khẩu.');
@@ -54,9 +152,7 @@ export const Login: React.FC = () => {
     }
 
     if (captchaInput.trim().toUpperCase() !== generatedCaptcha.toUpperCase()) {
-      setErrorMessage('Mã xác thực không chính xác. Vui lòng kiểm tra lại!');
-      generateCaptchaCode();
-      setCaptchaInput('');
+      handleLoginFailure('Mã xác thực không chính xác.');
       return;
     }
 
@@ -80,6 +176,16 @@ export const Login: React.FC = () => {
       if (res.ok && data.success && data.user) {
         setSuccessMessage('Đăng nhập thành công! Đang chuyển hướng...');
 
+        // Xóa trạng thái đếm sai khi đăng nhập thành công
+        try {
+          localStorage.removeItem('3ahome_login_lockout_until');
+          localStorage.removeItem('3ahome_login_failed_attempts');
+        } catch {
+          // ignore
+        }
+        setFailedAttempts(0);
+        setLockoutRemaining(0);
+
         // Lưu thông tin người dùng vào localStorage
         localStorage.setItem(
           'aaa_admin_auth',
@@ -101,10 +207,7 @@ export const Login: React.FC = () => {
           }
         }, 1000);
       } else {
-        setIsLoading(false);
-        setErrorMessage(data.message || 'Gmail hoặc Mật khẩu không chính xác. Vui lòng kiểm tra lại!');
-        generateCaptchaCode();
-        setCaptchaInput('');
+        handleLoginFailure(data.message || 'Gmail hoặc Mật khẩu không chính xác.');
       }
     } catch {
       setIsLoading(false);
@@ -140,6 +243,26 @@ export const Login: React.FC = () => {
                 <h3 className="form-subtitle">Nhập thông tin tài khoản</h3>
               </div>
 
+              {/* Bảng đếm giờ 5 phút chống bot rà mật khẩu khi đăng nhập sai 3 lần */}
+              {lockoutRemaining > 0 && (
+                <div className="login-lockout-banner">
+                  <div className="lockout-banner-header">
+                    <ShieldAlert size={22} className="lockout-icon" />
+                    <div>
+                      <h4 className="lockout-title">Tạm khóa bảo vệ (Chống bot rà mật khẩu)</h4>
+                      <p className="lockout-desc">
+                        Bạn đã nhập sai thông tin 3 lần liên tiếp. Để ngăn chặn bot rà quét mật khẩu, vui lòng chờ hết thời gian đếm ngược để đăng nhập lại:
+                      </p>
+                    </div>
+                  </div>
+                  <div className="lockout-timer-display">
+                    <Clock size={20} className="timer-clock-icon" />
+                    <span className="lockout-time-digits">{formatRemainingTime(lockoutRemaining)}</span>
+                    <span className="lockout-unit">phút : giây</span>
+                  </div>
+                </div>
+              )}
+
               {errorMessage && (
                 <div className="login-alert alert-error">
                   <AlertCircle size={18} />
@@ -162,6 +285,7 @@ export const Login: React.FC = () => {
                     <input
                       id="login-username"
                       type="text"
+                      disabled={isLoading || lockoutRemaining > 0}
                       className="form-input"
                       placeholder="Nhập gmail..."
                       value={username}
@@ -183,6 +307,7 @@ export const Login: React.FC = () => {
                     <input
                       id="login-password"
                       type={showPassword ? 'text' : 'password'}
+                      disabled={isLoading || lockoutRemaining > 0}
                       className="form-input"
                       placeholder="Nhập mật khẩu của bạn..."
                       value={password}
@@ -191,6 +316,7 @@ export const Login: React.FC = () => {
                     />
                     <button
                       type="button"
+                      disabled={isLoading || lockoutRemaining > 0}
                       className="password-toggle-btn"
                       onClick={() => setShowPassword(!showPassword)}
                       tabIndex={-1}
@@ -212,6 +338,7 @@ export const Login: React.FC = () => {
                       <input
                         id="login-captcha"
                         type="text"
+                        disabled={isLoading || lockoutRemaining > 0}
                         className="form-input captcha-input"
                         placeholder="Nhập mã xác thực..."
                         value={captchaInput}
@@ -223,6 +350,7 @@ export const Login: React.FC = () => {
                     </div>
                     <button
                       type="button"
+                      disabled={isLoading || lockoutRemaining > 0}
                       className="login-captcha-box"
                       onClick={generateCaptchaCode}
                       title="Bấm để đổi mã xác thực khác"
@@ -250,8 +378,8 @@ export const Login: React.FC = () => {
                 <div className="login-btn-row">
                   <button
                     type="submit"
-                    disabled={isLoading}
-                    className={`login-submit-btn ${isLoading ? 'btn-loading-border' : ''}`}
+                    disabled={isLoading || lockoutRemaining > 0}
+                    className={`login-submit-btn ${isLoading ? 'btn-loading-border' : ''} ${lockoutRemaining > 0 ? 'btn-locked' : ''}`}
                   >
                     {isLoading && (
                       <svg
@@ -281,7 +409,11 @@ export const Login: React.FC = () => {
                         />
                       </svg>
                     )}
-                    <span>Đăng Nhập</span>
+                    <span>
+                      {lockoutRemaining > 0
+                        ? `Tạm khóa (${formatRemainingTime(lockoutRemaining)})`
+                        : 'Đăng Nhập'}
+                    </span>
                   </button>
 
                   <button

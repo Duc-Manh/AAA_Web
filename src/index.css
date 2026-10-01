@@ -6224,3 +6224,99 @@ textarea {
     padding: 38px 28px;
   }
 }
+
+/* Bảng đếm giờ tạm khóa 5 phút chống bot rà mật khẩu */
+.login-lockout-banner {
+  background: linear-gradient(135deg, rgba(239, 68, 68, 0.08) 0%, rgba(220, 38, 38, 0.16) 100%);
+  border: 1.5px solid rgba(239, 68, 68, 0.38);
+  border-radius: 12px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  box-shadow: 0 6px 20px rgba(239, 68, 68, 0.12);
+  animation: pulseLockout 2.5s infinite ease-in-out;
+}
+
+@keyframes pulseLockout {
+  0%, 100% {
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.12);
+    border-color: rgba(239, 68, 68, 0.35);
+  }
+  50% {
+    box-shadow: 0 6px 24px rgba(239, 68, 68, 0.28);
+    border-color: rgba(239, 68, 68, 0.7);
+  }
+}
+
+.lockout-banner-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.lockout-icon {
+  color: #ef4444;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.lockout-title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #b91c1c;
+}
+
+.lockout-desc {
+  margin: 4px 0 0 0;
+  font-size: 0.82rem;
+  color: #7f1d1d;
+  line-height: 1.45;
+}
+
+.lockout-timer-display {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #0f172a;
+  border-radius: 9px;
+  padding: 10px 16px;
+  margin-top: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
+
+.timer-clock-icon {
+  color: #f87171;
+  animation: spinClockSlow 10s linear infinite;
+}
+
+@keyframes spinClockSlow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.lockout-time-digits {
+  font-family: 'Montserrat', monospace, sans-serif;
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: 2.5px;
+  color: #f87171;
+  text-shadow: 0 0 14px rgba(239, 68, 68, 0.7);
+}
+
+.lockout-unit {
+  font-size: 0.72rem;
+  color: #94a3b8;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-weight: 600;
+}
+
+.login-submit-btn.btn-locked {
+  background: #64748b !important;
+  color: #e2e8f0 !important;
+  cursor: not-allowed !important;
+  opacity: 0.85;
+  box-shadow: none !important;
+  transform: none !important;
+}
