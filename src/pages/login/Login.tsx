@@ -113,7 +113,7 @@ export const Login: React.FC = () => {
         // ignore
       }
       setLockoutRemaining(lockoutTime);
-      setErrorMessage('Đăng nhập sai 3 lần liên tiếp. Hệ thống tạm khóa 5 phút để chống bot rà mật khẩu!');
+      setErrorMessage('Đăng nhập sai 3 lần liên tiếp. Hệ thống tạm khóa 5 phút!');
     } else {
       try {
         localStorage.setItem('3ahome_login_failed_attempts', String(nextAttempts));
@@ -123,7 +123,7 @@ export const Login: React.FC = () => {
       const remain = 3 - nextAttempts;
       setErrorMessage(
         (customMsg || 'Gmail hoặc Mật khẩu không chính xác.') +
-        ` Cảnh báo: Bạn còn ${remain} lần thử trước khi bị tạm khóa 5 phút!`
+        ` Cảnh báo: Bạn còn ${remain} lần thử!`
       );
     }
     generateCaptchaCode();
@@ -249,7 +249,7 @@ export const Login: React.FC = () => {
                   <div className="lockout-banner-header">
                     <ShieldAlert size={22} className="lockout-icon" />
                     <div>
-                      <h4 className="lockout-title">Tạm khóa bảo vệ (Chống bot rà mật khẩu)</h4>
+                      <h4 className="lockout-title">Tạm khóa bảo vệ</h4>
                       <p className="lockout-desc">
                         Bạn đã nhập sai thông tin 3 lần liên tiếp. Để ngăn chặn bot rà quét mật khẩu, vui lòng chờ hết thời gian đếm ngược để đăng nhập lại:
                       </p>
