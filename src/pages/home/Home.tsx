@@ -8,11 +8,6 @@ import slide2 from '../../assets/images/slide2.png';
 import slide3 from '../../assets/images/slide3.png';
 import slide4 from '../../assets/images/slide4.png';
 import project1 from '../../assets/project/1.webp';
-import project2 from '../../assets/project/2.webp';
-import project3 from '../../assets/project/3.webp';
-import project4 from '../../assets/project/4.webp';
-import project5 from '../../assets/project/5.webp';
-import project6 from '../../assets/project/6.webp';
 import {
   ShieldCheck,
   ArrowRight,
@@ -179,73 +174,6 @@ const formatProjectImage = (imgPath?: string | null) => {
   return cleanPath;
 };
 
-interface ShowcaseProject {
-  id: string;
-  name: string;
-  category: string;
-  image: string;
-  description: string;
-  location: string;
-  time: string;
-}
-
-const SHOWCASE_PROJECTS: ShowcaseProject[] = [
-  {
-    id: 'proj-1',
-    name: 'KOI Resort và residence Đà Nẵng',
-    category: 'Toà nhà văn phòng BMS',
-    image: project1,
-    description: 'Triển khai hệ thống quản trị BMS toà nhà thông minh, tích hợp điều khiển trung tâm Chiller, quản lý năng lượng và điều áp buồng thang.',
-    location: 'Cầu Giấy, Hà Nội',
-    time: '2023 - 2024'
-  },
-  {
-    id: 'proj-2',
-    name: 'Nhà máy Kim Long Motor Huế',
-    category: 'Cao ốc thương mại',
-    image: project2,
-    description: 'Cung cấp và lắp đặt hệ thống BMS cho nhà máy sản xuất ô tô Kim Long Motor.',
-    location: 'Huế',
-    time: '2025'
-  },
-  {
-    id: 'proj-3',
-    name: 'Trung tâm sinh học thành phố Đà Nẵng',
-    category: 'Trung tâm phức hợp',
-    image: project3,
-    description: 'Cung cấp và lắp đặt hệ thống BMS cho Trung tâm sinh học..',
-    location: 'Đà Nẵng',
-    time: '2025'
-  },
-  {
-    id: 'proj-4',
-    name: 'Công viên phát triển phần mềm số 2 Đà Nẵng',
-    category: 'Văn phòng LEED Platinum',
-    image: project4,
-    description: 'Cung cấp và lắp đặt hệ thống BMS cho Danang Software Park 2.',
-    location: 'Đà Nẵng',
-    time: '2024-2025'
-  },
-  {
-    id: 'proj-5',
-    name: 'Nhà máy Thạch Anh - Huế',
-    category: 'Nhà máy & Phòng sạch',
-    image: project5,
-    description: 'Cung cấp thiết bị và lập trình hệ thống quản lý toà nhà BMS.',
-    location: 'Huế',
-    time: '2023'
-  },
-  {
-    id: 'proj-6',
-    name: 'Toà tháp Landmark 81 - Vinhomes Central Park',
-    category: 'Cao ốc biểu tượng',
-    image: project6,
-    description: 'Cung cấp và tích hợp cảm biến áp suất gió, nước chuyên dụng cùng hệ thống van điều khiển HVAC tải lạnh lớn tầng cao.',
-    location: 'Bình Thạnh, TP. Hồ Chí Minh',
-    time: '2022 - 2023'
-  }
-];
-
 export interface HomeNewsItem {
   id: string | number;
   topic: string;
@@ -286,74 +214,6 @@ const formatNewsImage = (imgPath?: string | null) => {
   const filename = cleanPath.split('/').pop();
   return `/uploads/news/${filename}`;
 };
-
-interface NewsArticle {
-  id: string;
-  title: string;
-  category: string;
-  date: string;
-  readTime: string;
-  summary: string;
-  image: string;
-}
-
-const LATEST_NEWS: NewsArticle = {
-  id: 'news-featured-1',
-  title: 'Tối ưu hoá năng lượng toà nhà thông minh với giải pháp AI & BMS thế hệ mới',
-  category: 'Xu hướng công nghệ',
-  date: '25/09/2026',
-  readTime: '5 phút đọc',
-  summary: 'Ứng dụng thuật toán máy học phân tích hành vi tiêu thụ nhiệt và điện thời gian thực, giúp cắt giảm đến 35% chi phí năng lượng vận hành hệ thống Chiller và chiếu sáng toà nhà cao tầng.',
-  image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80'
-};
-
-const SIDEBAR_NEWS: NewsArticle[] = [
-  {
-    id: 'news-side-1',
-    title: '3AHOME ký kết hợp tác chiến lược cung ứng thiết bị BACnet IP chuẩn quốc tế',
-    category: 'Hợp tác chiến lược',
-    date: '22/09/2026',
-    readTime: '3 phút đọc',
-    summary: 'Mở rộng mạng lưới phân phối thiết bị điều khiển lập trình DDC và cảm biến chuyên dụng cho các đại dự án cao ốc tại Việt Nam.',
-    image: 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=600&q=80'
-  },
-  {
-    id: 'news-side-2',
-    title: 'Tiêu chuẩn điều áp buồng thang và an toàn PCCC liên động trong nhà cao tầng',
-    category: 'Giải pháp kỹ thuật',
-    date: '18/09/2026',
-    readTime: '4 phút đọc',
-    summary: 'Hướng dẫn giải pháp tích hợp cảm biến khói ống gió và van hút khói hành lang theo quy chuẩn an toàn PCCC mới nhất.',
-    image: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&w=600&q=80'
-  },
-  {
-    id: 'news-side-3',
-    title: 'Hội thảo chuyên đề: Chuyển đổi số trong quản lý vận hành toà nhà xanh LEED',
-    category: 'Hội thảo & Sự kiện',
-    date: '10/09/2026',
-    readTime: '4 phút đọc',
-    summary: 'Chia sẻ kinh nghiệm thực tiễn từ các chuyên gia hàng đầu về ứng dụng chuẩn giao tiếp mở BACnet MS/TP và Modbus RTU.',
-    image: 'https://images.unsplash.com/photo-1545324418-cc1a3fa10c00?auto=format&fit=crop&w=600&q=80'
-  },
-  {
-    id: 'news-side-4',
-    title: 'Ứng dụng IoT & AI trong bảo trì dự đoán hệ thống bơm cấp thoát nước và Chiller',
-    category: 'Công nghệ mới',
-    date: '05/09/2026',
-    readTime: '5 phút đọc',
-    summary: 'Giảm thiểu 45% thời gian ngừng trệ kỹ thuật nhờ giám sát độ rung, nhiệt độ động cơ và cảnh báo hỏng hóc sớm.',
-    image: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?auto=format&fit=crop&w=600&q=80'
-  },
-  {
-    id: 'news-side-5',
-    title: 'Khảo sát hiệu quả tiết kiệm điện sau 1 năm vận hành hệ thống Smart Lighting BMS',
-    category: 'Thực tế triển khai',
-    date: '28/08/2026',
-    readTime: '3 phút đọc',
-    summary: 'Đánh giá chỉ số tiết kiệm thực tế tại các cụm văn phòng cho thuê hạng A đạt mức giảm 32% hóa đơn tiền điện hàng tháng.',
-    image: 'https://images.unsplash.com/photo-1497366216548-37526070297c?auto=format&fit=crop&w=600&q=80'
-  }
-];
 
 interface AnimatedStatNumberProps {
   target: number;
@@ -627,23 +487,8 @@ export const Home: React.FC = () => {
     }
   };
 
-  // State for hero project slideshow from database 3ahome
-  const [heroProjects, setHeroProjects] = useState<HeroProjectItem[]>(() =>
-    SHOWCASE_PROJECTS.map((p) => ({
-      id: p.id,
-      name: p.name,
-      title: p.name,
-      category: p.category,
-      type: p.category,
-      image: p.image,
-      description: p.description,
-      content: p.description,
-      location: p.location,
-      place: p.location,
-      time: p.time,
-      start: p.time
-    }))
-  );
+  // State danh sách dự án nạp động từ bảng project database 3ahome
+  const [heroProjects, setHeroProjects] = useState<HeroProjectItem[]>([]);
   const [heroProjIdx, setHeroProjIdx] = useState(0);
   const [isHeroFading, setIsHeroFading] = useState(false);
 
@@ -653,26 +498,24 @@ export const Home: React.FC = () => {
       try {
         const res = await fetch('/api/projects');
         const data = await res.json();
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        if (data.success && Array.isArray(data.data)) {
           // Lọc các dự án hiển thị (status === 1: Đăng bài)
           const visible = data.data.filter((item: any) => Number(item.status) === 1);
-          if (visible.length > 0) {
-            const mapped: HeroProjectItem[] = visible.map((p: any) => ({
-              id: p.id,
-              name: p.title || '',
-              title: p.title || '',
-              category: p.type || '',
-              type: p.type || '',
-              image: formatProjectImage(p.image),
-              description: p.content || '',
-              content: p.content || '',
-              location: p.place || '',
-              place: p.place || '',
-              time: p.start || p.year || '',
-              start: p.start || p.year || ''
-            }));
-            setHeroProjects(mapped);
-          }
+          const mapped: HeroProjectItem[] = visible.map((p: any) => ({
+            id: p.id,
+            name: p.title || '',
+            title: p.title || '',
+            category: p.type || '',
+            type: p.type || '',
+            image: formatProjectImage(p.image),
+            description: p.content || '',
+            content: p.content || '',
+            location: p.place || '',
+            place: p.place || '',
+            time: p.start || p.year || '',
+            start: p.start || p.year || ''
+          }));
+          setHeroProjects(mapped);
         }
       } catch (err) {
         console.error('Lỗi nạp dự án database 3ahome:', err);
@@ -682,6 +525,7 @@ export const Home: React.FC = () => {
   }, []);
 
   const handleNextHeroProject = () => {
+    if (heroProjects.length === 0) return;
     setIsHeroFading(true);
     setTimeout(() => {
       setHeroProjIdx((prev) => (prev + 1) % heroProjects.length);
@@ -697,7 +541,7 @@ export const Home: React.FC = () => {
     return () => clearInterval(interval);
   }, [heroProjIdx, heroProjects.length]);
 
-  const currentHeroProject = heroProjects[heroProjIdx] || heroProjects[0];
+  const currentHeroProject = heroProjects[heroProjIdx] || heroProjects[0] || null;
 
   // Nạp tin tức từ bảng news database 3ahome
   const [dbNews, setDbNews] = useState<HomeNewsItem[]>([]);
@@ -706,7 +550,7 @@ export const Home: React.FC = () => {
     fetch('/api/news')
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+        if (data.success && Array.isArray(data.data)) {
           const visible = data.data.filter((item: any) => Number(item.status) === 1);
           // Sắp xếp theo cột time mới nhất lên đầu
           visible.sort((a: any, b: any) => new Date(b.time).getTime() - new Date(a.time).getTime());
@@ -730,36 +574,10 @@ export const Home: React.FC = () => {
   }, []);
 
   // Hàng trong bảng news có time mới nhất
-  const latestNewsItem: HomeNewsItem = dbNews.length > 0
-    ? dbNews[0]
-    : {
-        id: LATEST_NEWS.id,
-        topic: LATEST_NEWS.category,
-        category: LATEST_NEWS.category,
-        title: LATEST_NEWS.title,
-        content: LATEST_NEWS.summary,
-        summary: LATEST_NEWS.summary,
-        time: LATEST_NEWS.date,
-        date: LATEST_NEWS.date,
-        image: LATEST_NEWS.image
-      };
+  const latestNewsItem: HomeNewsItem | null = dbNews.length > 0 ? dbNews[0] : null;
 
   // Các hàng còn lại trong bảng news
-  const sidebarNewsItems: HomeNewsItem[] = dbNews.length > 1
-    ? dbNews.slice(1)
-    : dbNews.length === 1
-    ? dbNews
-    : SIDEBAR_NEWS.map((item) => ({
-        id: item.id,
-        topic: item.category,
-        category: item.category,
-        title: item.title,
-        content: item.summary,
-        summary: item.summary,
-        time: item.date,
-        date: item.date,
-        image: item.image
-      }));
+  const sidebarNewsItems: HomeNewsItem[] = dbNews.length > 1 ? dbNews.slice(1) : [];
 
   // SplitText effect for BMS Smart Building section header - triggers once on view/refresh
   const bmsHeaderRef = useRef<HTMLDivElement>(null);
@@ -1118,43 +936,49 @@ export const Home: React.FC = () => {
         </div>
 
         <div className="projects-carousel-outer">
-          <div className={`projects-carousel-track ${heroProjects.length > 3 ? 'auto-scroll-active' : ''}`}>
-            {(heroProjects.length > 3 ? [...heroProjects, ...heroProjects] : heroProjects).map((project, idx) => (
-              <div key={`${project.id}-${idx}`} className="project-card-container">
-                {/* Khung con 1 (khung trên): Chứa hình ảnh dự án */}
-                <div className="project-sub-image-box">
-                  <img
-                    src={formatProjectImage(project.image)}
-                    alt={project.title || project.name}
-                    className="project-img-cover"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.src = project1;
-                    }}
-                  />
-                  <span className="project-category-badge">{project.type || project.category}</span>
-                </div>
-
-                {/* Khung con 2 (khung giữa): Tên dự án & mô tả dự án */}
-                <div className="project-sub-content-box">
-                  <h3 className="project-title-text">{project.title || project.name}</h3>
-                  <p className="project-desc-text">{project.content || project.description}</p>
-                </div>
-
-                {/* Khung con 3 (khung dưới): Địa điểm & thời gian */}
-                <div className="project-sub-meta-box">
-                  <div className="project-meta-pill location-pill">
-                    <MapPin size={14} className="meta-icon" />
-                    <span>{project.place || project.location}</span>
+          {heroProjects.length === 0 ? (
+            <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+              Đang tải danh sách dự án...
+            </div>
+          ) : (
+            <div className={`projects-carousel-track ${heroProjects.length > 3 ? 'auto-scroll-active' : ''}`}>
+              {(heroProjects.length > 3 ? [...heroProjects, ...heroProjects] : heroProjects).map((project, idx) => (
+                <div key={`${project.id}-${idx}`} className="project-card-container">
+                  {/* Khung con 1 (khung trên): Chứa hình ảnh dự án */}
+                  <div className="project-sub-image-box">
+                    <img
+                      src={formatProjectImage(project.image)}
+                      alt={project.title || project.name}
+                      className="project-img-cover"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = project1;
+                      }}
+                    />
+                    <span className="project-category-badge">{project.type || project.category}</span>
                   </div>
-                  <div className="project-meta-pill time-pill">
-                    <Calendar size={14} className="meta-icon" />
-                    <span>{project.start || project.time}</span>
+
+                  {/* Khung con 2 (khung giữa): Tên dự án & mô tả dự án */}
+                  <div className="project-sub-content-box">
+                    <h3 className="project-title-text">{project.title || project.name}</h3>
+                    <p className="project-desc-text">{project.content || project.description}</p>
+                  </div>
+
+                  {/* Khung con 3 (khung dưới): Địa điểm & thời gian */}
+                  <div className="project-sub-meta-box">
+                    <div className="project-meta-pill location-pill">
+                      <MapPin size={14} className="meta-icon" />
+                      <span>{project.place || project.location}</span>
+                    </div>
+                    <div className="project-meta-pill time-pill">
+                      <Calendar size={14} className="meta-icon" />
+                      <span>{project.start || project.time}</span>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
@@ -1171,43 +995,49 @@ export const Home: React.FC = () => {
           <div className="news-two-col-layout">
             {/* Khung bên trái: Tin mới nhất */}
             <div className="news-col-left">
-              <article className="news-latest-card">
-                <div className="latest-card-img-wrap">
-                  <img
-                    src={latestNewsItem.image}
-                    alt={latestNewsItem.title}
-                    className="latest-card-img"
-                    loading="lazy"
-                    onError={(e) => {
-                      e.currentTarget.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80';
-                    }}
-                  />
-                  <span className="latest-card-badge">{latestNewsItem.topic}</span>
-                  <span className="latest-tag-pill">TIN MỚI NHẤT</span>
-                </div>
-
-                <div className="latest-card-content">
-                  <div className="news-card-meta">
-                    <span className="meta-date">
-                      <Calendar size={14} className="meta-icon" />
-                      {latestNewsItem.time}
-                    </span>
+              {latestNewsItem ? (
+                <article className="news-latest-card">
+                  <div className="latest-card-img-wrap">
+                    <img
+                      src={latestNewsItem.image}
+                      alt={latestNewsItem.title}
+                      className="latest-card-img"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80';
+                      }}
+                    />
+                    <span className="latest-card-badge">{latestNewsItem.topic}</span>
+                    <span className="latest-tag-pill">TIN MỚI NHẤT</span>
                   </div>
 
-                  <h3 className="latest-card-title">
-                    <a href="#news">{latestNewsItem.title}</a>
-                  </h3>
+                  <div className="latest-card-content">
+                    <div className="news-card-meta">
+                      <span className="meta-date">
+                        <Calendar size={14} className="meta-icon" />
+                        {latestNewsItem.time}
+                      </span>
+                    </div>
 
-                  <p className="latest-card-summary">{latestNewsItem.content}</p>
+                    <h3 className="latest-card-title">
+                      <a href="#news">{latestNewsItem.title}</a>
+                    </h3>
 
-                  <div className="latest-card-footer">
-                    <a href="#news" className="news-detail-btn">
-                      <span>Đọc tiếp</span>
-                      <ArrowRight size={15} />
-                    </a>
+                    <p className="latest-card-summary">{latestNewsItem.content}</p>
+
+                    <div className="latest-card-footer">
+                      <a href="#news" className="news-detail-btn">
+                        <span>Đọc tiếp</span>
+                        <ArrowRight size={15} />
+                      </a>
+                    </div>
                   </div>
+                </article>
+              ) : (
+                <div style={{ padding: '30px', textAlign: 'center', color: '#64748b' }}>
+                  Đang tải tin tức...
                 </div>
-              </article>
+              )}
             </div>
 
             {/* Khung bên phải: Các khung con xếp thành cột (nếu > 3 tin sẽ xuất hiện thanh cuộn dọc) */}
