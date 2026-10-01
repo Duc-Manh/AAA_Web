@@ -27,16 +27,14 @@ export const Footer: React.FC = () => {
           <a href="#">Chính sách bảo hành</a>
           <a href="#">Chính sách bảo mật</a>
           <a href="#">Chính sách tuyển dụng</a>
-          <a href="#">Điều khoản dịch vụ</a>
+
         </div>
 
         <div className="footer-links-column">
           <h5>Về công ty</h5>
-          <a href="#about">Giới thiệu về <span className="brand-name-green">3A</span><span className="brand-name-blue">HOME</span></a>
+          <a href="#intro" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Giới thiệu về <span className="brand-name-green">3A</span><span className="brand-name-blue">HOME</span></a>
           <a href="#about">Hồ sơ năng lực</a>
-          <a href="#project">Dự án tiêu biểu</a>
-          <a href="#news">Tin tức và Sự kiện</a>
-          <a href="#trial">Liên hệ tư vấn</a>
+          <a href="#">Điều khoản dịch vụ</a>
         </div>
 
         <div className="footer-map-column">

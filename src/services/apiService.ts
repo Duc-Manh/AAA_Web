@@ -49,6 +49,21 @@ class ApiService {
     return INITIAL_DEVICES;
   }
 
+  // Fetch real-time devices from AAA_Backend (MySQL)
+  async fetchLiveDevices(): Promise<DeviceModel[] | null> {
+    try {
+      const res = await fetch(`${this.config.backendUrl}/devices`);
+      if (res.ok) {
+        const data = await res.json();
+        this.saveDevices(data);
+        return data;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
   saveDevices(devices: DeviceModel[]): void {
     localStorage.setItem(DEVICES_STORAGE_KEY, JSON.stringify(devices));
   }
@@ -65,11 +80,26 @@ class ApiService {
     return INITIAL_LOGS;
   }
 
+  // Fetch logs from AAA_Backend
+  async fetchLiveLogs(): Promise<ActivityLog[] | null> {
+    try {
+      const res = await fetch(`${this.config.backendUrl}/logs`);
+      if (res.ok) {
+        const data = await res.json();
+        this.saveLogs(data);
+        return data;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
   saveLogs(logs: ActivityLog[]): void {
     localStorage.setItem(LOGS_STORAGE_KEY, JSON.stringify(logs.slice(0, 50)));
   }
 
-  // Check connection to AAA_Soft Backend
+  // Check connection to AAA_Backend
   async checkBackendHealth(): Promise<{ online: boolean; message: string; pingMs: number }> {
     const start = performance.now();
     try {
@@ -81,14 +111,14 @@ class ApiService {
       clearTimeout(timeoutId);
       const pingMs = Math.round(performance.now() - start);
       if (res.ok) {
-        return { online: true, message: 'Đã kết nối với AAA_Soft Gateway', pingMs };
+        return { online: true, message: 'Đã kết nối với AAA_Backend Gateway', pingMs };
       }
       return { online: false, message: `Server phản hồi mã lỗi: ${res.status}`, pingMs };
     } catch {
       const pingMs = Math.round(performance.now() - start);
       return { 
         online: false, 
-        message: 'Chưa phát hiện AAA_Soft Server đang chạy (Đang chạy ở chế độ Mô phỏng cục bộ)', 
+        message: 'Chưa phát hiện AAA_Backend đang chạy (Đang chạy ở chế độ Mô phỏng cục bộ)', 
         pingMs 
       };
     }

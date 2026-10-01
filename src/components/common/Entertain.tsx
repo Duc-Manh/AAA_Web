@@ -1,6 +1,15 @@
 import React from 'react';
 
 export const Entertain: React.FC = () => {
+  const currentPath =
+    typeof window !== 'undefined'
+      ? window.location.hash || window.location.pathname
+      : '';
+
+  if (currentPath.includes('dash')) {
+    return null;
+  }
+
   return (
     <aside className="entertain-widget" aria-label="Kênh truyền thông giải trí 3AHOME">
       {/* Nút TikTok */}

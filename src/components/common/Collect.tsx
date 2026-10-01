@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Users, 
   CalendarDays, 
@@ -6,36 +6,55 @@ import {
   TrendingUp, 
   Globe2 
 } from 'lucide-react';
+import { trackVisit, getCachedVisitStats, type VisitStats } from '../../services/visitService';
 
 export const Collect: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [statsData, setStatsData] = useState<VisitStats>(getCachedVisitStats);
 
-  // Thống kê truy cập trực quan
+  useEffect(() => {
+    // Thu thập lượt truy cập thực tế ngay khi tải trang
+    const loadStats = async () => {
+      const stats = await trackVisit();
+      setStatsData(stats);
+    };
+
+    loadStats();
+
+    // Heartbeat định kỳ mỗi 45 giây để duy trì trạng thái online và cập nhật thống kê mới
+    const intervalId = window.setInterval(loadStats, 45000);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, []);
+
+  // Thống kê truy cập thực tế thu thập từ hệ thống và database 3ahome
   const stats = [
     {
       label: 'Đang online',
-      value: '16',
+      value: statsData.online.toLocaleString('vi-VN'),
       icon: <Users size={16} className="collect-icon online-dot-icon" />,
       isOnline: true,
     },
     {
       label: 'Truy cập trong ngày',
-      value: '284',
+      value: statsData.today.toLocaleString('vi-VN'),
       icon: <CalendarDays size={16} className="collect-icon" />,
     },
     {
       label: 'Truy cập trong tháng',
-      value: '5.120',
+      value: statsData.month.toLocaleString('vi-VN'),
       icon: <CalendarRange size={16} className="collect-icon" />,
     },
     {
       label: 'Truy cập trong năm',
-      value: '58.390',
+      value: statsData.year.toLocaleString('vi-VN'),
       icon: <TrendingUp size={16} className="collect-icon" />,
     },
     {
       label: 'Tổng truy cập',
-      value: '162.850',
+      value: statsData.total.toLocaleString('vi-VN'),
       icon: <Globe2 size={16} className="collect-icon" />,
       isHighlight: true,
     },

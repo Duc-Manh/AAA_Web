@@ -136,25 +136,25 @@ export const Solution: React.FC = () => {
             <div className="intro-values-grid">
               <div className="value-card">
                 <div className="value-number">01</div>
-                <h4>Khảo sát & Tư vấn</h4>
+                <h4>Khảo sát và Tư vấn</h4>
                 <p>Khảo sát hiện trạng công trình, tính toán phụ tải và tư vấn kiến trúc hệ thống BMS phù hợp nhất.</p>
               </div>
 
               <div className="value-card">
                 <div className="value-number">02</div>
-                <h4>Thiết kế & Lập trình</h4>
+                <h4>Thiết kế và Lập trình</h4>
                 <p>Thiết kế sơ đồ nguyên lý, bản vẽ đấu nối và lập trình thuật toán điều khiển chuyên biệt cho từng thiết bị.</p>
               </div>
 
               <div className="value-card">
                 <div className="value-number">03</div>
-                <h4>Lắp đặt & Thử nghiệm</h4>
+                <h4>Lắp đặt và Thử nghiệm</h4>
                 <p>Lắp đặt tủ điều khiển DDC, cảm biến hiện trường và chạy thử nghiệm từng phần (Point-to-Point Testing).</p>
               </div>
 
               <div className="value-card">
                 <div className="value-number">04</div>
-                <h4>Bàn giao & Vận hành</h4>
+                <h4>Bàn giao và Vận hành</h4>
                 <p>Đào tạo kỹ thuật viên toà nhà, bàn giao tài liệu hoàn công và hỗ trợ kỹ thuật bảo trì lâu dài.</p>
               </div>
             </div>

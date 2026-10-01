@@ -150,6 +150,35 @@ const BRAND_LOGOS = [
   }
 ];
 
+export interface HeroProjectItem {
+  id: string | number;
+  name: string;
+  title: string;
+  category: string;
+  type: string;
+  image: string;
+  description: string;
+  content: string;
+  location: string;
+  place: string;
+  time: string;
+  start: string;
+}
+
+const formatProjectImage = (imgPath?: string | null) => {
+  if (!imgPath) return project1;
+  if (imgPath.startsWith('data:image') || imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
+    return imgPath;
+  }
+  let cleanPath = imgPath.replace(/\\/g, '/');
+  if (cleanPath.startsWith('/AAA_Backend/')) {
+    cleanPath = cleanPath.replace('/AAA_Backend/', '/');
+  } else if (cleanPath.startsWith('AAA_Backend/')) {
+    cleanPath = cleanPath.replace('AAA_Backend/', '/');
+  }
+  return cleanPath;
+};
+
 interface ShowcaseProject {
   id: string;
   name: string;
@@ -216,6 +245,47 @@ const SHOWCASE_PROJECTS: ShowcaseProject[] = [
     time: '2022 - 2023'
   }
 ];
+
+export interface HomeNewsItem {
+  id: string | number;
+  topic: string;
+  category: string;
+  title: string;
+  content: string;
+  summary: string;
+  time: string;
+  date: string;
+  image: string;
+}
+
+const formatNewsDate = (timeStr?: string) => {
+  if (!timeStr) return '';
+  try {
+    const d = new Date(timeStr);
+    if (isNaN(d.getTime())) return timeStr;
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = d.getFullYear();
+    return `${day}/${month}/${year}`;
+  } catch {
+    return timeStr;
+  }
+};
+
+const formatNewsImage = (imgPath?: string | null) => {
+  if (!imgPath) return 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80';
+  if (imgPath.startsWith('data:') || imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
+    return imgPath;
+  }
+  let cleanPath = imgPath.replace(/\\/g, '/');
+  if (cleanPath.startsWith('/AAA_Backend/')) {
+    cleanPath = cleanPath.replace('/AAA_Backend/', '/');
+  } else if (cleanPath.startsWith('AAA_Backend/')) {
+    cleanPath = cleanPath.replace('AAA_Backend/', '/');
+  }
+  const filename = cleanPath.split('/').pop();
+  return `/uploads/news/${filename}`;
+};
 
 interface NewsArticle {
   id: string;
@@ -507,37 +577,189 @@ export const Home: React.FC = () => {
     };
   }, []);
 
-  const handleConsultSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!consultForm.fullName || !consultForm.phone) return;
-    setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setConsultSubmitted(true);
-    }, 700);
+  const contentTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const handleContentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setConsultForm((prev) => ({ ...prev, content: e.target.value }));
+    const target = e.target;
+    target.style.height = 'auto';
+    target.style.height = `${Math.max(100, target.scrollHeight)}px`;
   };
 
-  // State for hero project slideshow
+  const handleConsultSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!consultForm.fullName.trim() || !consultForm.phone.trim() || !consultForm.email.trim()) return;
+    setIsSubmitting(true);
+
+    try {
+      await fetch('/api/consult', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          full_name: consultForm.fullName.trim(),
+          email: consultForm.email.trim(),
+          phone: consultForm.phone.trim(),
+          type: consultForm.demandType,
+          content: consultForm.content.trim()
+        })
+      });
+    } catch (err) {
+      console.warn('Lỗi khi gửi tư vấn tới API, sao lưu dự phòng:', err);
+      try {
+        const backup = JSON.parse(localStorage.getItem('3ahome_consult_db') || '[]');
+        backup.push({
+          id: Date.now(),
+          time: new Date().toISOString(),
+          full_name: consultForm.fullName.trim(),
+          email: consultForm.email.trim(),
+          phone: consultForm.phone.trim(),
+          type: consultForm.demandType,
+          content: consultForm.content.trim(),
+          status: 1
+        });
+        localStorage.setItem('3ahome_consult_db', JSON.stringify(backup));
+      } catch {
+        // ignore
+      }
+    } finally {
+      setIsSubmitting(false);
+      setConsultSubmitted(true);
+    }
+  };
+
+  // State for hero project slideshow from database 3ahome
+  const [heroProjects, setHeroProjects] = useState<HeroProjectItem[]>(() =>
+    SHOWCASE_PROJECTS.map((p) => ({
+      id: p.id,
+      name: p.name,
+      title: p.name,
+      category: p.category,
+      type: p.category,
+      image: p.image,
+      description: p.description,
+      content: p.description,
+      location: p.location,
+      place: p.location,
+      time: p.time,
+      start: p.time
+    }))
+  );
   const [heroProjIdx, setHeroProjIdx] = useState(0);
   const [isHeroFading, setIsHeroFading] = useState(false);
+
+  // Nạp danh sách dự án từ bảng project database 3ahome
+  useEffect(() => {
+    const fetchProjectsFromDb = async () => {
+      try {
+        const res = await fetch('/api/projects');
+        const data = await res.json();
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          // Lọc các dự án hiển thị (status === 1: Đăng bài)
+          const visible = data.data.filter((item: any) => Number(item.status) === 1);
+          if (visible.length > 0) {
+            const mapped: HeroProjectItem[] = visible.map((p: any) => ({
+              id: p.id,
+              name: p.title || '',
+              title: p.title || '',
+              category: p.type || '',
+              type: p.type || '',
+              image: formatProjectImage(p.image),
+              description: p.content || '',
+              content: p.content || '',
+              location: p.place || '',
+              place: p.place || '',
+              time: p.start || p.year || '',
+              start: p.start || p.year || ''
+            }));
+            setHeroProjects(mapped);
+          }
+        }
+      } catch (err) {
+        console.error('Lỗi nạp dự án database 3ahome:', err);
+      }
+    };
+    fetchProjectsFromDb();
+  }, []);
 
   const handleNextHeroProject = () => {
     setIsHeroFading(true);
     setTimeout(() => {
-      setHeroProjIdx((prev) => (prev + 1) % SHOWCASE_PROJECTS.length);
+      setHeroProjIdx((prev) => (prev + 1) % heroProjects.length);
       setIsHeroFading(false);
     }, 220);
   };
 
   useEffect(() => {
-    if (SHOWCASE_PROJECTS.length <= 1) return;
+    if (heroProjects.length <= 1) return;
     const interval = setInterval(() => {
       handleNextHeroProject();
     }, 4500);
     return () => clearInterval(interval);
-  }, [heroProjIdx]);
+  }, [heroProjIdx, heroProjects.length]);
 
-  const currentHeroProject = SHOWCASE_PROJECTS[heroProjIdx];
+  const currentHeroProject = heroProjects[heroProjIdx] || heroProjects[0];
+
+  // Nạp tin tức từ bảng news database 3ahome
+  const [dbNews, setDbNews] = useState<HomeNewsItem[]>([]);
+
+  useEffect(() => {
+    fetch('/api/news')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && Array.isArray(data.data) && data.data.length > 0) {
+          const visible = data.data.filter((item: any) => Number(item.status) === 1);
+          // Sắp xếp theo cột time mới nhất lên đầu
+          visible.sort((a: any, b: any) => new Date(b.time).getTime() - new Date(a.time).getTime());
+          const mapped: HomeNewsItem[] = visible.map((item: any) => ({
+            id: item.id,
+            topic: item.topic || 'Tin tức',
+            category: item.topic || 'Tin tức',
+            title: item.title,
+            content: item.content,
+            summary: item.content,
+            time: formatNewsDate(item.time),
+            date: formatNewsDate(item.time),
+            image: formatNewsImage(item.image)
+          }));
+          setDbNews(mapped);
+        }
+      })
+      .catch((err) => {
+        console.error('Lỗi tải tin tức database 3ahome:', err);
+      });
+  }, []);
+
+  // Hàng trong bảng news có time mới nhất
+  const latestNewsItem: HomeNewsItem = dbNews.length > 0
+    ? dbNews[0]
+    : {
+        id: LATEST_NEWS.id,
+        topic: LATEST_NEWS.category,
+        category: LATEST_NEWS.category,
+        title: LATEST_NEWS.title,
+        content: LATEST_NEWS.summary,
+        summary: LATEST_NEWS.summary,
+        time: LATEST_NEWS.date,
+        date: LATEST_NEWS.date,
+        image: LATEST_NEWS.image
+      };
+
+  // Các hàng còn lại trong bảng news
+  const sidebarNewsItems: HomeNewsItem[] = dbNews.length > 1
+    ? dbNews.slice(1)
+    : dbNews.length === 1
+    ? dbNews
+    : SIDEBAR_NEWS.map((item) => ({
+        id: item.id,
+        topic: item.category,
+        category: item.category,
+        title: item.title,
+        content: item.summary,
+        summary: item.summary,
+        time: item.date,
+        date: item.date,
+        image: item.image
+      }));
 
   // SplitText effect for BMS Smart Building section header - triggers once on view/refresh
   const bmsHeaderRef = useRef<HTMLDivElement>(null);
@@ -649,9 +871,12 @@ export const Home: React.FC = () => {
           <div className="hero-image-col">
             <div className="hero-portrait-frame">
               <img
-                src={currentHeroProject.image}
-                alt={currentHeroProject.name}
+                src={formatProjectImage(currentHeroProject.image)}
+                alt={currentHeroProject.title || currentHeroProject.name}
                 className={`hero-main-photo ${isHeroFading ? 'fading' : ''}`}
+                onError={(e) => {
+                  e.currentTarget.src = project1;
+                }}
               />
 
               {/* Floating Glass Banner Preview Card */}
@@ -664,16 +889,16 @@ export const Home: React.FC = () => {
                 <div className={`widget-content ${isHeroFading ? 'fading' : ''}`}>
                   <div className="widget-header">
                     <div className="widget-brand">
-                      <strong>{currentHeroProject.name}</strong>
+                      <strong>{currentHeroProject.title || currentHeroProject.name}</strong>
                     </div>
                   </div>
                   <p className="widget-text">
-                    {currentHeroProject.description}
+                    {currentHeroProject.content || currentHeroProject.description}
                   </p>
                   <div className="widget-bottom-row">
                     <div className="widget-category-preview">
-                      <div className="cat-chip active">{currentHeroProject.location}</div>
-                      <div className="cat-chip active">{currentHeroProject.time}</div>
+                      <div className="cat-chip active">{currentHeroProject.place || currentHeroProject.location}</div>
+                      <div className="cat-chip active">{currentHeroProject.start || currentHeroProject.time}</div>
                     </div>
                     <div className="widget-actions">
                       <button
@@ -893,30 +1118,38 @@ export const Home: React.FC = () => {
         </div>
 
         <div className="projects-carousel-outer">
-          <div className={`projects-carousel-track ${SHOWCASE_PROJECTS.length > 3 ? 'auto-scroll-active' : ''}`}>
-            {(SHOWCASE_PROJECTS.length > 3 ? [...SHOWCASE_PROJECTS, ...SHOWCASE_PROJECTS] : SHOWCASE_PROJECTS).map((project, idx) => (
+          <div className={`projects-carousel-track ${heroProjects.length > 3 ? 'auto-scroll-active' : ''}`}>
+            {(heroProjects.length > 3 ? [...heroProjects, ...heroProjects] : heroProjects).map((project, idx) => (
               <div key={`${project.id}-${idx}`} className="project-card-container">
                 {/* Khung con 1 (khung trên): Chứa hình ảnh dự án */}
                 <div className="project-sub-image-box">
-                  <img src={project.image} alt={project.name} className="project-img-cover" loading="lazy" />
-                  <span className="project-category-badge">{project.category}</span>
+                  <img
+                    src={formatProjectImage(project.image)}
+                    alt={project.title || project.name}
+                    className="project-img-cover"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.src = project1;
+                    }}
+                  />
+                  <span className="project-category-badge">{project.type || project.category}</span>
                 </div>
 
                 {/* Khung con 2 (khung giữa): Tên dự án & mô tả dự án */}
                 <div className="project-sub-content-box">
-                  <h3 className="project-title-text">{project.name}</h3>
-                  <p className="project-desc-text">{project.description}</p>
+                  <h3 className="project-title-text">{project.title || project.name}</h3>
+                  <p className="project-desc-text">{project.content || project.description}</p>
                 </div>
 
                 {/* Khung con 3 (khung dưới): Địa điểm & thời gian */}
                 <div className="project-sub-meta-box">
                   <div className="project-meta-pill location-pill">
                     <MapPin size={14} className="meta-icon" />
-                    <span>{project.location}</span>
+                    <span>{project.place || project.location}</span>
                   </div>
                   <div className="project-meta-pill time-pill">
                     <Calendar size={14} className="meta-icon" />
-                    <span>{project.time}</span>
+                    <span>{project.start || project.time}</span>
                   </div>
                 </div>
               </div>
@@ -940,8 +1173,16 @@ export const Home: React.FC = () => {
             <div className="news-col-left">
               <article className="news-latest-card">
                 <div className="latest-card-img-wrap">
-                  <img src={LATEST_NEWS.image} alt={LATEST_NEWS.title} className="latest-card-img" loading="lazy" />
-                  <span className="latest-card-badge">{LATEST_NEWS.category}</span>
+                  <img
+                    src={latestNewsItem.image}
+                    alt={latestNewsItem.title}
+                    className="latest-card-img"
+                    loading="lazy"
+                    onError={(e) => {
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80';
+                    }}
+                  />
+                  <span className="latest-card-badge">{latestNewsItem.topic}</span>
                   <span className="latest-tag-pill">TIN MỚI NHẤT</span>
                 </div>
 
@@ -949,16 +1190,15 @@ export const Home: React.FC = () => {
                   <div className="news-card-meta">
                     <span className="meta-date">
                       <Calendar size={14} className="meta-icon" />
-                      {LATEST_NEWS.date}
+                      {latestNewsItem.time}
                     </span>
-                    <span className="meta-read-time">{LATEST_NEWS.readTime}</span>
                   </div>
 
                   <h3 className="latest-card-title">
-                    <a href="#news">{LATEST_NEWS.title}</a>
+                    <a href="#news">{latestNewsItem.title}</a>
                   </h3>
 
-                  <p className="latest-card-summary">{LATEST_NEWS.summary}</p>
+                  <p className="latest-card-summary">{latestNewsItem.content}</p>
 
                   <div className="latest-card-footer">
                     <a href="#news" className="news-detail-btn">
@@ -971,19 +1211,27 @@ export const Home: React.FC = () => {
             </div>
 
             {/* Khung bên phải: Các khung con xếp thành cột (nếu > 3 tin sẽ xuất hiện thanh cuộn dọc) */}
-            <div className={`news-col-right ${SIDEBAR_NEWS.length > 3 ? 'has-scrollbar' : ''}`}>
-              {SIDEBAR_NEWS.map((item) => (
+            <div className={`news-col-right ${sidebarNewsItems.length > 3 ? 'has-scrollbar' : ''}`}>
+              {sidebarNewsItems.map((item) => (
                 <article key={item.id} className="news-item-card">
                   <div className="news-item-img-wrap">
-                    <img src={item.image} alt={item.title} className="news-item-img" loading="lazy" />
+                    <img
+                      src={item.image}
+                      alt={item.title}
+                      className="news-item-img"
+                      loading="lazy"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1577495508048-b635879837f1?auto=format&fit=crop&w=600&q=80';
+                      }}
+                    />
                   </div>
 
                   <div className="news-item-info">
                     <div className="news-card-meta">
-                      <span className="item-category-tag">{item.category}</span>
+                      <span className="item-category-tag">{item.topic}</span>
                       <span className="meta-date">
                         <Calendar size={13} className="meta-icon" />
-                        {item.date}
+                        {item.time}
                       </span>
                     </div>
 
@@ -991,7 +1239,7 @@ export const Home: React.FC = () => {
                       <a href="#news">{item.title}</a>
                     </h4>
 
-                    <p className="news-item-summary">{item.summary}</p>
+                    <p className="news-item-summary">{item.content}</p>
                   </div>
                 </article>
               ))}
@@ -1007,7 +1255,6 @@ export const Home: React.FC = () => {
       <section id="trial" className="cta-banner-section consult-section">
         <div className="cta-banner-card consult-card-wrap">
           <div className="cta-card-content consult-header">
-            <div className="saas-badge-pill light-pill">HỖ TRỢ TRỰC TIẾP 24/7</div>
             <h2>Đăng ký nhận tư vấn miễn phí</h2>
             <p>
               Hãy chia sẻ thông tin dự án của Quý khách. Đội ngũ kỹ sư giàu kinh nghiệm về giải pháp BMS &amp; Tự động hoá của 3AHOME
@@ -1039,6 +1286,9 @@ export const Home: React.FC = () => {
                       demandType: 'Tư vấn giải pháp',
                       content: ''
                     });
+                    if (contentTextareaRef.current) {
+                      contentTextareaRef.current.style.height = 'auto';
+                    }
                   }}
                 >
                   Gửi thêm yêu cầu khác
@@ -1135,11 +1385,13 @@ export const Home: React.FC = () => {
                   </label>
                   <div className="consult-textarea-wrapper">
                     <textarea
+                      ref={contentTextareaRef}
                       id="consult-content"
                       rows={4}
                       placeholder="Mô tả sơ lược về công trình, quy mô, yêu cầu kỹ thuật hoặc câu hỏi Quý khách cần giải đáp..."
                       value={consultForm.content}
-                      onChange={(e) => setConsultForm({ ...consultForm, content: e.target.value })}
+                      onChange={handleContentChange}
+                      style={{ overflowY: 'hidden', resize: 'none' }}
                     />
                   </div>
                 </div>

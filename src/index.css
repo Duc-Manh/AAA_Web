@@ -3045,7 +3045,7 @@ textarea {
 .saas-footer {
   background: #f8fafc;
   border-top: 1px solid var(--border-subtle);
-  padding: 80px 24px 36px 24px;
+  padding: 40px 24px 36px 24px;
 }
 
 .footer-columns-container {
@@ -3054,7 +3054,7 @@ textarea {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 36px;
-  margin-bottom: 60px;
+  margin-bottom: 30px;
 }
 
 .footer-brand-column {
@@ -3171,7 +3171,7 @@ textarea {
 .footer-bottom-bar {
   max-width: 1240px;
   margin: 0 auto;
-  padding-top: 30px;
+  padding-top: 20px;
   border-top: 1px solid var(--border-subtle);
   display: flex;
   align-items: center;
@@ -3343,6 +3343,11 @@ textarea {
   text-align: center;
 }
 
+.intro-page-root .intro-hero-section {
+  background: var(--bg-body, #ffffff);
+  border-bottom: none;
+}
+
 .intro-hero-container {
   max-width: 900px;
   margin: 0 auto;
@@ -3419,7 +3424,7 @@ textarea {
 }
 
 .intro-content-section {
-  padding: 80px 24px;
+  padding: 30px 24px;
   background: #f8fafc;
   flex: 1;
 }
@@ -5496,5 +5501,726 @@ textarea {
   .table-floor-tab-btn {
     flex: 1;
     justify-content: center;
+  }
+}
+
+/* ==========================================================================
+   TOP BACK BUTTON (NÚT MŨI TÊN CUỘN LÊN ĐẦU TRANG - GÓC DƯỚI BÊN TRÁI)
+   ========================================================================== */
+
+.top-back-btn {
+  position: fixed;
+  bottom: 24px;
+  left: 24px;
+  z-index: 9999;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #1e3a8a 0%, #2563eb 100%);
+  color: #ffffff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 18px rgba(37, 99, 235, 0.4), 0 2px 8px rgba(0, 0, 0, 0.12);
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  outline: none;
+  padding: 0;
+}
+
+.top-back-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.top-arrow-icon {
+  color: #ffffff;
+  transition: transform 0.25s ease;
+}
+
+.top-back-btn:hover {
+  transform: translateY(-4px) scale(1.08);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.55), 0 4px 12px rgba(0, 0, 0, 0.16);
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+}
+
+.top-back-btn:hover .top-arrow-icon {
+  transform: translateY(-3px);
+}
+
+.top-back-btn:active {
+  transform: translateY(0) scale(0.95);
+}
+
+/* Tooltip hiển thị khi rê chuột */
+.top-back-tooltip {
+  position: absolute;
+  left: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%) translateX(-6px);
+  background: #0f172a;
+  color: #ffffff;
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 6px 11px;
+  border-radius: 6px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.top-back-tooltip::before {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 5px;
+  border-style: solid;
+  border-color: transparent #0f172a transparent transparent;
+}
+
+.top-back-btn:hover .top-back-tooltip {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+@media (max-width: 640px) {
+  .top-back-btn {
+    bottom: 16px;
+    left: 16px;
+    width: 42px;
+    height: 42px;
+  }
+
+  .top-arrow-icon {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+/* ==========================================================================
+   LOGIN PAGE (TRANG ĐĂNG NHẬP 3A HOME)
+   ========================================================================== */
+
+.login-page-root {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+}
+
+.login-main-section {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 20px;
+  background: radial-gradient(circle at 50% 20%, rgba(37, 99, 235, 0.08) 0%, rgba(248, 250, 252, 1) 70%);
+}
+
+.login-container {
+  width: 100%;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.login-card-wrapper {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  background: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 18px 42px rgba(15, 23, 42, 0.08), 0 4px 12px rgba(15, 23, 42, 0.04);
+  border: 1px solid #e2e8f0;
+}
+
+/* Brand Panel (Bên trái) - Chứa video công nghệ login.mp4 */
+.login-brand-panel {
+  background: #020c1e;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  min-height: 420px;
+}
+
+.login-brand-video {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* Khung nội dung kính mờ đè lên 3D để giữ chữ luôn rõ nét */
+.brand-panel-content {
+  position: relative;
+  z-index: 2;
+  background: rgba(10, 18, 36, 0.58);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 32px 28px;
+  border-radius: 20px;
+  border: 1px solid rgba(56, 189, 248, 0.2);
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.35);
+}
+
+/* HUD Sci-Fi Elements */
+.sci-fi-hud-overlay {
+  position: absolute;
+  inset: 12px;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.hud-corner {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border-color: rgba(56, 189, 248, 0.5);
+  border-style: solid;
+}
+
+.hud-tl {
+  top: 0;
+  left: 0;
+  border-width: 2px 0 0 2px;
+}
+
+.hud-tr {
+  top: 0;
+  right: 0;
+  border-width: 2px 2px 0 0;
+}
+
+.hud-bl {
+  bottom: 0;
+  left: 0;
+  border-width: 0 0 2px 2px;
+}
+
+.hud-br {
+  bottom: 0;
+  right: 0;
+  border-width: 0 2px 2px 0;
+}
+
+.hud-telemetry-tag {
+  position: absolute;
+  bottom: 12px;
+  left: 14px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  color: #38bdf8;
+  opacity: 0.85;
+}
+
+.telemetry-dot {
+  width: 6px;
+  height: 6px;
+  background: #00f2fe;
+  border-radius: 50%;
+  box-shadow: 0 0 8px #00f2fe;
+  animation: telemetryPulse 1.4s ease-in-out infinite alternate;
+}
+
+@keyframes telemetryPulse {
+  from {
+    opacity: 0.4;
+    transform: scale(0.85);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+.brand-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(8px);
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #93c5fd;
+  margin-bottom: 24px;
+  width: fit-content;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.brand-title {
+  font-size: 2.15rem;
+  font-weight: 800;
+  line-height: 1.25;
+  margin-bottom: 18px;
+  color: #ffffff;
+}
+
+.brand-title span {
+  background: linear-gradient(135deg, #60a5fa 0%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.brand-desc {
+  font-size: 0.95rem;
+  color: #94a3b8;
+  line-height: 1.65;
+  margin-bottom: 36px;
+}
+
+.brand-features {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.feature-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.feature-icon {
+  color: #60a5fa;
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+.feature-item strong {
+  display: block;
+  font-size: 0.92rem;
+  color: #f1f5f9;
+  margin-bottom: 2px;
+}
+
+.feature-item p {
+  font-size: 0.82rem;
+  color: #94a3b8;
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Form Panel (Bên phải) */
+.login-form-panel {
+  padding: 28px 36px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background: #ffffff;
+}
+
+.form-header {
+  margin-bottom: 12px;
+}
+
+.form-title {
+  font-size: 1.65rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 6px;
+}
+
+.form-subtitle {
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: #334155;
+  margin: 0;
+  line-height: 1.35;
+}
+
+/* Alerts */
+.login-alert {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 9px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  margin-bottom: 10px;
+}
+
+.alert-error {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.alert-success {
+  background: #f0fdf4;
+  color: #16a34a;
+  border: 1px solid #bbf7d0;
+}
+
+/* Form elements */
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.form-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: #334155;
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.forgot-password-link {
+  font-size: 0.8rem;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s ease;
+}
+
+.forgot-password-link:hover {
+  color: #1d4ed8;
+  text-decoration: underline;
+}
+
+.input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 12px;
+  color: #94a3b8;
+  pointer-events: none;
+  transition: color 0.2s ease;
+}
+
+.form-input {
+  width: 100%;
+  padding: 9px 12px 9px 38px;
+  font-size: 0.88rem;
+  border-radius: 9px;
+  border: 1.5px solid #e2e8f0;
+  background: #f8fafc;
+  color: #0f172a;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.form-input:focus {
+  background: #ffffff;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+}
+
+.form-input:focus~.input-icon {
+  color: #2563eb;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 10px;
+  background: none;
+  border: none;
+  color: #94a3b8;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s ease;
+}
+
+.password-toggle-btn:hover {
+  color: #334155;
+}
+
+.form-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: #64748b;
+  user-select: none;
+}
+
+.checkbox-input {
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+  accent-color: #2563eb;
+}
+
+/* Hàng nút bấm đăng nhập */
+.login-btn-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.login-submit-btn {
+  flex: 1.15;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border-radius: 9px;
+  border: none;
+  background: linear-gradient(135deg, #1e40af 0%, #2563eb 100%);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(37, 99, 235, 0.25);
+  transition: all 0.22s ease;
+  white-space: nowrap;
+}
+
+.login-submit-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #1d4ed8 0%, #3b82f6 100%);
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+}
+
+.login-submit-btn:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.login-submit-btn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+/* Trạng thái Loading: Nút Đăng nhập không có background, viền có đoạn màu xanh dương chạy liên tục */
+.login-submit-btn.btn-loading-border {
+  background: transparent !important;
+  color: #2563eb !important;
+  box-shadow: none !important;
+  border: none !important;
+  position: relative;
+  cursor: wait;
+  opacity: 1 !important;
+  overflow: visible;
+}
+
+.login-submit-btn.btn-loading-border span {
+  position: relative;
+  z-index: 2;
+  color: #1d4ed8;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+}
+
+.login-btn-beam-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.login-btn-beam-track {
+  fill: none;
+  stroke: rgba(37, 99, 235, 0.2);
+  stroke-width: 1.5px;
+}
+
+.login-btn-beam-runner {
+  fill: none;
+  stroke: #2563eb;
+  stroke-width: 2.5px;
+  stroke-linecap: round;
+  stroke-dasharray: 24 76;
+  filter: drop-shadow(0 0 5px #2563eb) drop-shadow(0 0 2px #60a5fa);
+  animation: runLoginBorderBeam 1.25s linear infinite;
+}
+
+@keyframes runLoginBorderBeam {
+  0% {
+    stroke-dashoffset: 0;
+  }
+
+  100% {
+    stroke-dashoffset: -100;
+  }
+}
+
+/* Nút Đăng nhập Google */
+.login-google-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 14px;
+  border-radius: 9px;
+  border: 1.5px solid #e2e8f0;
+  background: #ffffff;
+  color: #1e293b;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.03);
+  transition: all 0.22s ease;
+  white-space: nowrap;
+}
+
+.login-google-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateY(-1.5px);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.07);
+}
+
+.login-google-btn:active {
+  transform: translateY(0);
+}
+
+.google-icon {
+  flex-shrink: 0;
+}
+
+.btn-loading-spinner {
+  width: 20px;
+  height: 20px;
+  border: 2.5px solid rgba(255, 255, 255, 0.3);
+  border-top-color: #ffffff;
+  border-radius: 50%;
+  animation: spinnerRotate 0.8s linear infinite;
+}
+
+@keyframes spinnerRotate {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.form-footer-note {
+  margin-top: 28px;
+  text-align: center;
+  font-size: 0.84rem;
+  color: #64748b;
+}
+
+.form-footer-note a {
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.form-footer-note a:hover {
+  text-decoration: underline;
+}
+
+/* Khung nhập và hiển thị mã xác thực Login */
+.captcha-input-group {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.captcha-field-wrapper {
+  flex: 1;
+}
+
+.captcha-input {
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.login-captcha-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: linear-gradient(135deg, #f8fafc 0%, #edf2f7 100%);
+  border: 1.5px solid #cbd5e1;
+  border-radius: 9px;
+  cursor: pointer;
+  user-select: none;
+  transition: all 0.22s ease;
+  white-space: nowrap;
+}
+
+.login-captcha-box:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.05);
+}
+
+.login-captcha-box:active {
+  transform: translateY(0);
+}
+
+.login-captcha-text {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 800;
+  font-size: 1.02rem;
+  letter-spacing: 0.2em;
+  color: #1e3a8a;
+  text-decoration: line-through;
+  text-shadow: 1px 1px 1px rgba(30, 58, 138, 0.12);
+}
+
+.login-captcha-refresh {
+  color: #64748b;
+  transition: transform 0.35s ease, color 0.2s ease;
+}
+
+.login-captcha-box:hover .login-captcha-refresh {
+  transform: rotate(180deg);
+  color: #2563eb;
+}
+
+@media (max-width: 900px) {
+  .login-card-wrapper {
+    grid-template-columns: 1fr;
+  }
+
+  .login-brand-panel {
+    padding: 38px 28px;
+  }
+
+  .login-form-panel {
+    padding: 38px 28px;
   }
 }

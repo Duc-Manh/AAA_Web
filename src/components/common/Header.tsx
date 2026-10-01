@@ -9,14 +9,14 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { id: '#intro', name: 'Giới thiệu' },
   { id: '#solution', name: 'Giải pháp' },
   { id: '#product', name: 'Sản phẩm' },
   { id: '#project', name: 'Dự án' },
   { id: '#news', name: 'Tin tức' },
   { id: '#about', name: 'Về chúng tôi' },
-  { id: '#hire', name: 'Tuyển dụng' },
+
   { id: '#simu', name: 'Mô phỏng' },
+  { id: '#login', name: 'Đăng nhập' },
 ];
 
 export const Header: React.FC = () => {
