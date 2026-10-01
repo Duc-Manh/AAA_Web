@@ -525,10 +525,10 @@ export const Home: React.FC = () => {
   }, []);
 
   const handleNextHeroProject = () => {
-    if (heroProjects.length === 0) return;
+    const count = heroProjects.length > 0 ? heroProjects.length : 1;
     setIsHeroFading(true);
     setTimeout(() => {
-      setHeroProjIdx((prev) => (prev + 1) % heroProjects.length);
+      setHeroProjIdx((prev) => (prev + 1) % count);
       setIsHeroFading(false);
     }, 220);
   };
@@ -541,7 +541,34 @@ export const Home: React.FC = () => {
     return () => clearInterval(interval);
   }, [heroProjIdx, heroProjects.length]);
 
-  const currentHeroProject = heroProjects[heroProjIdx] || heroProjects[0] || null;
+  const DEFAULT_HERO_PROJECT: HeroProjectItem = {
+    id: 'default',
+    name: 'Dự án Smart Home & BMS 3AHOME',
+    title: 'Dự án Smart Home & BMS 3AHOME',
+    category: 'Công trình tiêu biểu',
+    type: 'Công trình tiêu biểu',
+    image: project1,
+    description: 'Giải pháp toà nhà thông minh, điều khiển trung tâm BMS và quản lý năng lượng toàn diện.',
+    content: 'Giải pháp toà nhà thông minh, điều khiển trung tâm BMS và quản lý năng lượng toàn diện.',
+    location: 'Việt Nam',
+    place: 'Việt Nam',
+    time: '2025 - 2026',
+    start: '2025 - 2026'
+  };
+
+  const DEFAULT_NEWS_ITEM: HomeNewsItem = {
+    id: 'default-news',
+    topic: 'Tin tức',
+    category: 'Tin tức',
+    title: 'Giải pháp công nghệ toà nhà thông minh và BMS thế hệ mới 3AHOME',
+    content: 'Cập nhật xu hướng công nghệ, thiết bị điều khiển thông minh và các hoạt động triển khai nổi bật của 3AHOME.',
+    summary: 'Cập nhật xu hướng công nghệ, thiết bị điều khiển thông minh và các hoạt động triển khai nổi bật của 3AHOME.',
+    time: 'Mới cập nhật',
+    date: 'Mới cập nhật',
+    image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80'
+  };
+
+  const currentHeroProject = (heroProjects && heroProjects.length > 0 && heroProjects[heroProjIdx]) || (heroProjects && heroProjects[0]) || DEFAULT_HERO_PROJECT;
 
   // Nạp tin tức từ bảng news database 3ahome
   const [dbNews, setDbNews] = useState<HomeNewsItem[]>([]);
@@ -574,10 +601,10 @@ export const Home: React.FC = () => {
   }, []);
 
   // Hàng trong bảng news có time mới nhất
-  const latestNewsItem: HomeNewsItem | null = dbNews.length > 0 ? dbNews[0] : null;
+  const latestNewsItem: HomeNewsItem = (dbNews && dbNews.length > 0 && dbNews[0]) ? dbNews[0] : DEFAULT_NEWS_ITEM;
 
   // Các hàng còn lại trong bảng news
-  const sidebarNewsItems: HomeNewsItem[] = dbNews.length > 1 ? dbNews.slice(1) : [];
+  const sidebarNewsItems: HomeNewsItem[] = (dbNews && dbNews.length > 1) ? dbNews.slice(1).filter(Boolean) : [];
 
   // SplitText effect for BMS Smart Building section header - triggers once on view/refresh
   const bmsHeaderRef = useRef<HTMLDivElement>(null);
@@ -689,8 +716,8 @@ export const Home: React.FC = () => {
           <div className="hero-image-col">
             <div className="hero-portrait-frame">
               <img
-                src={formatProjectImage(currentHeroProject.image)}
-                alt={currentHeroProject.title || currentHeroProject.name}
+                src={formatProjectImage(currentHeroProject?.image || project1)}
+                alt={currentHeroProject?.title || currentHeroProject?.name || ''}
                 className={`hero-main-photo ${isHeroFading ? 'fading' : ''}`}
                 onError={(e) => {
                   e.currentTarget.src = project1;
@@ -707,16 +734,16 @@ export const Home: React.FC = () => {
                 <div className={`widget-content ${isHeroFading ? 'fading' : ''}`}>
                   <div className="widget-header">
                     <div className="widget-brand">
-                      <strong>{currentHeroProject.title || currentHeroProject.name}</strong>
+                      <strong>{currentHeroProject?.title || currentHeroProject?.name || ''}</strong>
                     </div>
                   </div>
                   <p className="widget-text">
-                    {currentHeroProject.content || currentHeroProject.description}
+                    {currentHeroProject?.content || currentHeroProject?.description || ''}
                   </p>
                   <div className="widget-bottom-row">
                     <div className="widget-category-preview">
-                      <div className="cat-chip active">{currentHeroProject.place || currentHeroProject.location}</div>
-                      <div className="cat-chip active">{currentHeroProject.start || currentHeroProject.time}</div>
+                      <div className="cat-chip active">{currentHeroProject?.place || currentHeroProject?.location || ''}</div>
+                      <div className="cat-chip active">{currentHeroProject?.start || currentHeroProject?.time || ''}</div>
                     </div>
                     <div className="widget-actions">
                       <button
@@ -942,37 +969,37 @@ export const Home: React.FC = () => {
             </div>
           ) : (
             <div className={`projects-carousel-track ${heroProjects.length > 3 ? 'auto-scroll-active' : ''}`}>
-              {(heroProjects.length > 3 ? [...heroProjects, ...heroProjects] : heroProjects).map((project, idx) => (
+              {(heroProjects.length > 3 ? [...heroProjects, ...heroProjects] : heroProjects).filter(Boolean).map((project, idx) => (
                 <div key={`${project.id}-${idx}`} className="project-card-container">
                   {/* Khung con 1 (khung trên): Chứa hình ảnh dự án */}
                   <div className="project-sub-image-box">
                     <img
-                      src={formatProjectImage(project.image)}
-                      alt={project.title || project.name}
+                      src={formatProjectImage(project?.image || project1)}
+                      alt={project?.title || project?.name || ''}
                       className="project-img-cover"
                       loading="lazy"
                       onError={(e) => {
                         e.currentTarget.src = project1;
                       }}
                     />
-                    <span className="project-category-badge">{project.type || project.category}</span>
+                    <span className="project-category-badge">{project?.type || project?.category || ''}</span>
                   </div>
 
                   {/* Khung con 2 (khung giữa): Tên dự án & mô tả dự án */}
                   <div className="project-sub-content-box">
-                    <h3 className="project-title-text">{project.title || project.name}</h3>
-                    <p className="project-desc-text">{project.content || project.description}</p>
+                    <h3 className="project-title-text">{project?.title || project?.name || ''}</h3>
+                    <p className="project-desc-text">{project?.content || project?.description || ''}</p>
                   </div>
 
                   {/* Khung con 3 (khung dưới): Địa điểm & thời gian */}
                   <div className="project-sub-meta-box">
                     <div className="project-meta-pill location-pill">
                       <MapPin size={14} className="meta-icon" />
-                      <span>{project.place || project.location}</span>
+                      <span>{project?.place || project?.location || ''}</span>
                     </div>
                     <div className="project-meta-pill time-pill">
                       <Calendar size={14} className="meta-icon" />
-                      <span>{project.start || project.time}</span>
+                      <span>{project?.start || project?.time || ''}</span>
                     </div>
                   </div>
                 </div>
@@ -999,15 +1026,15 @@ export const Home: React.FC = () => {
                 <article className="news-latest-card">
                   <div className="latest-card-img-wrap">
                     <img
-                      src={latestNewsItem.image}
-                      alt={latestNewsItem.title}
+                      src={latestNewsItem?.image || DEFAULT_NEWS_ITEM.image}
+                      alt={latestNewsItem?.title || ''}
                       className="latest-card-img"
                       loading="lazy"
                       onError={(e) => {
                         e.currentTarget.src = 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=1000&q=80';
                       }}
                     />
-                    <span className="latest-card-badge">{latestNewsItem.topic}</span>
+                    <span className="latest-card-badge">{latestNewsItem?.topic || 'Tin tức'}</span>
                     <span className="latest-tag-pill">TIN MỚI NHẤT</span>
                   </div>
 
@@ -1015,15 +1042,15 @@ export const Home: React.FC = () => {
                     <div className="news-card-meta">
                       <span className="meta-date">
                         <Calendar size={14} className="meta-icon" />
-                        {latestNewsItem.time}
+                        {latestNewsItem?.time || ''}
                       </span>
                     </div>
 
                     <h3 className="latest-card-title">
-                      <a href="#news">{latestNewsItem.title}</a>
+                      <a href="#news">{latestNewsItem?.title || ''}</a>
                     </h3>
 
-                    <p className="latest-card-summary">{latestNewsItem.content}</p>
+                    <p className="latest-card-summary">{latestNewsItem?.content || ''}</p>
 
                     <div className="latest-card-footer">
                       <a href="#news" className="news-detail-btn">
@@ -1043,11 +1070,11 @@ export const Home: React.FC = () => {
             {/* Khung bên phải: Các khung con xếp thành cột (nếu > 3 tin sẽ xuất hiện thanh cuộn dọc) */}
             <div className={`news-col-right ${sidebarNewsItems.length > 3 ? 'has-scrollbar' : ''}`}>
               {sidebarNewsItems.map((item) => (
-                <article key={item.id} className="news-item-card">
+                <article key={item?.id} className="news-item-card">
                   <div className="news-item-img-wrap">
                     <img
-                      src={item.image}
-                      alt={item.title}
+                      src={item?.image || DEFAULT_NEWS_ITEM.image}
+                      alt={item?.title || ''}
                       className="news-item-img"
                       loading="lazy"
                       onError={(e) => {
@@ -1058,18 +1085,18 @@ export const Home: React.FC = () => {
 
                   <div className="news-item-info">
                     <div className="news-card-meta">
-                      <span className="item-category-tag">{item.topic}</span>
+                      <span className="item-category-tag">{item?.topic || ''}</span>
                       <span className="meta-date">
                         <Calendar size={13} className="meta-icon" />
-                        {item.time}
+                        {item?.time || ''}
                       </span>
                     </div>
 
                     <h4 className="news-item-title">
-                      <a href="#news">{item.title}</a>
+                      <a href="#news">{item?.title || ''}</a>
                     </h4>
 
-                    <p className="news-item-summary">{item.content}</p>
+                    <p className="news-item-summary">{item?.content || ''}</p>
                   </div>
                 </article>
               ))}

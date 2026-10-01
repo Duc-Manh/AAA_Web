@@ -941,6 +941,245 @@ function mysqlSimuPlugin(): Plugin {
           }
         }
 
+        // API quản lý thiết bị: /api/device
+        if (url.pathname === '/api/device' || url.pathname.startsWith('/api/device/')) {
+          const connection = await mysql.createConnection(mysqlConfig)
+          try {
+            await connection.execute(`
+              CREATE TABLE IF NOT EXISTS device (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                time DATETIME DEFAULT CURRENT_TIMESTAMP,
+                brand VARCHAR(255) NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                image VARCHAR(500) DEFAULT NULL,
+                status INT NOT NULL DEFAULT 1
+              ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            `)
+
+            // 1. GET /api/device
+            if (url.pathname === '/api/device' && req.method === 'GET') {
+              const [rows] = await connection.execute('SELECT * FROM device ORDER BY id DESC')
+              res.setHeader('Content-Type', 'application/json; charset=utf-8')
+              res.end(JSON.stringify({ success: true, data: rows }))
+              await connection.end()
+              return
+            }
+
+            // 2. POST /api/device
+            if (url.pathname === '/api/device' && req.method === 'POST') {
+              let body = ''
+              req.on('data', (chunk) => {
+                body += chunk
+              })
+              req.on('end', async () => {
+                try {
+                  const { brand, name, imageBase64, imageFileName } = JSON.parse(body || '{}')
+                  if (!brand || !name) {
+                    res.statusCode = 400
+                    res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                    res.end(JSON.stringify({ success: false, message: 'Vui lòng nhập đầy đủ Hãng sản xuất và Tên thiết bị' }))
+                    return
+                  }
+
+                  let imageDbPath = ''
+                  if (imageBase64) {
+                    let filename = imageFileName
+                    if (!filename) {
+                      const now = new Date()
+                      const dd = String(now.getDate()).padStart(2, '0')
+                      const mm = String(now.getMonth() + 1).padStart(2, '0')
+                      const yyyy = now.getFullYear()
+                      const codeimg = Math.random().toString(36).substring(2, 8).toUpperCase()
+                      filename = `device[${dd}-${mm}-${yyyy}][${codeimg}].jpg`
+                    }
+
+                    // Lưu vào uploads/device
+                    const uploadsDeviceDir = path.resolve(__dirname, '../AAA_Backend/uploads/device')
+                    if (!fs.existsSync(uploadsDeviceDir)) {
+                      fs.mkdirSync(uploadsDeviceDir, { recursive: true })
+                    }
+                    const filePath = path.join(uploadsDeviceDir, filename)
+                    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '')
+                    await fs.promises.writeFile(filePath, Buffer.from(base64Data, 'base64'))
+
+                    // Đồng thời lưu vào uploads/news để tương thích đường dẫn
+                    const uploadsNewsDir = path.resolve(__dirname, '../AAA_Backend/uploads/news')
+                    if (!fs.existsSync(uploadsNewsDir)) {
+                      fs.mkdirSync(uploadsNewsDir, { recursive: true })
+                    }
+                    try {
+                      await fs.promises.copyFile(filePath, path.join(uploadsNewsDir, filename))
+                    } catch {
+                      // ignore
+                    }
+
+                    imageDbPath = `\\AAA_Backend\\uploads\\news\\${filename}`
+                  }
+
+                  const [result]: any = await connection.execute(
+                    'INSERT INTO device (time, brand, name, image, status) VALUES (NOW(), ?, ?, ?, 1)',
+                    [brand.trim(), name.trim(), imageDbPath || null]
+                  )
+
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(
+                    JSON.stringify({
+                      success: true,
+                      message: 'Đăng thiết bị thành công',
+                      id: result.insertId,
+                      image: imageDbPath,
+                    })
+                  )
+                  await connection.end()
+                } catch (postErr: any) {
+                  await connection.end()
+                  res.statusCode = 500
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: false, message: postErr.message }))
+                }
+              })
+              return
+            }
+
+            // 3. PUT /api/device/:id (Sửa)
+            if (url.pathname.startsWith('/api/device/') && req.method === 'PUT') {
+              const id = url.pathname.split('/')[3]
+              let body = ''
+              req.on('data', (chunk) => {
+                body += chunk
+              })
+              req.on('end', async () => {
+                try {
+                  const { brand, name, status, imageBase64, imageFileName } = JSON.parse(body || '{}')
+                  if (!brand || !name) {
+                    res.statusCode = 400
+                    res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                    res.end(JSON.stringify({ success: false, message: 'Vui lòng nhập đầy đủ Hãng sản xuất và Tên thiết bị' }))
+                    return
+                  }
+
+                  let imageDbPath = undefined
+                  if (imageBase64 && typeof imageBase64 === 'string' && imageBase64.startsWith('data:image')) {
+                    const filename = imageFileName || `device[${Date.now()}].jpg`
+                    const uploadsDeviceDir = path.resolve(__dirname, '../AAA_Backend/uploads/device')
+                    if (!fs.existsSync(uploadsDeviceDir)) {
+                      fs.mkdirSync(uploadsDeviceDir, { recursive: true })
+                    }
+                    const filePath = path.join(uploadsDeviceDir, filename)
+                    const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, '')
+                    await fs.promises.writeFile(filePath, Buffer.from(base64Data, 'base64'))
+
+                    const uploadsNewsDir = path.resolve(__dirname, '../AAA_Backend/uploads/news')
+                    if (!fs.existsSync(uploadsNewsDir)) {
+                      fs.mkdirSync(uploadsNewsDir, { recursive: true })
+                    }
+                    try {
+                      await fs.promises.copyFile(filePath, path.join(uploadsNewsDir, filename))
+                    } catch {
+                      // ignore
+                    }
+
+                    imageDbPath = `\\AAA_Backend\\uploads\\news\\${filename}`
+                  }
+
+                  if (imageDbPath !== undefined) {
+                    await connection.execute(
+                      'UPDATE device SET brand = ?, name = ?, status = ?, image = ? WHERE id = ?',
+                      [brand.trim(), name.trim(), Number(status) || 1, imageDbPath, id]
+                    )
+                  } else {
+                    await connection.execute(
+                      'UPDATE device SET brand = ?, name = ?, status = ? WHERE id = ?',
+                      [brand.trim(), name.trim(), Number(status) || 1, id]
+                    )
+                  }
+
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: true, message: 'Cập nhật thiết bị thành công' }))
+                  await connection.end()
+                } catch (putErr: any) {
+                  await connection.end()
+                  res.statusCode = 500
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: false, message: putErr.message }))
+                }
+              })
+              return
+            }
+
+            // 4. PATCH /api/device/:id/hide (Ẩn thiết bị)
+            if (url.pathname.match(/\/api\/device\/\d+\/hide/) && req.method === 'PATCH') {
+              const id = url.pathname.split('/')[3]
+              await connection.execute('UPDATE device SET status = 2 WHERE id = ?', [id])
+              res.setHeader('Content-Type', 'application/json; charset=utf-8')
+              res.end(JSON.stringify({ success: true, message: 'Đã ẩn thiết bị' }))
+              await connection.end()
+              return
+            }
+
+            // 5. PATCH /api/device/:id/status (Đổi trạng thái)
+            if (url.pathname.match(/\/api\/device\/\d+\/status/) && req.method === 'PATCH') {
+              const id = url.pathname.split('/')[3]
+              let body = ''
+              req.on('data', (chunk) => {
+                body += chunk
+              })
+              req.on('end', async () => {
+                try {
+                  const { status } = JSON.parse(body || '{}')
+                  await connection.execute('UPDATE device SET status = ? WHERE id = ?', [Number(status) || 1, id])
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: true, message: 'Đã cập nhật trạng thái thiết bị' }))
+                  await connection.end()
+                } catch (patchErr: any) {
+                  await connection.end()
+                  res.statusCode = 500
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: false, message: patchErr.message }))
+                }
+              })
+              return
+            }
+
+            // 6. DELETE /api/device/:id (Xoá thiết bị và file ảnh)
+            if (url.pathname.startsWith('/api/device/') && req.method === 'DELETE') {
+              const id = url.pathname.split('/')[3]
+              const [rows]: any = await connection.execute('SELECT image FROM device WHERE id = ?', [id])
+              if (rows && rows.length > 0 && rows[0].image) {
+                const imgPath = rows[0].image
+                const filename = path.basename(imgPath)
+                const deviceFile = path.resolve(__dirname, '../AAA_Backend/uploads/device', filename)
+                if (fs.existsSync(deviceFile)) {
+                  try {
+                    await fs.promises.unlink(deviceFile)
+                  } catch {
+                    // ignore
+                  }
+                }
+                const newsFile = path.resolve(__dirname, '../AAA_Backend/uploads/news', filename)
+                if (fs.existsSync(newsFile)) {
+                  try {
+                    await fs.promises.unlink(newsFile)
+                  } catch {
+                    // ignore
+                  }
+                }
+              }
+              await connection.execute('DELETE FROM device WHERE id = ?', [id])
+              res.setHeader('Content-Type', 'application/json; charset=utf-8')
+              res.end(JSON.stringify({ success: true, message: 'Đã xoá thiết bị và hình ảnh' }))
+              await connection.end()
+              return
+            }
+          } catch (err: any) {
+            await connection.end()
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.end(JSON.stringify({ success: false, message: err.message || 'Lỗi server device' }))
+            return
+          }
+        }
+
         next()
       })
     },
