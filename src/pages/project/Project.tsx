@@ -125,7 +125,7 @@ export const Project: React.FC = () => {
             ))}
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))', gap: '28px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: '28px' }}>
             {isLoading ? (
               <div style={{ textAlign: 'center', padding: '60px 20px', color: '#64748b', gridColumn: '1 / -1', fontSize: '0.95rem' }}>
                 Đang tải danh sách dự án từ cơ sở dữ liệu...
