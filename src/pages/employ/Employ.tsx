@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import '../dash/Dash.css';
-import iconImg from '../../assets/images/icon.png';
-import {
-  LayoutDashboard,
-  Building2,
-  Cpu,
-  Zap,
-  Video,
-  Users,
-  Bell,
-  Settings,
-  LogOut,
-  Menu,
-  RefreshCw,
-  CheckCircle2
-} from 'lucide-react';
+import { EmpAside } from '../../components/common/EmpAside';
+import { EmpHeader } from '../../components/common/EmpHeader';
+import { CheckCircle2 } from 'lucide-react';
 
 interface DeviceItem {
   id: string;
@@ -164,185 +152,27 @@ export const Employ: React.FC = () => {
       )}
 
       {/* 1. SIDEBAR ĐIỀU HƯỚNG */}
-      <aside
-        className={`dash-sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''
-          }`}
-      >
-        <div className="dash-sidebar-header">
-          <div className="dash-header-icon-box">
-            <img src={iconImg} alt="3A Icon" className="dash-sidebar-icon" />
-          </div>
-          <button
-            type="button"
-            className="dash-sidebar-collapse-btn"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-            title={isCollapsed ? 'Mở rộng sidebar' : 'Thu nhỏ sidebar'}
-          >
-            <Menu size={18} />
-          </button>
-        </div>
-
-        <nav className="dash-sidebar-menu">
-          <div className="dash-menu-group-label">{!isCollapsed ? 'Danh mục' : '•••'}</div>
-
-          <button
-            type="button"
-            className={`dash-menu-item ${activeTab === 'overview' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('overview');
-              setIsMobileOpen(false);
-            }}
-          >
-            <LayoutDashboard size={19} className="dash-menu-icon" />
-            {!isCollapsed && <span>Tổng Quan</span>}
-          </button>
-
-          <button
-            type="button"
-            className={`dash-menu-item ${activeTab === 'devices' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('devices');
-              setIsMobileOpen(false);
-            }}
-          >
-            <Cpu size={19} className="dash-menu-icon" />
-            {!isCollapsed && <span>Thiết Bị IoT</span>}
-            {!isCollapsed && (
-              <span className="dash-menu-badge">{activeDeviceCount}/{devices.length}</span>
-            )}
-          </button>
-
-          <button
-            type="button"
-            className={`dash-menu-item ${activeTab === 'apartments' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('apartments');
-              setIsMobileOpen(false);
-            }}
-          >
-            <Building2 size={19} className="dash-menu-icon" />
-            {!isCollapsed && <span>Căn Hộ & Toà Nhà</span>}
-          </button>
-
-          <button
-            type="button"
-            className={`dash-menu-item ${activeTab === 'energy' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('energy');
-              setIsMobileOpen(false);
-            }}
-          >
-            <Zap size={19} className="dash-menu-icon" />
-            {!isCollapsed && <span>Điện Năng Tiêu Thụ</span>}
-          </button>
-
-          <button
-            type="button"
-            className={`dash-menu-item ${activeTab === 'security' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('security');
-              setIsMobileOpen(false);
-            }}
-          >
-            <Video size={19} className="dash-menu-icon" />
-            {!isCollapsed && <span>Camera An Ninh</span>}
-          </button>
-
-          <button
-            type="button"
-            className={`dash-menu-item ${activeTab === 'users' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('users');
-              setIsMobileOpen(false);
-            }}
-          >
-            <Users size={19} className="dash-menu-icon" />
-            {!isCollapsed && <span>Cư Dân & Người Dùng</span>}
-          </button>
-
-          <div className="dash-menu-group-label" style={{ marginTop: '12px' }}>
-            {!isCollapsed ? 'Cấu Hình' : '•••'}
-          </div>
-
-          <button
-            type="button"
-            className={`dash-menu-item ${activeTab === 'settings' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('settings');
-              setIsMobileOpen(false);
-            }}
-          >
-            <Settings size={19} className="dash-menu-icon" />
-            {!isCollapsed && <span>Cài Đặt Hệ Thống</span>}
-          </button>
-        </nav>
-      </aside>
+      <EmpAside
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isCollapsed={isCollapsed}
+        setIsCollapsed={setIsCollapsed}
+        isMobileOpen={isMobileOpen}
+        setIsMobileOpen={setIsMobileOpen}
+        devices={devices}
+        activeDeviceCount={activeDeviceCount}
+      />
 
       {/* 2. KHU VỰC NỘI DUNG CHÍNH */}
       <div className="dash-main">
         {/* TOP NAVBAR */}
-        <header className="dash-navbar">
-          <div className="dash-navbar-left">
-            <button
-              type="button"
-              className="dash-mobile-menu-btn"
-              onClick={() => setIsMobileOpen(!isMobileOpen)}
-            >
-              <Menu size={20} />
-            </button>
-
-            <div className="dash-page-title-wrap">
-              <h1>Giao diện quản trị công ty</h1>
-              <p>Giám sát thời gian thực, tự động hoá thiết bị và phân tích chỉ số toà nhà thông minh 3A</p>
-            </div>
-          </div>
-
-          <div className="dash-navbar-right">
-            <button
-              type="button"
-              className="dash-nav-action-btn"
-              title="Làm mới trạng thái kết nối"
-              onClick={() => triggerToast('Đã làm mới dữ liệu cảm biến & thiết bị!')}
-            >
-              <RefreshCw size={17} />
-            </button>
-
-            <button
-              type="button"
-              className="dash-nav-action-btn"
-              title="Thông báo hệ thống (2 cảnh báo)"
-              onClick={() => triggerToast('Không có sự cố khẩn cấp nào!')}
-            >
-              <Bell size={17} />
-              <span className="dash-nav-badge" />
-            </button>
-
-            {/* Khung hiển thị thông tin đăng nhập và nút Logout */}
-            <div className="dash-user-nav-wrapper">
-              <div className="dash-user-profile-badge">
-                <div className="dash-user-avatar-sm">
-                  {(currentUser?.username || '3A').slice(0, 2).toUpperCase()}
-                </div>
-                <div className="dash-user-nav-info">
-                  <span className="dash-user-nav-name">
-                    {currentUser?.username || 'Quản Trị Viên 3A'}
-                  </span>
-                  <span className="dash-user-nav-role">Super Admin</span>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                className="dash-navbar-logout-btn"
-                onClick={handleLogout}
-                title="Đăng xuất khỏi hệ thống"
-              >
-                <LogOut size={15} />
-                <span>Đăng Xuất</span>
-              </button>
-            </div>
-          </div>
-        </header>
+        <EmpHeader
+          isMobileOpen={isMobileOpen}
+          setIsMobileOpen={setIsMobileOpen}
+          triggerToast={triggerToast}
+          currentUser={currentUser}
+          handleLogout={handleLogout}
+        />
 
         {/* NỘI DUNG TRANG DASHBOARD */}
         <div className="dash-content">
