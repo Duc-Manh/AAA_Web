@@ -1851,3 +1851,143 @@ body:has(.dash-page-container) .entertain-widget,
 .btn-tbl-del:hover {
   background: #fee2e2;
 }
+
+/* ==========================================================================
+   KHUNG THEO DÕI CHỈ SỐ TRUY CẬP HỆ THỐNG (TRAFFIC & VISITOR STATS)
+   ========================================================================== */
+.dash-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.dash-metric-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 18px 20px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.dash-metric-card:hover {
+  transform: translateY(-2.5px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.06);
+  border-color: #cbd5e1;
+}
+
+.dash-metric-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.dash-metric-label {
+  margin: 0;
+  font-size: 0.82rem;
+  color: #64748b;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.dash-metric-value {
+  margin: 6px 0 0;
+  font-size: 1.65rem;
+  font-weight: 700;
+  font-family: 'Montserrat', -apple-system, sans-serif;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+}
+
+.dash-metric-icon-wrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Các tone màu cho từng thẻ */
+.dash-metric-card.metric-online .dash-metric-icon-wrap {
+  background: #ecfdf5;
+  color: #10b981;
+}
+.dash-metric-card.metric-online .dash-metric-value {
+  color: #059669;
+}
+
+.dash-metric-card.metric-today .dash-metric-icon-wrap {
+  background: #eff6ff;
+  color: #2563eb;
+}
+.dash-metric-card.metric-today .dash-metric-value {
+  color: #1d4ed8;
+}
+
+.dash-metric-card.metric-month .dash-metric-icon-wrap {
+  background: #eef2ff;
+  color: #6366f1;
+}
+.dash-metric-card.metric-month .dash-metric-value {
+  color: #4f46e5;
+}
+
+.dash-metric-card.metric-year .dash-metric-icon-wrap {
+  background: #fffbeb;
+  color: #f59e0b;
+}
+.dash-metric-card.metric-year .dash-metric-value {
+  color: #d97706;
+}
+
+.dash-metric-card.metric-total .dash-metric-icon-wrap {
+  background: #f0fdf4;
+  color: #16a34a;
+}
+.dash-metric-card.metric-total .dash-metric-value {
+  color: #15803d;
+}
+
+.dash-metric-card.metric-simu .dash-metric-icon-wrap {
+  background: #faf5ff;
+  color: #a855f7;
+}
+.dash-metric-card.metric-simu .dash-metric-value {
+  color: #7e22ce;
+}
+
+/* Chấm xanh nhấp nháy cho người đang online */
+.live-pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #10b981;
+  position: relative;
+  display: inline-block;
+}
+
+.live-pulse-dot::after {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background-color: rgba(16, 185, 129, 0.4);
+  animation: livePing 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes livePing {
+  0% { transform: scale(1); opacity: 1; }
+  75%, 100% { transform: scale(2.2); opacity: 0; }
+}

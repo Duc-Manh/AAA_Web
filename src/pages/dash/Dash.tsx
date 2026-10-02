@@ -8,7 +8,13 @@ import {
   Trash2,
   X,
   UserPlus,
-  RotateCcw
+  RotateCcw,
+  Activity,
+  Calendar,
+  TrendingUp,
+  CalendarDays,
+  Globe,
+  Box
 } from 'lucide-react';
 import { DashAside } from '../../components/common/DashAside';
 import { DashHeader } from '../../components/common/DashHeader';
@@ -90,6 +96,46 @@ export const Dash: React.FC = () => {
     }, 2500);
   };
 
+  // Thống kê lượng truy cập hệ thống
+  interface VisitStats {
+    online: number;
+    today: number;
+    month: number;
+    year: number;
+    total: number;
+    simu: number;
+  }
+
+  const [visitStats, setVisitStats] = useState<VisitStats>({
+    online: 1,
+    today: 0,
+    month: 0,
+    year: 0,
+    total: 0,
+    simu: 0
+  });
+
+  const fetchVisitStats = async () => {
+    try {
+      const res = await fetch('/api/visit');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success && data.stats) {
+          setVisitStats({
+            online: Math.max(1, Number(data.stats.online) || 1),
+            today: Number(data.stats.today) || 0,
+            month: Number(data.stats.month) || 0,
+            year: Number(data.stats.year) || 0,
+            total: Number(data.stats.total) || 0,
+            simu: Number(data.stats.simu) || Number(data.stats.simuUsers) || 0
+          });
+        }
+      }
+    } catch (err) {
+      console.error('Lỗi tải thống kê truy cập:', err);
+    }
+  };
+
   const fetchAccounts = async () => {
     setIsLoadingAccounts(true);
     try {
@@ -109,6 +155,13 @@ export const Dash: React.FC = () => {
 
   useEffect(() => {
     fetchAccounts();
+    fetchVisitStats();
+
+    // Tự động làm mới số người online và truy cập mỗi 15 giây
+    const interval = setInterval(() => {
+      fetchVisitStats();
+    }, 15000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleDeleteAccount = async (id: number, name: string) => {
@@ -291,7 +344,11 @@ export const Dash: React.FC = () => {
           setIsMobileOpen={setIsMobileOpen}
           currentFullName={currentFullName}
           refreshTitle="Làm mới trạng thái kết nối"
-          onRefresh={() => triggerToast('Đã làm mới dữ liệu cảm biến & thiết bị!')}
+          onRefresh={() => {
+            fetchAccounts();
+            fetchVisitStats();
+            triggerToast('Đã làm mới dữ liệu thống kê & tài khoản!');
+          }}
           notificationTitle="Thông báo hệ thống (2 cảnh báo)"
           onNotification={() => triggerToast('Không có sự cố khẩn cấp nào!')}
           triggerToast={triggerToast}
@@ -300,6 +357,100 @@ export const Dash: React.FC = () => {
 
         {/* NỘI DUNG TRANG DASHBOARD */}
         <div className="dash-content">
+          {/* KHUNG THEO DÕI CÁC CHỈ SỐ TRUY CẬP HỆ THỐNG */}
+          <div className="dash-metrics-grid">
+            {/* 1. Số người đang online */}
+            <div className="dash-metric-card metric-online" title="Số lượng người dùng đang truy cập trực tuyến">
+              <div className="dash-metric-info">
+                <p className="dash-metric-label">
+                  <span className="live-pulse-dot" />
+                  <span>Đang online</span>
+                </p>
+                <h3 className="dash-metric-value">
+                  {visitStats.online.toLocaleString()}
+                </h3>
+              </div>
+              <div className="dash-metric-icon-wrap">
+                <Activity size={24} />
+              </div>
+            </div>
+
+            {/* 2. Số người truy cập trong ngày */}
+            <div className="dash-metric-card metric-today" title="Lượt truy cập trong ngày hôm nay">
+              <div className="dash-metric-info">
+                <p className="dash-metric-label">
+                  <span>Hôm nay</span>
+                </p>
+                <h3 className="dash-metric-value">
+                  {visitStats.today.toLocaleString()}
+                </h3>
+              </div>
+              <div className="dash-metric-icon-wrap">
+                <Calendar size={24} />
+              </div>
+            </div>
+
+            {/* 3. Số người truy cập trong tháng */}
+            <div className="dash-metric-card metric-month" title="Lượt truy cập trong tháng hiện tại">
+              <div className="dash-metric-info">
+                <p className="dash-metric-label">
+                  <span>Trong tháng</span>
+                </p>
+                <h3 className="dash-metric-value">
+                  {visitStats.month.toLocaleString()}
+                </h3>
+              </div>
+              <div className="dash-metric-icon-wrap">
+                <TrendingUp size={24} />
+              </div>
+            </div>
+
+            {/* 4. Số người truy cập trong năm */}
+            <div className="dash-metric-card metric-year" title="Lượt truy cập trong năm nay">
+              <div className="dash-metric-info">
+                <p className="dash-metric-label">
+                  <span>Trong năm</span>
+                </p>
+                <h3 className="dash-metric-value">
+                  {visitStats.year.toLocaleString()}
+                </h3>
+              </div>
+              <div className="dash-metric-icon-wrap">
+                <CalendarDays size={24} />
+              </div>
+            </div>
+
+            {/* 5. Tổng số truy cập */}
+            <div className="dash-metric-card metric-total" title="Tổng lượt truy cập toàn thời gian">
+              <div className="dash-metric-info">
+                <p className="dash-metric-label">
+                  <span>Tổng truy cập</span>
+                </p>
+                <h3 className="dash-metric-value">
+                  {visitStats.total.toLocaleString()}
+                </h3>
+              </div>
+              <div className="dash-metric-icon-wrap">
+                <Globe size={24} />
+              </div>
+            </div>
+
+            {/* 6. Số người truy cập vào Simu.tsx */}
+            <div className="dash-metric-card metric-simu" title="Số lượt truy cập vào phòng mô phỏng 3D Simu">
+              <div className="dash-metric-info">
+                <p className="dash-metric-label">
+                  <span>Truy cập Simu 3D</span>
+                </p>
+                <h3 className="dash-metric-value">
+                  {visitStats.simu.toLocaleString()}
+                </h3>
+              </div>
+              <div className="dash-metric-icon-wrap">
+                <Box size={24} />
+              </div>
+            </div>
+          </div>
+
           <div className="dash-accounts-card">
             <div className="dash-accounts-card-header">
               <div className="dash-accounts-card-title">

@@ -439,7 +439,9 @@ function mysqlSimuPlugin(): Plugin {
                       (SELECT COUNT(DISTINCT session_id) FROM site_visits WHERE DATE(created_at) = CURDATE()) AS today,
                       (SELECT COUNT(DISTINCT session_id) FROM site_visits WHERE YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE())) AS month,
                       (SELECT COUNT(DISTINCT session_id) FROM site_visits WHERE YEAR(created_at) = YEAR(CURDATE())) AS year,
-                      (SELECT COUNT(DISTINCT session_id) FROM site_visits) AS total
+                      (SELECT COUNT(DISTINCT session_id) FROM site_visits) AS total,
+                      (SELECT COALESCE(SUM(count), 0) FROM simu) AS simu_visits,
+                      (SELECT COUNT(*) FROM simu) AS simu_users
                   `)
                   const stats = (statsRows as any[])[0] || {}
                   res.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -451,6 +453,8 @@ function mysqlSimuPlugin(): Plugin {
                       month: Number(stats.month || 1),
                       year: Number(stats.year || 1),
                       total: Number(stats.total || 1),
+                      simu: Number(stats.simu_visits || stats.simu_users || 0),
+                      simuUsers: Number(stats.simu_users || 0)
                     }
                   }))
                 } catch (err: any) {
@@ -470,7 +474,9 @@ function mysqlSimuPlugin(): Plugin {
                   (SELECT COUNT(DISTINCT session_id) FROM site_visits WHERE DATE(created_at) = CURDATE()) AS today,
                   (SELECT COUNT(DISTINCT session_id) FROM site_visits WHERE YEAR(created_at) = YEAR(CURDATE()) AND MONTH(created_at) = MONTH(CURDATE())) AS month,
                   (SELECT COUNT(DISTINCT session_id) FROM site_visits WHERE YEAR(created_at) = YEAR(CURDATE())) AS year,
-                  (SELECT COUNT(DISTINCT session_id) FROM site_visits) AS total
+                  (SELECT COUNT(DISTINCT session_id) FROM site_visits) AS total,
+                  (SELECT COALESCE(SUM(count), 0) FROM simu) AS simu_visits,
+                  (SELECT COUNT(*) FROM simu) AS simu_users
               `)
               const stats = (statsRows as any[])[0] || {}
               res.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -482,6 +488,8 @@ function mysqlSimuPlugin(): Plugin {
                   month: Number(stats.month || 1),
                   year: Number(stats.year || 1),
                   total: Number(stats.total || 1),
+                  simu: Number(stats.simu_visits || stats.simu_users || 0),
+                  simuUsers: Number(stats.simu_users || 0)
                 }
               }))
               await connection.end()
