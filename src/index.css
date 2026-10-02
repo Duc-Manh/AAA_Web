@@ -3507,7 +3507,7 @@ textarea {
   align-items: stretch;
   gap: 22px;
   width: max-content;
-  animation: marqueeLeftToRight 35s linear infinite;
+  animation: marqueeRightToLeft 35s linear infinite;
   will-change: transform;
 }
 
@@ -3515,12 +3515,12 @@ textarea {
   animation-play-state: paused;
 }
 
-@keyframes marqueeLeftToRight {
+@keyframes marqueeRightToLeft {
   0% {
-    transform: translateX(-50%);
+    transform: translateX(0%);
   }
   100% {
-    transform: translateX(0%);
+    transform: translateX(-50%);
   }
 }
 
