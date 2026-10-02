@@ -21,21 +21,42 @@ import { DashFinan } from './pages/dash-finan/DashFinan';
 import { DashJob } from './pages/dash-job/DashJob';
 import { DashProject } from './pages/dash-project/DashProject';
 
+import { trackActivity, getModuleFromHash } from './utils/activityTracker';
+
 export const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [currentHash, setCurrentHash] = useState(() => window.location.hash || window.location.pathname);
 
   useEffect(() => {
     const handleLocationChange = () => {
-      setCurrentHash(window.location.hash || window.location.pathname);
+      const newHash = window.location.hash || window.location.pathname;
+      setCurrentHash(newHash);
+      const module = getModuleFromHash(newHash);
+      if (module) {
+        trackActivity('VISIT_PAGE', module);
+      }
     };
 
     window.addEventListener('hashchange', handleLocationChange);
     window.addEventListener('popstate', handleLocationChange);
 
+    // Track trang hiện tại khi vừa mở ứng dụng
+    const initialModule = getModuleFromHash(currentHash);
+    if (initialModule) {
+      trackActivity('VISIT_PAGE', initialModule);
+    } else {
+      trackActivity('PING', 'overview');
+    }
+
+    // Gửi tín hiệu Heartbeat ping mỗi 30 giây để duy trì trạng thái online thời gian thực
+    const pingInterval = setInterval(() => {
+      trackActivity('PING', 'overview');
+    }, 30000);
+
     return () => {
       window.removeEventListener('hashchange', handleLocationChange);
       window.removeEventListener('popstate', handleLocationChange);
+      clearInterval(pingInterval);
     };
   }, []);
 

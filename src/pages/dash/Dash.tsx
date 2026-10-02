@@ -14,6 +14,7 @@ import {
 import { DashAside } from '../../components/common/DashAside';
 import { DashHeader } from '../../components/common/DashHeader';
 import { DashVisitorChart } from './DashVisitorChart';
+import { DashUserActivityTable } from './DashUserActivityTable';
 
 interface LoginAccount {
   id: number;
@@ -373,6 +374,9 @@ export const Dash: React.FC = () => {
         <div className="dash-content">
           {/* BIỂU ĐỒ 2 TRỤC (TRỤC HOÀNH X & TRỤC TUNG Y) THỐNG KÊ LƯỢT TRUY CẬP */}
           <DashVisitorChart visitStats={visitStats} onRefresh={fetchVisitStats} />
+
+          {/* BẢNG GIÁM SÁT TÀI KHOẢN ONLINE, THỐNG KÊ ONLINE & 7 MỤC CHUYÊN MÔN DẠNG JSON */}
+          <DashUserActivityTable triggerToast={triggerToast} />
 
           {/* 3. BẢNG THEO DÕI NHÂN SỰ (TÀI KHOẢN HỆ THỐNG DATABASE 3AHOME) */}
           <div className="dash-accounts-card">
