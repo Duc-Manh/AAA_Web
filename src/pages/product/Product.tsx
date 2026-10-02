@@ -11,61 +11,9 @@ interface DeviceProduct {
   status?: number;
 }
 
-// Danh sách sản phẩm mẫu tiêu biểu của 3AHome
-const DEFAULT_PRODUCTS: DeviceProduct[] = [
-  {
-    id: 101,
-    brand: 'Siemens',
-    name: 'Bộ Điều Khiển Trung Tâm DDC Desigo PXC Series',
-    image: null
-  },
-  {
-    id: 102,
-    brand: 'Honeywell',
-    name: 'Cảm Biến Nhiệt Độ & Độ Ẩm Kênh Gió H7012',
-    image: null
-  },
-  {
-    id: 103,
-    brand: 'Belimo',
-    name: 'Van Động Cơ Tuyến Tính 2 Ngả CCV 24V',
-    image: null
-  },
-  {
-    id: 104,
-    brand: 'Schneider Electric',
-    name: 'Đồng Hồ Đo Năng Lượng Đa Năng PowerLogic PM5350',
-    image: null
-  },
-  {
-    id: 105,
-    brand: 'Danfoss',
-    name: 'Biến Tần Tiết Kiệm Năng Lượng HVAC VLT FC 102',
-    image: null
-  },
-  {
-    id: 106,
-    brand: 'Johnson Controls',
-    name: 'Cảm Biến Chất Lượng Không Khí CO2 & VOC T6000',
-    image: null
-  },
-  {
-    id: 107,
-    brand: 'ABB',
-    name: 'Aptomat Khối Đo Lường Tích Hợp Tmax XT Ekip',
-    image: null
-  },
-  {
-    id: 108,
-    brand: '3AHome',
-    name: 'Smart IoT Gateway 3A-GW500 BACnet/Modbus IP',
-    image: null
-  }
-];
-
 export const Product: React.FC = () => {
   const [isContactModalOpen, setIsContactModalOpen] = useState(false);
-  const [devices, setDevices] = useState<DeviceProduct[]>(DEFAULT_PRODUCTS);
+  const [devices, setDevices] = useState<DeviceProduct[]>([]);
 
   // Link format cho ảnh từ uploads
   const formatImageUrl = (imgPath?: string | null) => {
@@ -105,14 +53,7 @@ export const Product: React.FC = () => {
                 status: Number(d.status)
               }));
 
-            if (activeItems.length > 0) {
-              setDevices(activeItems);
-            } else if (json.data.length === 0) {
-              // Nếu bảng device chưa có bản ghi nào thì dùng danh sách mẫu
-              setDevices(DEFAULT_PRODUCTS);
-            } else {
-              setDevices([]);
-            }
+            setDevices(activeItems);
           }
         }
       } catch (err) {
@@ -170,68 +111,70 @@ export const Product: React.FC = () => {
       </section>
 
       {/* 3. Products Grid: Khung hiển thị sản phẩm di chuyển liên tục từ phải qua trái */}
-      <section className="intro-content-section">
-        <div className="product-marquee-container">
-          <div className="product-marquee-frame">
-            <div className="product-marquee-track">
-              {marqueeItems.map((prod, idx) => {
-                const imgUrl = prod.image ? formatImageUrl(prod.image) : '';
+      {marqueeItems.length > 0 && (
+        <section className="intro-content-section">
+          <div className="product-marquee-container">
+            <div className="product-marquee-frame">
+              <div className="product-marquee-track">
+                {marqueeItems.map((prod, idx) => {
+                  const imgUrl = prod.image ? formatImageUrl(prod.image) : '';
 
-                return (
-                  <div
-                    key={`prod-${prod.id}-${idx}`}
-                    className="product-marquee-card"
-                    onClick={() => setIsContactModalOpen(true)}
-                    title={`Nhấn để yêu cầu báo giá cho: ${prod.name}`}
-                  >
-                    {/* Hình ảnh */}
-                    <div className="product-card-image-box">
-                      {imgUrl ? (
-                        <img
-                          src={imgUrl}
-                          alt={prod.name}
-                          className="product-card-img"
-                          loading="lazy"
-                          onError={(e) => {
-                            // Fallback nếu ảnh lỗi tải
-                            (e.target as HTMLElement).style.display = 'none';
-                            const parent = (e.target as HTMLElement).parentElement;
-                            if (parent) {
-                              const fb = parent.querySelector('.product-card-placeholder') as HTMLElement;
-                              if (fb) fb.style.display = 'flex';
-                            }
-                          }}
-                        />
-                      ) : null}
+                  return (
+                    <div
+                      key={`prod-${prod.id}-${idx}`}
+                      className="product-marquee-card"
+                      onClick={() => setIsContactModalOpen(true)}
+                      title={`Nhấn để yêu cầu báo giá cho: ${prod.name}`}
+                    >
+                      {/* Hình ảnh */}
+                      <div className="product-card-image-box">
+                        {imgUrl ? (
+                          <img
+                            src={imgUrl}
+                            alt={prod.name}
+                            className="product-card-img"
+                            loading="lazy"
+                            onError={(e) => {
+                              // Fallback nếu ảnh lỗi tải
+                              (e.target as HTMLElement).style.display = 'none';
+                              const parent = (e.target as HTMLElement).parentElement;
+                              if (parent) {
+                                const fb = parent.querySelector('.product-card-placeholder') as HTMLElement;
+                                if (fb) fb.style.display = 'flex';
+                              }
+                            }}
+                          />
+                        ) : null}
 
-                      <div
-                        className="product-card-placeholder"
-                        style={{ display: imgUrl ? 'none' : 'flex' }}
-                      >
-                        <Cpu size={38} color="#2563eb" strokeWidth={1.5} />
-                        <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#64748b' }}>
-                          3AHome Device
-                        </span>
+                        <div
+                          className="product-card-placeholder"
+                          style={{ display: imgUrl ? 'none' : 'flex' }}
+                        >
+                          <Cpu size={38} color="#2563eb" strokeWidth={1.5} />
+                          <span style={{ fontSize: '0.74rem', fontWeight: 600, color: '#64748b' }}>
+                            3AHome Device
+                          </span>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Hãng sản xuất */}
-                    <div className="product-card-brand-badge">
-                      <Tag size={12} />
-                      <span>{prod.brand}</span>
-                    </div>
+                      {/* Hãng sản xuất */}
+                      <div className="product-card-brand-badge">
+                        <Tag size={12} />
+                        <span>{prod.brand}</span>
+                      </div>
 
-                    {/* Tên thiết bị */}
-                    <h3 className="product-card-title" title={prod.name}>
-                      {prod.name}
-                    </h3>
-                  </div>
-                );
-              })}
+                      {/* Tên thiết bị */}
+                      <h3 className="product-card-title" title={prod.name}>
+                        {prod.name}
+                      </h3>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* 4. Footer */}
       <Footer />
