@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Header } from '../../components/common/Header';
 import { Footer } from '../../components/common/Footer';
 import { ArrowRight, X, Cpu, Tag } from 'lucide-react';
@@ -74,8 +74,13 @@ export const Product: React.FC = () => {
       return imgPath;
     }
     const cleanFilename = imgPath.split(/[\\/]/).pop();
-    if (imgPath.includes('device') || cleanFilename?.startsWith('device[')) {
+    if (!cleanFilename) return '';
+    // Đường dẫn hình ảnh thiết bị trong thư mục device
+    if (imgPath.includes('device') || cleanFilename.toLowerCase().startsWith('device')) {
       return `/uploads/device/${cleanFilename}`;
+    }
+    if (imgPath.includes('project') || cleanFilename.toLowerCase().startsWith('proj')) {
+      return `/uploads/project/${cleanFilename}`;
     }
     return `/uploads/news/${cleanFilename}`;
   };
@@ -88,19 +93,25 @@ export const Product: React.FC = () => {
         const res = await fetch('/api/device');
         if (res.ok) {
           const json = await res.json();
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            // Lọc các thiết bị đang đăng bài (status === 1 hoặc không set status)
+          if (json.success && Array.isArray(json.data)) {
+            // Lọc các hàng trong bảng device database 3ahome có giá trị cột status = 1
             const activeItems: DeviceProduct[] = json.data
-              .filter((d: any) => d.status === 1 || d.status === '1' || d.status === undefined)
+              .filter((d: any) => Number(d.status) === 1)
               .map((d: any) => ({
                 id: d.id,
                 brand: d.brand || '3AHome',
                 name: d.name || 'Thiết bị tự động hoá',
-                image: d.image || null
+                image: d.image || null,
+                status: Number(d.status)
               }));
 
             if (activeItems.length > 0) {
               setDevices(activeItems);
+            } else if (json.data.length === 0) {
+              // Nếu bảng device chưa có bản ghi nào thì dùng danh sách mẫu
+              setDevices(DEFAULT_PRODUCTS);
+            } else {
+              setDevices([]);
             }
           }
         }
@@ -112,10 +123,17 @@ export const Product: React.FC = () => {
     fetchDevices();
   }, []);
 
-  // Nhân bản danh sách sản phẩm để tạo hiệu ứng cuộn ngang liên tục không điểm dừng
-  const marqueeItems = devices.length >= 6
-    ? [...devices, ...devices]
-    : [...devices, ...DEFAULT_PRODUCTS, ...devices, ...DEFAULT_PRODUCTS];
+  // Nhân bản danh sách sản phẩm có status = 1 để tạo hiệu ứng cuộn ngang liên tục không điểm dừng
+  const marqueeItems = useMemo(() => {
+    if (devices.length === 0) return [];
+    let items = [...devices];
+    // Nhân bản lặp lại các thiết bị này sao cho đủ chiều dài cuộn ngang (tối thiểu 10 thẻ)
+    while (items.length < 10) {
+      items = [...items, ...devices];
+    }
+    // Nhân bản thêm 1 lần để CSS translateX(0) -> translateX(-50%) chạy vô hạn liền mạch
+    return [...items, ...items];
+  }, [devices]);
 
   return (
     <div className="landing-page-root intro-page-root">

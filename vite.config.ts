@@ -572,9 +572,12 @@ function mysqlSimuPlugin(): Plugin {
           }
         }
 
-        // Phục vụ ảnh từ /uploads/
-        if (url.pathname.startsWith('/uploads/')) {
-          const uploadsFile = path.resolve(__dirname, '../AAA_Backend', url.pathname.slice(1))
+        // Phục vụ ảnh từ /uploads/ và /AAA_Backend/uploads/
+        if (url.pathname.startsWith('/uploads/') || url.pathname.startsWith('/AAA_Backend/uploads/')) {
+          const relPath = url.pathname.startsWith('/AAA_Backend/uploads/')
+            ? url.pathname.replace(/^\/AAA_Backend/, '').slice(1)
+            : url.pathname.slice(1)
+          const uploadsFile = path.resolve(__dirname, '../AAA_Backend', relPath)
           if (fs.existsSync(uploadsFile)) {
             const ext = path.extname(uploadsFile).toLowerCase()
             const contentType = ext === '.png' ? 'image/png' : ext === '.webp' ? 'image/webp' : 'image/jpeg'
@@ -996,9 +999,9 @@ function mysqlSimuPlugin(): Plugin {
                       const now = new Date()
                       const dd = String(now.getDate()).padStart(2, '0')
                       const mm = String(now.getMonth() + 1).padStart(2, '0')
-                      const yyyy = now.getFullYear()
+                      const yy = String(now.getFullYear()).slice(-2)
                       const codeimg = Math.random().toString(36).substring(2, 8).toUpperCase()
-                      filename = `device[${dd}-${mm}-${yyyy}][${codeimg}].jpg`
+                      filename = `device[${dd}-${mm}-${yy}][${codeimg}].jpg`
                     }
 
                     // Lưu vào uploads/device
@@ -1021,7 +1024,7 @@ function mysqlSimuPlugin(): Plugin {
                       // ignore
                     }
 
-                    imageDbPath = `\\AAA_Backend\\uploads\\news\\${filename}`
+                    imageDbPath = `/AAA_Backend/uploads/device/${filename}`
                   }
 
                   const [result]: any = await connection.execute(
