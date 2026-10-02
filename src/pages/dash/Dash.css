@@ -520,24 +520,28 @@
   display: flex;
   flex-direction: column;
   gap: 24px;
+  scroll-behavior: smooth;
+  scrollbar-width: thin;
+  scrollbar-color: #94a3b8 #f1f5f9;
 }
 
-/* Tùy chỉnh thanh cuộn dọc cho dash-content */
+/* Tùy chỉnh thanh cuộn dọc cho dash-content luôn rõ ràng */
 .dash-content::-webkit-scrollbar {
-  width: 6px;
+  width: 8px;
 }
 
 .dash-content::-webkit-scrollbar-track {
-  background: transparent;
+  background: #f1f5f9;
+  border-radius: 999px;
 }
 
 .dash-content::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: #94a3b8;
   border-radius: 999px;
 }
 
 .dash-content::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background: #64748b;
 }
 
 /* PAGE HEADER - KỊCH BẢN THÔNG MINH */
