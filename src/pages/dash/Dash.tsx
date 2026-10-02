@@ -9,12 +9,6 @@ import {
   X,
   UserPlus,
   RotateCcw,
-  Activity,
-  Calendar,
-  TrendingUp,
-  CalendarDays,
-  Globe,
-  Box,
   Search
 } from 'lucide-react';
 import { DashAside } from '../../components/common/DashAside';
@@ -377,101 +371,7 @@ export const Dash: React.FC = () => {
 
         {/* NỘI DUNG TRANG DASHBOARD */}
         <div className="dash-content">
-          {/* KHUNG THEO DÕI CÁC CHỈ SỐ TRUY CẬP HỆ THỐNG */}
-          <div className="dash-metrics-grid">
-            {/* 1. Số người đang online */}
-            <div className="dash-metric-card metric-online" title="Số lượng người dùng đang truy cập trực tuyến">
-              <div className="dash-metric-info">
-                <p className="dash-metric-label">
-                  <span className="live-pulse-dot" />
-                  <span>Đang online</span>
-                </p>
-                <h3 className="dash-metric-value">
-                  {visitStats.online.toLocaleString()}
-                </h3>
-              </div>
-              <div className="dash-metric-icon-wrap">
-                <Activity size={24} />
-              </div>
-            </div>
-
-            {/* 2. Số người truy cập trong ngày */}
-            <div className="dash-metric-card metric-today" title="Lượt truy cập trong ngày hôm nay">
-              <div className="dash-metric-info">
-                <p className="dash-metric-label">
-                  <span>Hôm nay</span>
-                </p>
-                <h3 className="dash-metric-value">
-                  {visitStats.today.toLocaleString()}
-                </h3>
-              </div>
-              <div className="dash-metric-icon-wrap">
-                <Calendar size={24} />
-              </div>
-            </div>
-
-            {/* 3. Số người truy cập trong tháng */}
-            <div className="dash-metric-card metric-month" title="Lượt truy cập trong tháng hiện tại">
-              <div className="dash-metric-info">
-                <p className="dash-metric-label">
-                  <span>Trong tháng</span>
-                </p>
-                <h3 className="dash-metric-value">
-                  {visitStats.month.toLocaleString()}
-                </h3>
-              </div>
-              <div className="dash-metric-icon-wrap">
-                <TrendingUp size={24} />
-              </div>
-            </div>
-
-            {/* 4. Số người truy cập trong năm */}
-            <div className="dash-metric-card metric-year" title="Lượt truy cập trong năm nay">
-              <div className="dash-metric-info">
-                <p className="dash-metric-label">
-                  <span>Trong năm</span>
-                </p>
-                <h3 className="dash-metric-value">
-                  {visitStats.year.toLocaleString()}
-                </h3>
-              </div>
-              <div className="dash-metric-icon-wrap">
-                <CalendarDays size={24} />
-              </div>
-            </div>
-
-            {/* 5. Tổng số truy cập */}
-            <div className="dash-metric-card metric-total" title="Tổng lượt truy cập toàn thời gian">
-              <div className="dash-metric-info">
-                <p className="dash-metric-label">
-                  <span>Tổng truy cập</span>
-                </p>
-                <h3 className="dash-metric-value">
-                  {visitStats.total.toLocaleString()}
-                </h3>
-              </div>
-              <div className="dash-metric-icon-wrap">
-                <Globe size={24} />
-              </div>
-            </div>
-
-            {/* 6. Số người truy cập vào Simu.tsx */}
-            <div className="dash-metric-card metric-simu" title="Số lượt truy cập vào phòng mô phỏng 3D Simu">
-              <div className="dash-metric-info">
-                <p className="dash-metric-label">
-                  <span>Truy cập Simu 3D</span>
-                </p>
-                <h3 className="dash-metric-value">
-                  {visitStats.simu.toLocaleString()}
-                </h3>
-              </div>
-              <div className="dash-metric-icon-wrap">
-                <Box size={24} />
-              </div>
-            </div>
-          </div>
-
-          {/* 2. BIỂU ĐỒ 2 TRỤC (TRỤC HOÀNH X & TRỤC TUNG Y) THỐNG KÊ LƯỢT TRUY CẬP */}
+          {/* BIỂU ĐỒ 2 TRỤC (TRỤC HOÀNH X & TRỤC TUNG Y) THỐNG KÊ LƯỢT TRUY CẬP */}
           <DashVisitorChart visitStats={visitStats} onRefresh={fetchVisitStats} />
 
           {/* 3. BẢNG THEO DÕI NHÂN SỰ (TÀI KHOẢN HỆ THỐNG DATABASE 3AHOME) */}
