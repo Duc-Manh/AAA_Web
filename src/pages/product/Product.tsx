@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from '../../components/common/Header';
 import { Footer } from '../../components/common/Footer';
-import { ArrowRight, X, Cpu, Tag, Sparkles } from 'lucide-react';
+import { ArrowRight, X, Cpu, Tag } from 'lucide-react';
 
 interface DeviceProduct {
   id: number;
@@ -151,20 +151,9 @@ export const Product: React.FC = () => {
         </div>
       </section>
 
-      {/* 3. Products Grid: Khung hiển thị sản phẩm di chuyển liên tục từ trái qua phải */}
+      {/* 3. Products Grid: Khung hiển thị sản phẩm di chuyển liên tục từ phải qua trái */}
       <section className="intro-content-section">
         <div className="product-marquee-container">
-          <div className="product-marquee-header">
-            <span className="product-marquee-badge">
-              <Sparkles size={14} />
-              <span>Hệ sinh thái sản phẩm chính hãng</span>
-            </span>
-            <h2 className="product-marquee-title">Danh Mục Thiết Bị Tiêu Biểu</h2>
-            <p className="product-marquee-subtitle">
-              Các dòng thiết bị điều khiển, cảm biến và thiết bị truyền động từ những thương hiệu hàng đầu thế giới được 3AHome tích hợp và cung ứng.
-            </p>
-          </div>
-
           <div className="product-marquee-frame">
             <div className="product-marquee-track">
               {marqueeItems.map((prod, idx) => {
