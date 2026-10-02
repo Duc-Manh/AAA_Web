@@ -18,6 +18,7 @@ import {
   CheckSquare,
   Check
 } from 'lucide-react';
+import { getLoggedInUser, trackActivity } from '../../utils/activityTracker';
 
 export interface ModuleStats {
   count: number;
@@ -64,56 +65,56 @@ const MODULE_DEFINITIONS: {
   color: string;
   bg: string;
 }[] = [
-  {
-    key: 'overview',
-    label: 'Tổng quan',
-    icon: <Layers size={13} />,
-    color: '#2563eb',
-    bg: '#eff6ff'
-  },
-  {
-    key: 'projects',
-    label: 'Dự án',
-    icon: <FolderKanban size={13} />,
-    color: '#0891b2',
-    bg: '#ecfeff'
-  },
-  {
-    key: 'news',
-    label: 'Tin tức',
-    icon: <Newspaper size={13} />,
-    color: '#d97706',
-    bg: '#fffbeb'
-  },
-  {
-    key: 'supplies',
-    label: 'Vật tư',
-    icon: <Cpu size={13} />,
-    color: '#7c3aed',
-    bg: '#f5f3ff'
-  },
-  {
-    key: 'customers',
-    label: 'Khách hàng',
-    icon: <UserCheck size={13} />,
-    color: '#059669',
-    bg: '#ecfdf5'
-  },
-  {
-    key: 'finance',
-    label: 'Tài chính',
-    icon: <CircleDollarSign size={13} />,
-    color: '#ea580c',
-    bg: '#fff7ed'
-  },
-  {
-    key: 'tasks',
-    label: 'Công việc',
-    icon: <CheckSquare size={13} />,
-    color: '#db2777',
-    bg: '#fdf2f8'
-  }
-];
+    {
+      key: 'overview',
+      label: 'Tổng quan',
+      icon: <Layers size={13} />,
+      color: '#2563eb',
+      bg: '#eff6ff'
+    },
+    {
+      key: 'projects',
+      label: 'Dự án',
+      icon: <FolderKanban size={13} />,
+      color: '#0891b2',
+      bg: '#ecfeff'
+    },
+    {
+      key: 'news',
+      label: 'Tin tức',
+      icon: <Newspaper size={13} />,
+      color: '#d97706',
+      bg: '#fffbeb'
+    },
+    {
+      key: 'supplies',
+      label: 'Vật tư',
+      icon: <Cpu size={13} />,
+      color: '#7c3aed',
+      bg: '#f5f3ff'
+    },
+    {
+      key: 'customers',
+      label: 'Khách hàng',
+      icon: <UserCheck size={13} />,
+      color: '#059669',
+      bg: '#ecfdf5'
+    },
+    {
+      key: 'finance',
+      label: 'Tài chính',
+      icon: <CircleDollarSign size={13} />,
+      color: '#ea580c',
+      bg: '#fff7ed'
+    },
+    {
+      key: 'tasks',
+      label: 'Công việc',
+      icon: <CheckSquare size={13} />,
+      color: '#db2777',
+      bg: '#fdf2f8'
+    }
+  ];
 
 export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ triggerToast }) => {
   const [userStats, setUserStats] = useState<UserActivityItem[]>([]);
@@ -124,10 +125,27 @@ export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ tr
   const [isCopied, setIsCopied] = useState(false);
   const [activeJsonTab, setActiveJsonTab] = useState<'json' | 'timeline'>('timeline');
 
+  // Lấy thông tin tài khoản đang đăng nhập trên trình duyệt này
+  const currentUser = useMemo(() => getLoggedInUser(), []);
+
+  // Hàm xác định một tài khoản có đang trực tuyến hay không
+  const isUserOnline = (user: UserActivityItem): boolean => {
+    // 1. Backend tính toán online (trong vòng 5 phút vừa có ping / login / visit)
+    if (user.is_online) return true;
+    // 2. Tài khoản đang mở phiên trực tiếp trên trình duyệt
+    if (currentUser) {
+      if (currentUser.id && Number(user.id) === Number(currentUser.id)) return true;
+      if (currentUser.gmail && user.gmail && user.gmail.toLowerCase() === currentUser.gmail.toLowerCase()) return true;
+    }
+    return false;
+  };
+
   // Fetch dữ liệu từ backend
   const fetchUserStats = async (isManual = false) => {
     try {
       if (isManual) setIsLoading(true);
+      // Gửi ngay 1 tín hiệu ping để cập nhật last_online = NOW() cho tài khoản hiện tại
+      await trackActivity('PING', 'overview');
       const res = await fetch('/api/user-stats');
       if (res.ok) {
         const json = await res.json();
@@ -154,16 +172,17 @@ export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ tr
     return () => clearInterval(interval);
   }, []);
 
-  // Tính toán số lượng
+  // Tính toán số lượng đang online
   const onlineCount = useMemo(() => {
-    return userStats.filter((u) => u.is_online).length;
-  }, [userStats]);
+    return userStats.filter((u) => isUserOnline(u)).length;
+  }, [userStats, currentUser]);
 
   const filteredStats = useMemo(() => {
     return userStats.filter((user) => {
+      const userOnline = isUserOnline(user);
       // Bộ lọc online/offline
-      if (filterMode === 'online' && !user.is_online) return false;
-      if (filterMode === 'offline' && user.is_online) return false;
+      if (filterMode === 'online' && !userOnline) return false;
+      if (filterMode === 'offline' && userOnline) return false;
 
       // Tìm kiếm
       if (!searchQuery.trim()) return true;
@@ -174,7 +193,7 @@ export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ tr
       const pos = (user.position || '').toLowerCase();
       return name.includes(q) || email.includes(q) || room.includes(q) || pos.includes(q);
     });
-  }, [userStats, filterMode, searchQuery]);
+  }, [userStats, filterMode, searchQuery, currentUser]);
 
   // Format ngày giờ hiển thị
   const formatDateTime = (dateStr: string | null) => {
@@ -257,7 +276,7 @@ export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ tr
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <h3 style={{ margin: 0, fontSize: '1.08rem', fontWeight: 700, color: '#0f172a' }}>
-                  Giám Sát Tài Khoản Đang Online & Tần Suất Truy Cập
+                  Giám Sát Tài Khoản Đang Online và Tần Suất Truy Cập
                 </h3>
                 <span
                   style={{
@@ -286,7 +305,7 @@ export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ tr
                 </span>
               </div>
               <p style={{ margin: '3px 0 0 0', fontSize: '0.82rem', color: '#64748b' }}>
-                Bảng login database 3ahome • Thống kê online (ngày/tuần/tháng/năm) • 7 mục chuyên môn • Thời điểm dạng JSON
+                • Thống kê online (ngày/tuần/tháng/năm)
               </p>
             </div>
           </div>
@@ -472,13 +491,14 @@ export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ tr
                 </tr>
               ) : (
                 filteredStats.map((user, idx) => {
+                  const userOnline = isUserOnline(user);
                   return (
                     <tr
                       key={user.id}
                       style={{
                         borderBottom: '1px solid #f1f5f9',
                         transition: 'background 0.15s',
-                        background: user.is_online ? '#f0fdf4' : '#ffffff'
+                        background: userOnline ? '#f0fdf4' : '#ffffff'
                       }}
                     >
                       {/* 1. STT */}
@@ -494,7 +514,7 @@ export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ tr
                               width: '36px',
                               height: '36px',
                               borderRadius: '50%',
-                              background: user.is_online
+                              background: userOnline
                                 ? 'linear-gradient(135deg, #10b981 0%, #059669 100%)'
                                 : 'linear-gradient(135deg, #64748b 0%, #475569 100%)',
                               color: '#ffffff',
@@ -540,7 +560,7 @@ export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ tr
 
                       {/* 3. Trạng thái Online */}
                       <td style={{ padding: '12px 16px' }}>
-                        {user.is_online ? (
+                        {userOnline ? (
                           <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '3px' }}>
                             <span
                               style={{

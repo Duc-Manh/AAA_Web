@@ -295,20 +295,28 @@ function mysqlSimuPlugin(): Plugin {
           })
           req.on('end', async () => {
             try {
-              const { loginId, actionType = 'PING', module = 'overview' } = JSON.parse(body || '{}')
-              if (!loginId) {
+              const { loginId, gmail, actionType = 'PING', module = 'overview' } = JSON.parse(body || '{}')
+              if (!loginId && !gmail) {
                 res.statusCode = 400
                 res.setHeader('Content-Type', 'application/json; charset=utf-8')
-                res.end(JSON.stringify({ success: false, message: 'Thiếu loginId' }))
+                res.end(JSON.stringify({ success: false, message: 'Thiếu loginId hoặc gmail' }))
                 return
               }
               const connection = await mysql.createConnection(mysqlConfig)
               try {
-                await connection.execute('UPDATE login SET last_online = NOW() WHERE id = ?', [loginId])
-                await connection.execute(
-                  'INSERT INTO user_activity_logs (login_id, action_type, module, created_at) VALUES (?, ?, ?, NOW())',
-                  [loginId, actionType, module]
-                )
+                let targetId = loginId
+                if (!targetId && gmail) {
+                  const [rows]: any = await connection.execute('SELECT id FROM login WHERE gmail = ? LIMIT 1', [String(gmail).trim()])
+                  if (rows.length > 0) targetId = rows[0].id
+                }
+
+                if (targetId) {
+                  await connection.execute('UPDATE login SET last_online = NOW() WHERE id = ?', [targetId])
+                  await connection.execute(
+                    'INSERT INTO user_activity_logs (login_id, action_type, module, created_at) VALUES (?, ?, ?, NOW())',
+                    [targetId, actionType, module]
+                  )
+                }
                 res.setHeader('Content-Type', 'application/json; charset=utf-8')
                 res.end(JSON.stringify({ success: true }))
               } finally {
@@ -339,15 +347,20 @@ function mysqlSimuPlugin(): Plugin {
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
               `)
 
-              const [users]: any = await connection.execute(
-                'SELECT id, time, full_name, room, position, gmail, phone, authen, state, last_online FROM login ORDER BY id ASC'
-              )
+              const [users]: any = await connection.execute(`
+                SELECT id, time, full_name, room, position, gmail, phone, authen, state, last_online,
+                       CASE
+                         WHEN last_online IS NOT NULL AND TIMESTAMPDIFF(SECOND, last_online, NOW()) <= 300 THEN 1
+                         ELSE 0
+                       END AS is_online_db
+                FROM login
+                ORDER BY id ASC
+              `)
               const [logs]: any = await connection.execute(
                 'SELECT login_id, action_type, module, created_at FROM user_activity_logs ORDER BY created_at DESC'
               )
 
               const now = new Date()
-              const ONLINE_THRESHOLD_MS = 2 * 60 * 1000
 
               const MODULE_KEYS = [
                 { key: 'overview', name: 'Tổng quan' },
@@ -361,13 +374,7 @@ function mysqlSimuPlugin(): Plugin {
 
               const stats = users.map((u: any) => {
                 const userLogs = logs.filter((l: any) => Number(l.login_id) === Number(u.id))
-                let isOnline = false
-                if (u.last_online) {
-                  const lastOnlineDate = new Date(u.last_online)
-                  if (!isNaN(lastOnlineDate.getTime())) {
-                    isOnline = (now.getTime() - lastOnlineDate.getTime()) <= ONLINE_THRESHOLD_MS
-                  }
-                }
+                const isOnline = Boolean(Number(u.is_online_db) === 1)
 
                 const loginLogs = userLogs.filter((l: any) => l.action_type === 'LOGIN')
                 const todayCount = loginLogs.filter((l: any) => new Date(l.created_at).toDateString() === now.toDateString()).length

@@ -1,10 +1,19 @@
 // Helper theo dõi hoạt động người dùng và ping trạng thái online
-export const getLoggedInUserId = (): number | null => {
+
+export interface LoggedInUser {
+  id?: number;
+  gmail?: string;
+  full_name?: string;
+  authen?: number;
+  room?: string;
+  position?: string;
+}
+
+export const getLoggedInUser = (): LoggedInUser | null => {
   try {
-    const raw = localStorage.getItem('aaa_admin_auth');
+    const raw = localStorage.getItem('aaa_admin_auth') || sessionStorage.getItem('aaa_admin_auth');
     if (raw) {
-      const parsed = JSON.parse(raw);
-      if (parsed && parsed.id) return Number(parsed.id);
+      return JSON.parse(raw);
     }
   } catch {
     // ignore
@@ -12,16 +21,26 @@ export const getLoggedInUserId = (): number | null => {
   return null;
 };
 
-export const trackActivity = async (actionType: 'LOGIN' | 'PING' | 'VISIT_PAGE', moduleName: string = 'overview') => {
-  const loginId = getLoggedInUserId();
-  if (!loginId) return;
+export const getLoggedInUserId = (): number | null => {
+  const user = getLoggedInUser();
+  if (user && user.id) return Number(user.id);
+  return null;
+};
+
+export const trackActivity = async (
+  actionType: 'LOGIN' | 'PING' | 'VISIT_PAGE',
+  moduleName: string = 'overview'
+) => {
+  const user = getLoggedInUser();
+  if (!user || (!user.id && !user.gmail)) return;
 
   try {
     await fetch('/api/track-activity', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        loginId,
+        loginId: user.id || null,
+        gmail: user.gmail || null,
         actionType,
         module: moduleName
       })
