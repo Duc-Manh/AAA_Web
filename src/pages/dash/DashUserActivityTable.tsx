@@ -478,7 +478,7 @@ export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ tr
                   Lượt vào 7 Mục Chuyên Môn
                 </th>
                 <th style={{ padding: '12px 16px', fontSize: '0.78rem', fontWeight: 700, color: '#475569', textAlign: 'center', width: '120px' }}>
-                  Dữ liệu JSON
+                  Xem cụ thể
                 </th>
               </tr>
             </thead>
@@ -737,8 +737,7 @@ export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ tr
                             }}
                             title="Xem thời điểm chi tiết & JSON"
                           >
-                            <Code size={13} />
-                            <span>Xem JSON</span>
+                            <span>Xem cụ thể</span>
                           </button>
 
                           <button
