@@ -70,78 +70,96 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
           {!isCollapsed && <span>Tổng Quan</span>}
         </button>
 
-        {/* 2. Dự án triển khai */}
+        {/* 2. Dự án triển khai -> EmployProj.tsx (#employ-proj) */}
         <button
           type="button"
           className={`dash-menu-item ${activeTab === 'projects' ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
-            window.location.hash = '#dash-project';
+            if (setActiveTab) {
+              setActiveTab('projects');
+            }
+            window.location.hash = '#employ-proj';
           }}
         >
           <FolderKanban size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Dự án triển khai</span>}
         </button>
 
-        {/* 3. Tin tức truyền thông */}
+        {/* 3. Tin tức truyền thông -> EmployNews.tsx (#employ-news) */}
         <button
           type="button"
           className={`dash-menu-item ${activeTab === 'news' ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
-            window.location.hash = '#dash-new';
+            if (setActiveTab) {
+              setActiveTab('news');
+            }
+            window.location.hash = '#employ-news';
           }}
         >
           <Newspaper size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Tin tức truyền thông</span>}
         </button>
 
-        {/* 4. Vật tư thiết bị */}
+        {/* 4. Vật tư thiết bị -> EmployEquip.tsx (#employ-equip) */}
         <button
           type="button"
           className={`dash-menu-item ${activeTab === 'supplies' ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
-            window.location.hash = '#dash-equip';
+            if (setActiveTab) {
+              setActiveTab('supplies');
+            }
+            window.location.hash = '#employ-equip';
           }}
         >
           <Package size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Vật tư thiết bị</span>}
         </button>
 
-        {/* 5. Khách hàng */}
+        {/* 5. Khách hàng -> EmployCusto.tsx (#employ-custo) */}
         <button
           type="button"
           className={`dash-menu-item ${activeTab === 'customers' ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
-            window.location.hash = '#dash-custo';
+            if (setActiveTab) {
+              setActiveTab('customers');
+            }
+            window.location.hash = '#employ-custo';
           }}
         >
           <Users size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Khách hàng</span>}
         </button>
 
-        {/* 6. Tài chính kế toán */}
+        {/* 6. Tài chính kế toán -> EmployFinan.tsx (#employ-finan) */}
         <button
           type="button"
           className={`dash-menu-item ${activeTab === 'finance' ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
-            window.location.hash = '#dash-finan';
+            if (setActiveTab) {
+              setActiveTab('finance');
+            }
+            window.location.hash = '#employ-finan';
           }}
         >
           <Wallet size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Tài chính kế toán</span>}
         </button>
 
-        {/* 7. Quản lý công việc */}
+        {/* 7. Quản lý công việc -> EmployJob.tsx (#employ-job) */}
         <button
           type="button"
           className={`dash-menu-item ${activeTab === 'tasks' ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
-            window.location.hash = '#dash-job';
+            if (setActiveTab) {
+              setActiveTab('tasks');
+            }
+            window.location.hash = '#employ-job';
           }}
         >
           <ClipboardList size={19} className="dash-menu-icon" />

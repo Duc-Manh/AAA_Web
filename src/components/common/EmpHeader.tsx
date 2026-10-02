@@ -2,24 +2,59 @@ import React from 'react';
 import { Menu, RefreshCw, Bell, LogOut } from 'lucide-react';
 
 export interface EmpHeaderProps {
-  isMobileOpen: boolean;
-  setIsMobileOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
-  triggerToast: (msg: string) => void;
-  currentUser?: { username?: string; full_name?: string } | null;
-  handleLogout: () => void;
   title?: string;
   subtitle?: string;
+  isMobileOpen: boolean;
+  setIsMobileOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
+  currentUser?: { username?: string; full_name?: string } | null;
+  currentFullName?: string;
+  onRefresh?: () => void;
+  refreshTitle?: string;
+  notificationTitle?: string;
+  onNotification?: () => void;
+  triggerToast: (msg: string) => void;
+  handleLogout?: () => void;
 }
 
 export const EmpHeader: React.FC<EmpHeaderProps> = ({
+  title = 'Giao diện nhân viên công ty',
+  subtitle = 'Hệ thống quản lý công việc và thông tin chuyên môn 3A',
   isMobileOpen,
   setIsMobileOpen,
-  triggerToast,
   currentUser,
-  handleLogout,
-  title = 'Giao diện nhân viên công ty',
-  subtitle = 'Hệ thống quản lý công việc được giao'
+  currentFullName,
+  onRefresh,
+  refreshTitle = 'Làm mới dữ liệu',
+  notificationTitle = 'Thông báo hệ thống (2 cảnh báo)',
+  onNotification,
+  triggerToast,
+  handleLogout
 }) => {
+  const displayName =
+    currentFullName ||
+    currentUser?.full_name ||
+    currentUser?.username ||
+    'Nhân Viên 3A';
+
+  const onLogoutClick = () => {
+    localStorage.removeItem('aaa_admin_auth');
+    sessionStorage.removeItem('aaa_admin_auth');
+
+    if (handleLogout) {
+      try {
+        handleLogout();
+      } catch {
+        // ignore
+      }
+    }
+
+    window.location.hash = '#home';
+    window.history.pushState(null, '', '/#home');
+    window.dispatchEvent(new Event('popstate'));
+    window.dispatchEvent(new Event('hashchange'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   return (
     <header className="dash-navbar">
       <div className="dash-navbar-left">
@@ -41,8 +76,11 @@ export const EmpHeader: React.FC<EmpHeaderProps> = ({
         <button
           type="button"
           className="dash-nav-action-btn"
-          title="Làm mới trạng thái kết nối"
-          onClick={() => triggerToast('Đã làm mới dữ liệu cảm biến & thiết bị!')}
+          title={refreshTitle}
+          onClick={
+            onRefresh ||
+            (() => triggerToast('Đã làm mới dữ liệu cảm biến & thiết bị!'))
+          }
         >
           <RefreshCw size={17} />
         </button>
@@ -50,8 +88,11 @@ export const EmpHeader: React.FC<EmpHeaderProps> = ({
         <button
           type="button"
           className="dash-nav-action-btn"
-          title="Thông báo hệ thống (2 cảnh báo)"
-          onClick={() => triggerToast('Không có sự cố khẩn cấp nào!')}
+          title={notificationTitle}
+          onClick={
+            onNotification ||
+            (() => triggerToast('Không có sự cố khẩn cấp nào!'))
+          }
         >
           <Bell size={17} />
           <span className="dash-nav-badge" />
@@ -61,20 +102,18 @@ export const EmpHeader: React.FC<EmpHeaderProps> = ({
         <div className="dash-user-nav-wrapper">
           <div className="dash-user-profile-badge">
             <div className="dash-user-avatar-sm">
-              {(currentUser?.username || '3A').slice(0, 2).toUpperCase()}
+              {displayName.slice(0, 2).toUpperCase()}
             </div>
             <div className="dash-user-nav-info">
-              <span className="dash-user-nav-name">
-                {currentUser?.username || 'Quản Trị Viên 3A'}
-              </span>
-              <span className="dash-user-nav-role">Super Admin</span>
+              <span className="dash-user-nav-name">{displayName}</span>
+              <span className="dash-user-nav-role" style={{ color: '#10b981' }}>Nhân Viên</span>
             </div>
           </div>
 
           <button
             type="button"
             className="dash-navbar-logout-btn"
-            onClick={handleLogout}
+            onClick={onLogoutClick}
             title="Đăng xuất khỏi hệ thống"
           >
             <LogOut size={15} />

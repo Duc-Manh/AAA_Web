@@ -53,11 +53,11 @@ export const trackActivity = async (
 export const getModuleFromHash = (hash: string): string | null => {
   const clean = (hash || '').replace(/^\/?#?\/?/, '').toLowerCase();
   if (clean === 'dash' || clean === 'employ') return 'overview';
-  if (clean === 'dash-project') return 'projects';
-  if (clean === 'dash-new') return 'news';
-  if (clean === 'dash-equip') return 'supplies';
-  if (clean === 'dash-custo') return 'customers';
-  if (clean === 'dash-finan') return 'finance';
-  if (clean === 'dash-job') return 'tasks';
+  if (clean === 'dash-project' || clean === 'employ-proj') return 'projects';
+  if (clean === 'dash-new' || clean === 'employ-news') return 'news';
+  if (clean === 'dash-equip' || clean === 'employ-equip') return 'supplies';
+  if (clean === 'dash-custo' || clean === 'employ-custo') return 'customers';
+  if (clean === 'dash-finan' || clean === 'employ-finan') return 'finance';
+  if (clean === 'dash-job' || clean === 'employ-job') return 'tasks';
   return null;
 };

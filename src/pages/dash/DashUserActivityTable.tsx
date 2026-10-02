@@ -737,7 +737,7 @@ export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ tr
                             }}
                             title="Xem thời điểm chi tiết & JSON"
                           >
-                            <span>Xem cụ thể</span>
+                            <span>Xem</span>
                           </button>
 
                           <button
