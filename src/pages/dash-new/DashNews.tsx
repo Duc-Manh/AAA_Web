@@ -469,7 +469,7 @@ export const DashNews: React.FC = () => {
       <div className="dash-main">
         {/* TOP NAVBAR */}
         <DashHeader
-          title="Tin Tức & Truyền Thông"
+          title="Tin Tức và Truyền Thông"
           subtitle="Quản lý các bài đăng Dự án, Tin tức, Sự kiện và truyền thông doanh nghiệp 3AHOME"
           isMobileOpen={isMobileOpen}
           setIsMobileOpen={setIsMobileOpen}
@@ -584,8 +584,8 @@ export const DashNews: React.FC = () => {
                                 item.topic === 'Dự án'
                                   ? 'topic-badge-duan'
                                   : item.topic === 'Tin tức'
-                                  ? 'topic-badge-tintuc'
-                                  : 'topic-badge-sukien'
+                                    ? 'topic-badge-tintuc'
+                                    : 'topic-badge-sukien'
                               }
                             >
                               {item.topic}
@@ -603,10 +603,11 @@ export const DashNews: React.FC = () => {
                           <td>
                             <div
                               style={{
-                                maxWidth: '320px',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
+                                maxWidth: '360px',
+                                minWidth: '220px',
+                                whiteSpace: 'normal',
+                                wordBreak: 'break-word',
+                                lineHeight: '1.5',
                                 color: '#475569',
                                 fontSize: '0.84rem'
                               }}

@@ -434,7 +434,7 @@ export const DashEquip: React.FC = () => {
       <div className="dash-main">
         {/* TOP NAVBAR */}
         <DashHeader
-          title="Quản Lý Danh Mục Vật Tư & Thiết Bị"
+          title="Quản Lý Danh Mục Vật Tư và Thiết Bị"
           subtitle="Quản lý chi tiết danh mục thiết bị, hãng sản xuất, hình ảnh và trạng thái hoạt động trong hệ thống 3AHOME"
           isMobileOpen={isMobileOpen}
           setIsMobileOpen={setIsMobileOpen}
@@ -1338,7 +1338,7 @@ export const DashEquip: React.FC = () => {
                       Nhấn vào đây để tải hình ảnh
                     </div>
                     <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>
-                      Hỗ trợ JPG, PNG, WEBP. Dung lượng tối đa: 5MB (tự động nén và đổi tên theo chuẩn <code>device[dd-mm-yyyy][codeimg]</code>)
+                      Hỗ trợ JPG, PNG, WEBP. Dung lượng tối đa: 5MB
                     </div>
                     <button
                       type="button"
