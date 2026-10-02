@@ -1,39 +1,36 @@
 import React from 'react';
 import iconImg from '../../assets/images/icon.png';
 import {
-  Menu,
   LayoutDashboard,
-  Cpu,
-  Building2,
-  Zap,
-  Video,
+  FolderKanban,
+  Newspaper,
+  Package,
   Users,
-  Settings
+  Wallet,
+  ClipboardList,
+  Settings,
+  Menu
 } from 'lucide-react';
 
 export interface EmpAsideProps {
-  activeTab: string;
-  setActiveTab: (tab: string) => void;
+  activeTab?: string;
+  setActiveTab?: (tab: string) => void;
   isCollapsed: boolean;
   setIsCollapsed: (value: boolean | ((prev: boolean) => boolean)) => void;
   isMobileOpen: boolean;
   setIsMobileOpen: (value: boolean | ((prev: boolean) => boolean)) => void;
-  devices?: any[];
-  activeDeviceCount?: number;
+  triggerToast?: (msg: string) => void;
 }
 
 export const EmpAside: React.FC<EmpAsideProps> = ({
-  activeTab,
+  activeTab = 'overview',
   setActiveTab,
   isCollapsed,
   setIsCollapsed,
   isMobileOpen,
   setIsMobileOpen,
-  devices = [],
-  activeDeviceCount = 0
+  triggerToast
 }) => {
-  const totalCount = devices.length;
-
   return (
     <aside
       className={`dash-sidebar ${isCollapsed ? 'collapsed' : ''} ${
@@ -57,91 +54,115 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
       <nav className="dash-sidebar-menu">
         <div className="dash-menu-group-label">{!isCollapsed ? 'Danh mục' : '•••'}</div>
 
+        {/* 1. Tổng Quan */}
         <button
           type="button"
           className={`dash-menu-item ${activeTab === 'overview' ? 'active' : ''}`}
           onClick={() => {
-            setActiveTab('overview');
             setIsMobileOpen(false);
+            if (setActiveTab) {
+              setActiveTab('overview');
+            }
+            window.location.hash = '#employ';
           }}
         >
           <LayoutDashboard size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Tổng Quan</span>}
         </button>
 
+        {/* 2. Dự án triển khai */}
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'devices' ? 'active' : ''}`}
+          className={`dash-menu-item ${activeTab === 'projects' ? 'active' : ''}`}
           onClick={() => {
-            setActiveTab('devices');
             setIsMobileOpen(false);
+            window.location.hash = '#dash-project';
           }}
         >
-          <Cpu size={19} className="dash-menu-icon" />
-          {!isCollapsed && <span>Thiết Bị IoT</span>}
-          {!isCollapsed && (
-            <span className="dash-menu-badge">{activeDeviceCount}/{totalCount}</span>
-          )}
+          <FolderKanban size={19} className="dash-menu-icon" />
+          {!isCollapsed && <span>Dự án triển khai</span>}
         </button>
 
+        {/* 3. Tin tức truyền thông */}
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'apartments' ? 'active' : ''}`}
+          className={`dash-menu-item ${activeTab === 'news' ? 'active' : ''}`}
           onClick={() => {
-            setActiveTab('apartments');
             setIsMobileOpen(false);
+            window.location.hash = '#dash-new';
           }}
         >
-          <Building2 size={19} className="dash-menu-icon" />
-          {!isCollapsed && <span>Căn Hộ & Toà Nhà</span>}
+          <Newspaper size={19} className="dash-menu-icon" />
+          {!isCollapsed && <span>Tin tức truyền thông</span>}
         </button>
 
+        {/* 4. Vật tư thiết bị */}
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'energy' ? 'active' : ''}`}
+          className={`dash-menu-item ${activeTab === 'supplies' ? 'active' : ''}`}
           onClick={() => {
-            setActiveTab('energy');
             setIsMobileOpen(false);
+            window.location.hash = '#dash-equip';
           }}
         >
-          <Zap size={19} className="dash-menu-icon" />
-          {!isCollapsed && <span>Điện Năng Tiêu Thụ</span>}
+          <Package size={19} className="dash-menu-icon" />
+          {!isCollapsed && <span>Vật tư thiết bị</span>}
         </button>
 
+        {/* 5. Khách hàng */}
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'security' ? 'active' : ''}`}
+          className={`dash-menu-item ${activeTab === 'customers' ? 'active' : ''}`}
           onClick={() => {
-            setActiveTab('security');
             setIsMobileOpen(false);
-          }}
-        >
-          <Video size={19} className="dash-menu-icon" />
-          {!isCollapsed && <span>Camera An Ninh</span>}
-        </button>
-
-        <button
-          type="button"
-          className={`dash-menu-item ${activeTab === 'users' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveTab('users');
-            setIsMobileOpen(false);
+            window.location.hash = '#dash-custo';
           }}
         >
           <Users size={19} className="dash-menu-icon" />
-          {!isCollapsed && <span>Cư Dân & Người Dùng</span>}
+          {!isCollapsed && <span>Khách hàng</span>}
+        </button>
+
+        {/* 6. Tài chính kế toán */}
+        <button
+          type="button"
+          className={`dash-menu-item ${activeTab === 'finance' ? 'active' : ''}`}
+          onClick={() => {
+            setIsMobileOpen(false);
+            window.location.hash = '#dash-finan';
+          }}
+        >
+          <Wallet size={19} className="dash-menu-icon" />
+          {!isCollapsed && <span>Tài chính kế toán</span>}
+        </button>
+
+        {/* 7. Quản lý công việc */}
+        <button
+          type="button"
+          className={`dash-menu-item ${activeTab === 'tasks' ? 'active' : ''}`}
+          onClick={() => {
+            setIsMobileOpen(false);
+            window.location.hash = '#dash-job';
+          }}
+        >
+          <ClipboardList size={19} className="dash-menu-icon" />
+          {!isCollapsed && <span>Quản lý công việc</span>}
         </button>
 
         <div className="dash-menu-group-label" style={{ marginTop: '12px' }}>
           {!isCollapsed ? 'Cấu Hình' : '•••'}
         </div>
 
+        {/* 8. Cài Đặt Hệ Thống */}
         <button
           type="button"
           className={`dash-menu-item ${activeTab === 'settings' ? 'active' : ''}`}
           onClick={() => {
-            setActiveTab('settings');
             setIsMobileOpen(false);
+            if (setActiveTab) {
+              setActiveTab('settings');
+            } else {
+              triggerToast?.('Tính năng Cài đặt hệ thống đang được cập nhật!');
+            }
           }}
         >
           <Settings size={19} className="dash-menu-icon" />

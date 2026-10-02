@@ -18,7 +18,7 @@ export const EmpHeader: React.FC<EmpHeaderProps> = ({
   currentUser,
   handleLogout,
   title = 'Giao diện nhân viên công ty',
-  subtitle = 'Giám sát thời gian thực, tự động hoá thiết bị và phân tích chỉ số toà nhà thông minh 3A'
+  subtitle = 'Hệ thống quản lý công việc được giao'
 }) => {
   return (
     <header className="dash-navbar">

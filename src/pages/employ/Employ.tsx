@@ -4,98 +4,12 @@ import { EmpAside } from '../../components/common/EmpAside';
 import { EmpHeader } from '../../components/common/EmpHeader';
 import { CheckCircle2 } from 'lucide-react';
 
-interface DeviceItem {
-  id: string;
-  name: string;
-  room: string;
-  category: 'light' | 'climate' | 'appliance' | 'security';
-  status: boolean;
-  power: string;
-  lastActive: string;
-}
-
 export const Employ: React.FC = () => {
   const [activeTab, setActiveTab] = useState('overview');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<{ username: string } | null>(null);
-
-  // Danh sách thiết bị IoT thực tế
-  const [devices] = useState<DeviceItem[]>([
-    {
-      id: 'dev-1',
-      name: 'Đèn Chùm Thông Minh Smart Light',
-      room: 'Phòng Khách',
-      category: 'light',
-      status: true,
-      power: '45W',
-      lastActive: 'Đang hoạt động'
-    },
-    {
-      id: 'dev-2',
-      name: 'Điều Hoà Inverter Dual Cool',
-      room: 'Phòng Ngủ Master',
-      category: 'climate',
-      status: true,
-      power: '850W - 24°C',
-      lastActive: 'Đang hoạt động'
-    },
-    {
-      id: 'dev-3',
-      name: 'Rèm Cửa Tự Động Motorized',
-      room: 'Phòng Khách',
-      category: 'appliance',
-      status: false,
-      power: '0W (Đóng 100%)',
-      lastActive: 'Đã đóng 2h trước'
-    },
-    {
-      id: 'dev-4',
-      name: 'Bình Nóng Lạnh Thông Minh',
-      room: 'Phòng Tắm',
-      category: 'appliance',
-      status: true,
-      power: '1500W - 55°C',
-      lastActive: 'Đang đun nước'
-    },
-    {
-      id: 'dev-5',
-      name: 'Robot Hút Bụi Lau Nhà AI',
-      room: 'Toàn Căn Hộ',
-      category: 'appliance',
-      status: false,
-      power: 'Đang sạc (92%)',
-      lastActive: 'Hoàn tất lúc 09:30'
-    },
-    {
-      id: 'dev-6',
-      name: 'Khoá Cửa Vân Tay FaceID DoorLock',
-      room: 'Cửa Chính',
-      category: 'security',
-      status: true,
-      power: 'Pin 88%',
-      lastActive: 'Đã khoá an toàn'
-    },
-    {
-      id: 'dev-7',
-      name: 'Cảm Biến Khói & Khí Gas Zigbee',
-      room: 'Nhà Bếp',
-      category: 'security',
-      status: true,
-      power: 'Bình thường',
-      lastActive: 'Kiểm tra 5 phút trước'
-    },
-    {
-      id: 'dev-8',
-      name: 'Hệ Thống Âm Thanh Đa Vùng',
-      room: 'Phòng Khách',
-      category: 'appliance',
-      status: false,
-      power: 'Chế độ chờ',
-      lastActive: 'Tắt lúc 22:00'
-    }
-  ]);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -120,8 +34,6 @@ export const Employ: React.FC = () => {
       setToastMessage(null);
     }, 2500);
   };
-
-  const activeDeviceCount = devices.filter((d) => d.status).length;
 
   return (
     <div className="dash-layout">
@@ -159,8 +71,7 @@ export const Employ: React.FC = () => {
         setIsCollapsed={setIsCollapsed}
         isMobileOpen={isMobileOpen}
         setIsMobileOpen={setIsMobileOpen}
-        devices={devices}
-        activeDeviceCount={activeDeviceCount}
+        triggerToast={triggerToast}
       />
 
       {/* 2. KHU VỰC NỘI DUNG CHÍNH */}
