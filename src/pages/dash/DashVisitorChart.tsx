@@ -51,19 +51,19 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
   };
   const yAxisMax = getNiceMax(rawMax);
 
-  // 5 mốc vạch kẻ trục tung Y (0%, 25%, 50%, 75%, 100%)
-  const yTicks = [0, 0.25, 0.5, 0.75, 1].map(ratio => Math.round(yAxisMax * ratio));
+  // 4 mốc vạch kẻ trục tung Y gọn gàng (0%, 33%, 66%, 100%)
+  const yTicks = [0, 0.33, 0.66, 1].map(ratio => Math.round(yAxisMax * ratio));
 
-  // Tọa độ biểu đồ SVG gọn gàng (viewBox 0 0 860 270)
+  // Tọa độ biểu đồ SVG siêu gọn gàng (viewBox 0 0 860 170)
   const plotLeft = 75;
   const plotRight = 825;
   const plotWidth = plotRight - plotLeft; // 750
-  const plotTop = 32;
-  const plotBottom = 215;
-  const plotHeight = plotBottom - plotTop; // 183
+  const plotTop = 22;
+  const plotBottom = 135;
+  const plotHeight = plotBottom - plotTop; // 113
 
   const colWidth = plotWidth / chartMetrics.length;
-  const barWidth = 44;
+  const barWidth = 36;
 
   const chartPoints = chartMetrics.map((m, idx) => {
     const cx = plotLeft + colWidth * (idx + 0.5);
@@ -97,18 +97,18 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
 
   return (
     <div className="dash-chart-card">
-      <div className="dash-chart-header" style={{ marginBottom: isExpanded ? 16 : 0, paddingBottom: isExpanded ? 16 : 0, borderBottom: isExpanded ? '1px solid #f1f5f9' : 'none' }}>
+      <div className="dash-chart-header" style={{ marginBottom: isExpanded ? 10 : 0, paddingBottom: isExpanded ? 10 : 0, borderBottom: isExpanded ? '1px solid #f1f5f9' : 'none' }}>
         <div className="dash-chart-title-box">
-          <div className="dash-chart-icon-badge">
-            <BarChart3 size={22} />
+          <div className="dash-chart-icon-badge" style={{ width: 34, height: 34 }}>
+            <BarChart3 size={18} />
           </div>
           <div>
-            <h3 className="dash-chart-title">
+            <h3 className="dash-chart-title" style={{ fontSize: '0.96rem' }}>
               Biểu Đồ Thống Kê Truy Cập Hệ Thống
-              <span className="live-pulse-dot" style={{ width: 8, height: 8 }} />
+              <span className="live-pulse-dot" style={{ width: 7, height: 7 }} />
             </h3>
-            <p className="dash-chart-subtitle">
-              Theo dõi trực quan 6 chỉ số truy cập qua hệ trục tọa độ 2 chiều (Trục tung Y: Lượt truy cập - Trục hoành X: Phân loại chỉ số)
+            <p className="dash-chart-subtitle" style={{ fontSize: '0.76rem' }}>
+              Trục tung Y: Lượt truy cập | Trục hoành X: 6 Chỉ số hệ thống
             </p>
           </div>
         </div>
@@ -121,8 +121,9 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
                 className={`chart-toggle-btn ${chartMode === 'both' ? 'active' : ''}`}
                 onClick={() => setChartMode('both')}
                 title="Hiển thị kết hợp cả cột và đường xu hướng"
+                style={{ padding: '4px 10px', fontSize: '0.76rem' }}
               >
-                <Layers size={14} />
+                <Layers size={13} />
                 <span>Kết hợp</span>
               </button>
               <button
@@ -130,27 +131,29 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
                 className={`chart-toggle-btn ${chartMode === 'bar' ? 'active' : ''}`}
                 onClick={() => setChartMode('bar')}
                 title="Chỉ hiển thị biểu đồ cột"
+                style={{ padding: '4px 10px', fontSize: '0.76rem' }}
               >
-                <BarChart3 size={14} />
-                <span>Dạng Cột</span>
+                <BarChart3 size={13} />
+                <span>Cột</span>
               </button>
               <button
                 type="button"
                 className={`chart-toggle-btn ${chartMode === 'line' ? 'active' : ''}`}
                 onClick={() => setChartMode('line')}
                 title="Chỉ hiển thị biểu đồ đường cong spline"
+                style={{ padding: '4px 10px', fontSize: '0.76rem' }}
               >
-                <LineChart size={14} />
-                <span>Đường cong</span>
+                <LineChart size={13} />
+                <span>Đường</span>
               </button>
               <button
                 type="button"
                 className="dash-pill-btn"
                 onClick={onRefresh}
                 title="Làm mới dữ liệu biểu đồ"
-                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '6px 10px' }}
+                style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 8px', fontSize: '0.76rem' }}
               >
-                <RefreshCw size={13} />
+                <RefreshCw size={12} />
                 <span>Cập nhật</span>
               </button>
             </>
@@ -162,18 +165,18 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
             className="dash-pill-btn"
             onClick={() => setIsExpanded(!isExpanded)}
             title={isExpanded ? "Thu gọn biểu đồ để xem bảng nhân sự phía dưới dễ dàng hơn" : "Mở rộng biểu đồ"}
-            style={{ display: 'inline-flex', alignItems: 'center', gap: 5, padding: '6px 12px', background: isExpanded ? '#f8fafc' : '#eff6ff', color: isExpanded ? '#475569' : '#2563eb', borderColor: isExpanded ? '#cbd5e1' : '#93c5fd', fontWeight: 600 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: 4, padding: '4px 10px', fontSize: '0.76rem', background: isExpanded ? '#f8fafc' : '#eff6ff', color: isExpanded ? '#475569' : '#2563eb', borderColor: isExpanded ? '#cbd5e1' : '#93c5fd', fontWeight: 600 }}
           >
-            {isExpanded ? <ChevronUp size={15} /> : <ChevronDown size={15} />}
-            <span>{isExpanded ? 'Thu gọn biểu đồ' : 'Mở rộng biểu đồ'}</span>
+            {isExpanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            <span>{isExpanded ? 'Thu gọn' : 'Mở rộng'}</span>
           </button>
         </div>
       </div>
 
       {isExpanded && (
         <>
-          <div className="dash-chart-svg-wrap">
-            <svg viewBox="0 0 860 270" className="dash-chart-svg" preserveAspectRatio="xMidYMid meet">
+          <div className="dash-chart-svg-wrap" style={{ padding: '4px 0 2px 0' }}>
+            <svg viewBox="0 0 860 170" className="dash-chart-svg" style={{ maxHeight: 180 }} preserveAspectRatio="xMidYMid meet">
               <defs>
                 <linearGradient id="grad-online" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#10b981" stopOpacity="0.95" />
@@ -201,12 +204,12 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
                 </linearGradient>
 
                 <linearGradient id="grad-spline-area" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.25" />
+                  <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.22" />
                   <stop offset="100%" stopColor="#3b82f6" stopOpacity="0.0" />
                 </linearGradient>
 
                 <filter id="bar-shadow" x="-20%" y="-20%" width="140%" height="140%">
-                  <feDropShadow dx="0" dy="4" stdDeviation="5" floodOpacity="0.2" />
+                  <feDropShadow dx="0" dy="3" stdDeviation="4" floodOpacity="0.18" />
                 </filter>
               </defs>
 
@@ -223,18 +226,19 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
                       className="chart-grid-line"
                     />
                     <line
-                      x1={plotLeft - 5}
+                      x1={plotLeft - 4}
                       y1={y}
                       x2={plotLeft}
                       y2={y}
                       stroke="#94a3b8"
-                      strokeWidth="1.5"
+                      strokeWidth="1.2"
                     />
                     <text
-                      x={plotLeft - 10}
-                      y={y + 4}
+                      x={plotLeft - 8}
+                      y={y + 3.5}
                       textAnchor="end"
                       className="chart-axis-text"
+                      fontSize="10"
                     >
                       {val >= 1000000
                         ? `${(val / 1000000).toFixed(1)}M`
@@ -249,19 +253,19 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
               {/* Tiêu đề trục tung Y */}
               <text
                 x={plotLeft}
-                y={plotTop - 14}
+                y={plotTop - 9}
                 textAnchor="start"
-                fontSize="11"
+                fontSize="10"
                 fontWeight="700"
                 fill="#64748b"
               >
-                (Lượt truy cập) ↑ Trục tung Y
+                (Lượt) ↑ Trục Y
               </text>
 
               {/* Trục tung Y chính */}
               <line
                 x1={plotLeft}
-                y1={plotTop - 4}
+                y1={plotTop - 2}
                 x2={plotLeft}
                 y2={plotBottom}
                 className="chart-axis-line"
@@ -275,18 +279,6 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
                 y2={plotBottom}
                 className="chart-axis-line"
               />
-
-              {/* Tiêu đề trục hoành X */}
-              <text
-                x={plotRight}
-                y={plotBottom + 32}
-                textAnchor="end"
-                fontSize="11"
-                fontWeight="700"
-                fill="#64748b"
-              >
-                Trục hoành X → (Chỉ số hệ thống)
-              </text>
 
               {/* CỘT HOVER BACKGROUND GUIDES */}
               {chartPoints.map((_, idx) => {
@@ -319,7 +311,7 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
               {/* CÁC CỘT (BAR CHART) */}
               {(chartMode === 'bar' || chartMode === 'both') &&
                 chartPoints.map((pt, idx) => {
-                  const barHeight = Math.max(4, (pt.value / yAxisMax) * plotHeight);
+                  const barHeight = Math.max(3, (pt.value / yAxisMax) * plotHeight);
                   const barY = plotBottom - barHeight;
                   const barX = pt.x - barWidth / 2;
                   const isHovered = hoveredMetricIdx === idx;
@@ -336,17 +328,17 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
                         y={barY}
                         width={barWidth}
                         height={barHeight}
-                        rx="6"
-                        ry="6"
+                        rx="5"
+                        ry="5"
                         fill={`url(#${pt.gradientId})`}
                         opacity={hoveredMetricIdx !== null && !isHovered ? 0.45 : 1}
                         filter={isHovered ? 'url(#bar-shadow)' : undefined}
                       />
                       <text
                         x={pt.x}
-                        y={barY - 7}
+                        y={barY - 5}
                         textAnchor="middle"
-                        fontSize="11"
+                        fontSize="10.5"
                         fontWeight="700"
                         fill={isHovered ? pt.color : '#475569'}
                         style={{ transition: 'all 0.2s ease', pointerEvents: 'none' }}
@@ -363,7 +355,7 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
                   d={lineCurvePath}
                   fill="none"
                   stroke="#2563eb"
-                  strokeWidth={chartMode === 'line' ? 3.5 : 2.5}
+                  strokeWidth={chartMode === 'line' ? 3 : 2}
                   strokeLinecap="round"
                   strokeLinejoin="round"
                   style={{ pointerEvents: 'none', transition: 'all 0.4s ease' }}
@@ -383,18 +375,18 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
                       <circle
                         cx={pt.x}
                         cy={pt.y}
-                        r={isHovered ? 6.5 : 4.5}
+                        r={isHovered ? 5.5 : 3.5}
                         fill="#ffffff"
                         stroke={pt.color}
-                        strokeWidth={isHovered ? 3 : 2}
+                        strokeWidth={isHovered ? 2.5 : 1.8}
                         className={`chart-point ${isHovered ? 'active' : ''}`}
                       />
                       {chartMode === 'line' && (
                         <text
                           x={pt.x}
-                          y={pt.y - 10}
+                          y={pt.y - 8}
                           textAnchor="middle"
-                          fontSize="11"
+                          fontSize="10"
                           fontWeight="700"
                           fill={isHovered ? pt.color : '#334155'}
                           style={{ pointerEvents: 'none' }}
@@ -420,25 +412,27 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
                       x1={pt.x}
                       y1={plotBottom}
                       x2={pt.x}
-                      y2={plotBottom + 5}
+                      y2={plotBottom + 4}
                       stroke="#94a3b8"
-                      strokeWidth="1.5"
+                      strokeWidth="1.2"
                     />
                     <text
                       x={pt.x}
-                      y={plotBottom + 18}
+                      y={plotBottom + 16}
                       textAnchor="middle"
                       className="chart-axis-label-x"
                       fill={isHovered ? pt.color : '#1e293b'}
                       fontWeight={isHovered ? '700' : '600'}
+                      fontSize="10.5"
                     >
                       {pt.label}
                     </text>
                     <text
                       x={pt.x}
-                      y={plotBottom + 31}
+                      y={plotBottom + 27}
                       textAnchor="middle"
                       className="chart-axis-label-x-sub"
+                      fontSize="9"
                     >
                       {pt.subLabel}
                     </text>
@@ -450,12 +444,12 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
               {hoveredMetricIdx !== null && (
                 (() => {
                   const cur = chartPoints[hoveredMetricIdx];
-                  const tooltipW = 140;
-                  const tooltipH = 50;
+                  const tooltipW = 130;
+                  const tooltipH = 44;
                   let tooltipX = cur.x - tooltipW / 2;
-                  if (tooltipX < plotLeft) tooltipX = plotLeft + 10;
-                  if (tooltipX + tooltipW > plotRight) tooltipX = plotRight - tooltipW - 10;
-                  const tooltipY = Math.max(plotTop + 5, cur.y - tooltipH - 14);
+                  if (tooltipX < plotLeft) tooltipX = plotLeft + 6;
+                  if (tooltipX + tooltipW > plotRight) tooltipX = plotRight - tooltipW - 6;
+                  const tooltipY = Math.max(plotTop + 2, cur.y - tooltipH - 10);
 
                   return (
                     <g style={{ pointerEvents: 'none', transition: 'all 0.15s ease' }}>
@@ -466,7 +460,7 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
                         y2={plotBottom}
                         stroke={cur.color}
                         strokeWidth="1"
-                        strokeDasharray="3 3"
+                        strokeDasharray="2 2"
                         opacity="0.6"
                       />
                       <rect
@@ -474,27 +468,27 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
                         y={tooltipY}
                         width={tooltipW}
                         height={tooltipH}
-                        rx="8"
+                        rx="6"
                         fill="#0f172a"
                         opacity="0.94"
                         filter="url(#bar-shadow)"
                       />
                       <text
                         x={tooltipX + tooltipW / 2}
-                        y={tooltipY + 18}
+                        y={tooltipY + 16}
                         textAnchor="middle"
                         fill="#94a3b8"
-                        fontSize="10.5"
+                        fontSize="9.5"
                         fontWeight="600"
                       >
                         {cur.label} ({cur.subLabel})
                       </text>
                       <text
                         x={tooltipX + tooltipW / 2}
-                        y={tooltipY + 37}
+                        y={tooltipY + 33}
                         textAnchor="middle"
                         fill="#38bdf8"
-                        fontSize="13"
+                        fontSize="12"
                         fontWeight="700"
                       >
                         {cur.value.toLocaleString()} lượt
@@ -507,8 +501,8 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
           </div>
 
           {/* CHÚ THÍCH (FOOTER LEGEND) */}
-          <div className="chart-footer-legend">
-            <div className="legend-items-list">
+          <div className="chart-footer-legend" style={{ marginTop: 6, paddingTop: 6 }}>
+            <div className="legend-items-list" style={{ gap: 12 }}>
               {chartMetrics.map((m, idx) => (
                 <div
                   key={`legend-${m.key}`}
@@ -517,18 +511,19 @@ export const DashVisitorChart: React.FC<DashVisitorChartProps> = ({ visitStats, 
                   onMouseLeave={() => setHoveredMetricIdx(null)}
                   style={{
                     opacity: hoveredMetricIdx !== null && hoveredMetricIdx !== idx ? 0.45 : 1,
-                    fontWeight: hoveredMetricIdx === idx ? 700 : 500
+                    fontWeight: hoveredMetricIdx === idx ? 700 : 500,
+                    fontSize: '0.74rem'
                   }}
                 >
-                  <span className="legend-color-dot" style={{ background: m.color }} />
+                  <span className="legend-color-dot" style={{ background: m.color, width: 8, height: 8 }} />
                   <span>{m.label}: <strong>{m.value.toLocaleString()}</strong></span>
                 </div>
               ))}
             </div>
 
-            <div className="legend-hint">
-              <Info size={13} />
-              <span>Rê chuột vào cột hoặc điểm trên biểu đồ để xem chi tiết</span>
+            <div className="legend-hint" style={{ fontSize: '0.72rem' }}>
+              <Info size={11} />
+              <span>Rê chuột để xem chi tiết</span>
             </div>
           </div>
         </>
