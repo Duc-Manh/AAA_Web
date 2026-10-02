@@ -222,8 +222,8 @@ export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ tr
   };
 
   return (
-    <div className="dash-activity-section" style={{ marginTop: '24px', marginBottom: '24px' }}>
-      <div className="dash-accounts-card" style={{ boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)', borderRadius: '16px', overflow: 'hidden' }}>
+    <div className="dash-activity-section" style={{ marginTop: '16px', marginBottom: '24px', width: '100%', flexShrink: 0 }}>
+      <div className="dash-accounts-card" style={{ boxShadow: '0 4px 20px -2px rgba(0, 0, 0, 0.05)', borderRadius: '16px', width: '100%', flexShrink: 0 }}>
         {/* Header khung thống kê */}
         <div
           className="dash-accounts-card-header"
@@ -434,21 +434,17 @@ export const DashUserActivityTable: React.FC<DashUserActivityTableProps> = ({ tr
           </div>
         </div>
 
-        {/* Bảng dữ liệu chính - Hiển thị thanh cuộn dọc khi danh sách dài */}
+        {/* Bảng dữ liệu chính - Luôn hiển thị đầy đủ, không bị thu nhỏ */}
         <div
           style={{
             overflowX: 'auto',
-            overflowY: 'auto',
-            maxHeight: '560px',
             width: '100%',
-            scrollbarWidth: 'thin',
-            scrollbarColor: '#94a3b8 #f1f5f9',
             position: 'relative'
           }}
         >
-          <table className="dash-table" style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-            <thead style={{ position: 'sticky', top: 0, zIndex: 5, background: '#f8fafc' }}>
-              <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #e2e8f0', boxShadow: '0 1px 0 #e2e8f0' }}>
+          <table className="dash-table" style={{ width: '100%', minWidth: '1050px', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #e2e8f0' }}>
                 <th style={{ padding: '12px 16px', fontSize: '0.78rem', fontWeight: 700, color: '#475569', width: '45px' }}>STT</th>
                 <th style={{ padding: '12px 16px', fontSize: '0.78rem', fontWeight: 700, color: '#475569', minWidth: '220px' }}>
                   Tài khoản / Nhân sự
