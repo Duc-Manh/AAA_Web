@@ -137,8 +137,11 @@ export const DashEquip: React.FC = () => {
       return imgPath;
     }
     const cleanFilename = imgPath.split(/[\\/]/).pop();
-    if (imgPath.includes('device')) {
+    if (imgPath.includes('device') || cleanFilename?.startsWith('device[')) {
       return `/uploads/device/${cleanFilename}`;
+    }
+    if (imgPath.includes('project') || cleanFilename?.startsWith('proj[')) {
+      return `/uploads/project/${cleanFilename}`;
     }
     return `/uploads/news/${cleanFilename}`;
   };
@@ -174,13 +177,13 @@ export const DashEquip: React.FC = () => {
       return;
     }
 
-    // 2. Rename tên file có dạng device[dd-mm-yyyy][codeimg]
+    // 2. Rename tên file có dạng device[dd-mm-yy][codeimg]
     const now = new Date();
     const dd = String(now.getDate()).padStart(2, '0');
     const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const yyyy = now.getFullYear();
+    const yy = String(now.getFullYear()).slice(-2);
     const codeimg = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const customName = `device[${dd}-${mm}-${yyyy}][${codeimg}].jpg`;
+    const customName = `device[${dd}-${mm}-${yy}][${codeimg}].jpg`;
 
     // 3. Resize và nén hình ảnh bằng HTML5 Canvas
     const reader = new FileReader();
@@ -1342,6 +1345,10 @@ export const DashEquip: React.FC = () => {
                     </div>
                     <button
                       type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        fileInputRef.current?.click();
+                      }}
                       style={{
                         marginTop: '12px',
                         display: 'inline-flex',

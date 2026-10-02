@@ -74,7 +74,7 @@ export const Product: React.FC = () => {
       return imgPath;
     }
     const cleanFilename = imgPath.split(/[\\/]/).pop();
-    if (imgPath.includes('device')) {
+    if (imgPath.includes('device') || cleanFilename?.startsWith('device[')) {
       return `/uploads/device/${cleanFilename}`;
     }
     return `/uploads/news/${cleanFilename}`;
