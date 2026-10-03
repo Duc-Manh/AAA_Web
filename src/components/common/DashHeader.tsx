@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, RefreshCw, Bell, LogOut } from 'lucide-react';
+import { Menu, RefreshCw, HelpCircle, LogOut } from 'lucide-react';
 
 export interface DashHeaderProps {
   title: string;
@@ -9,6 +9,8 @@ export interface DashHeaderProps {
   currentFullName: string;
   onRefresh?: () => void;
   refreshTitle?: string;
+  guideTitle?: string;
+  onGuide?: () => void;
   notificationTitle?: string;
   onNotification?: () => void;
   triggerToast: (msg: string) => void;
@@ -23,7 +25,9 @@ export const DashHeader: React.FC<DashHeaderProps> = ({
   currentFullName,
   onRefresh,
   refreshTitle = 'Làm mới dữ liệu',
-  notificationTitle = 'Thông báo hệ thống',
+  guideTitle = 'Hướng dẫn',
+  onGuide,
+  notificationTitle,
   onNotification,
   triggerToast,
   handleLogout
@@ -79,12 +83,12 @@ export const DashHeader: React.FC<DashHeaderProps> = ({
 
         <button
           type="button"
-          className="dash-nav-action-btn"
-          title={notificationTitle}
-          onClick={onNotification || (() => triggerToast('Không có thông báo mới!'))}
+          className="dash-navbar-guide-btn"
+          title={guideTitle || notificationTitle || 'Hướng dẫn sử dụng'}
+          onClick={onGuide || onNotification || (() => triggerToast('Tài liệu hướng dẫn sử dụng đang được cập nhật!'))}
         >
-          <Bell size={17} />
-          <span className="dash-nav-badge" />
+          <HelpCircle size={15} />
+          <span>Hướng dẫn</span>
         </button>
 
         {/* Khung hiển thị thông tin đăng nhập và nút Logout */}

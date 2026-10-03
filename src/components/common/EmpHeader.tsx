@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, RefreshCw, Bell, LogOut } from 'lucide-react';
+import { Menu, RefreshCw, HelpCircle, LogOut } from 'lucide-react';
 
 export interface EmpHeaderProps {
   title?: string;
@@ -87,15 +87,15 @@ export const EmpHeader: React.FC<EmpHeaderProps> = ({
 
         <button
           type="button"
-          className="dash-nav-action-btn"
-          title={notificationTitle}
+          className="dash-navbar-guide-btn"
+          title={notificationTitle || 'Hướng dẫn sử dụng'}
           onClick={
             onNotification ||
-            (() => triggerToast('Không có sự cố khẩn cấp nào!'))
+            (() => triggerToast('Tài liệu hướng dẫn sử dụng đang được cập nhật!'))
           }
         >
-          <Bell size={17} />
-          <span className="dash-nav-badge" />
+          <HelpCircle size={15} />
+          <span>Hướng dẫn</span>
         </button>
 
         {/* Khung hiển thị thông tin đăng nhập và nút Logout */}

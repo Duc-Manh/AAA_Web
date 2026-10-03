@@ -509,6 +509,34 @@
   transform: translateY(0);
 }
 
+.dash-navbar-guide-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  color: #1d58bb;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.dash-navbar-guide-btn:hover {
+  background: #dbeafe;
+  border-color: #93c5fd;
+  color: #1e40af;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(29, 88, 187, 0.15);
+}
+
+.dash-navbar-guide-btn:active {
+  transform: translateY(0);
+}
+
 /* --------------------------------------------------------------------------
    3. DASHBOARD BODY CONTENT
    -------------------------------------------------------------------------- */
