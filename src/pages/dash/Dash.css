@@ -2774,60 +2774,47 @@ body:has(.dash-page-container) .entertain-widget,
 }
 
 /* ==========================================================================
-   TÙY CHỈNH KÍCH THƯỚC: DASHGUIDE (85% WIDTH) VÀ EMPGUIDE (80% WIDTH)
+   TÙY CHỈNH KÍCH THƯỚC: DASHGUIDE VÀ EMPGUIDE CHIẾM 60% WIDTH MÀN HÌNH
    ========================================================================== */
-.dash-guide-popover-dash {
-  width: 85vw;
-  max-width: 85vw;
-  right: -160px;
-}
-
-.dash-guide-popover-dash::before {
-  right: 188px;
-}
-
+.dash-guide-popover-dash,
 .dash-guide-popover-emp {
-  width: 80vw;
-  max-width: 80vw;
-  right: -160px;
+  width: 60vw;
+  max-width: 60vw;
+  right: 0;
 }
 
+.dash-guide-popover-dash::before,
 .dash-guide-popover-emp::before {
-  right: 188px;
+  right: 38px;
 }
 
 .dash-guide-popover-dash .dash-guide-img-card,
 .dash-guide-popover-emp .dash-guide-img-card {
-  width: 130px;
-  height: 80px;
+  width: 115px;
+  height: 72px;
 }
 
 .dash-guide-popover-dash .dash-guide-table th.th-img,
 .dash-guide-popover-dash .dash-guide-table td.td-img,
 .dash-guide-popover-emp .dash-guide-table th.th-img,
 .dash-guide-popover-emp .dash-guide-table td.td-img {
-  width: 150px;
+  width: 135px;
 }
 
-@media (max-width: 1100px) {
+@media (max-width: 1200px) {
   .dash-guide-popover-dash,
   .dash-guide-popover-emp {
-    width: calc(100vw - 32px);
-    max-width: calc(100vw - 32px);
-    right: -110px;
-  }
-  .dash-guide-popover-dash::before,
-  .dash-guide-popover-emp::before {
-    right: 138px;
+    width: 75vw;
+    max-width: 75vw;
   }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .dash-guide-popover,
   .dash-guide-popover-dash,
   .dash-guide-popover-emp {
-    width: calc(100vw - 20px) !important;
-    max-width: calc(100vw - 20px) !important;
+    width: calc(100vw - 24px) !important;
+    max-width: calc(100vw - 24px) !important;
     right: -10px !important;
   }
   .dash-guide-popover::before,
