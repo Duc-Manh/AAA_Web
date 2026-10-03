@@ -1119,7 +1119,7 @@ export const Home: React.FC = () => {
           <div className="cta-card-content consult-header">
             <h2>Đăng ký nhận tư vấn miễn phí</h2>
             <p>
-              Hãy chia sẻ thông tin dự án của Quý khách. Đội ngũ kỹ sư giàu kinh nghiệm về giải pháp BMS &amp; Tự động hoá của 3AHOME
+              Hãy chia sẻ thông tin dự án của Quý khách. Đội ngũ kỹ sư giàu kinh nghiệm của 3AHOME
               sẽ trực tiếp khảo sát và gửi phương án báo giá tối ưu nhất.
             </p>
           </div>
@@ -1132,9 +1132,17 @@ export const Home: React.FC = () => {
                 </div>
                 <h3>Gửi yêu cầu tư vấn thành công!</h3>
                 <p>
-                  Cảm ơn Quý khách <strong>{consultForm.fullName}</strong> đã quan tâm đến giải pháp của 3AHOME.
-                  Chúng tôi đã tiếp nhận yêu cầu <strong>"{consultForm.demandType}"</strong> và chuyên viên kỹ thuật sẽ chủ động liên hệ
-                  qua số điện thoại <strong>{consultForm.phone}</strong> trong thời gian sớm nhất.
+                  Cảm ơn Quý khách <strong>{consultForm.fullName}</strong> đã quan tâm đến giải pháp của{' '}
+                  <strong>
+                    <span className="brand-name-green" style={{ color: '#0b8645' }}>3A</span>
+                    <span className="brand-name-blue" style={{ color: '#105ca8' }}>HOME</span>
+                  </strong>.
+                  Chúng tôi đã tiếp nhận yêu cầu <strong>"{consultForm.demandType}"</strong> và{' '}
+                  <strong>
+                    <span className="brand-name-green" style={{ color: '#0b8645' }}>3A</span>
+                    <span className="brand-name-blue" style={{ color: '#105ca8' }}>HOME</span>
+                  </strong>{' '}
+                  sẽ chủ động liên hệ qua số điện thoại <strong>{consultForm.phone}</strong> trong thời gian sớm nhất.
                 </p>
                 <button
                   type="button"
