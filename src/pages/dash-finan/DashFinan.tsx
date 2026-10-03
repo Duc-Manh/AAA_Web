@@ -91,7 +91,7 @@ export const DashFinan: React.FC = () => {
       <div className="dash-main">
         {/* TOP NAVBAR */}
         <DashHeader
-          title="Tài Chính & Kế Toán Doanh Nghiệp"
+          title="Tài Chính và Kế Toán Doanh Nghiệp"
           subtitle="Tổng quan thu chi, theo dõi dòng tiền và báo cáo doanh thu giải pháp nhà thông minh 3AHOME"
           isMobileOpen={isMobileOpen}
           setIsMobileOpen={setIsMobileOpen}

@@ -20,7 +20,7 @@ export interface DashGuideProps {
 
 export const adminGuideData: DashGuideItem[] = [
   {
-    category: 'Giám sát & BMS',
+    category: 'Trang chủ',
     image: '/uploads/news/1-Home.png',
     title: 'Tổng quan hệ thống & Giám sát vận hành',
     content:
@@ -28,36 +28,155 @@ export const adminGuideData: DashGuideItem[] = [
     tags: ['Dashboard', 'Cảm biến IoT', 'BMS']
   },
   {
-    category: 'Thiết bị & Kịch bản',
-    image: '/uploads/news/8-Device.png',
-    title: 'Quản lý thiết bị & Kịch bản tự động hoá',
-    content:
-      'Bật / tắt, cấu hình thông số và điều khiển chiếu sáng thông minh, rèm tự động, HVAC điều hoà không khí, van tưới và kích hoạt các ngữ cảnh thông minh (Về nhà, Tiếp khách, Đi ngủ).',
+    category: 'Mô phỏng thiết bị',
+    image: '/uploads/news/2-Simu.png',
+    title: 'Thao tác thiết bị cơ bản',
+    content: 'Bật tắt, thay đổi chế độ, điều chỉnh thông số thiết bị một cách trực quan.',
     tags: ['Thiết bị', 'Kịch bản', 'Chiếu sáng', 'Điều hoà']
   },
   {
-    category: 'Quản lý Dự án',
-    image: '/uploads/news/6-Proj.png',
-    title: 'Quản lý công trình & Tiến độ thi công',
+    category: 'Phòng mô phỏng thiết bị',
+    image: '/uploads/news/3-SimuLive.png',
+    title: 'Trải nghiệm trực tiếp (Live Demo)',
     content:
-      'Theo dõi danh mục dự án, hồ sơ kỹ thuật, thông tin chủ đầu tư, tiến độ hoàn thành các hạng mục Smart Home và nghiệm thu bàn giao.',
-    tags: ['Dự án', 'Công trình', 'Tiến độ']
+      'Thao tác mô phỏng thiết bị trong môi trường thực tế với đầy đủ các tính năng, đảm bảo trải nghiệm chính xác như sử dụng thật.',
+    tags: ['Demo', 'Thực tế', 'Trực quan']
   },
   {
-    category: 'Tin tức & Bài đăng',
-    image: '/uploads/news/7-News.png',
-    title: 'Cập nhật tin tức & Thông báo nội bộ',
+    category: 'Đăng nhập',
+    image: '/uploads/news/4-Login.png',
+    title: 'Đăng nhập vào hệ thống',
     content:
-      'Soạn thảo và phát hành bài viết mới, cập nhật tin tức công nghệ giải pháp 3AHome, quản lý hiển thị hoặc ẩn bài đăng trên cổng thông tin.',
-    tags: ['Tin tức', 'Bài đăng', 'Truyền thông']
+      'Đăng nhập vào hệ thống bằng tên đăng nhập và mật khẩu.',
+    tags: ['Đăng nhập', 'Tài khoản', 'Bảo mật']
   },
   {
-    category: 'Phân quyền & Tài khoản',
-    image: '/uploads/news/5-Admin 1.png',
-    title: 'Phân quyền nhân sự & Quản trị tài khoản',
+    category: 'Đăng nhập sai',
+    image: '/uploads/news/4-LoginWrong.png',
+    title: 'Sai tên đăng nhập hoặc mật khẩu',
     content:
-      'Quản lý danh sách nhân sự, phân quyền vai trò (Admin, Kỹ thuật viên, Nhân viên), đặt lại mật khẩu và kiểm soát bảo mật truy cập hệ thống.',
+      'Sai tên đăng nhập hoặc mật khẩu',
     tags: ['Tài khoản', 'Phân quyền', 'Bảo mật']
+  },
+  {
+    category: 'Tài khoản bị khóa',
+    image: '/uploads/news/4-LoginBlock.png',
+    title: 'Tài khoản bị khóa',
+    content:
+      'Tài khoản bị khóa',
+    tags: ['Tài khoản', 'Phân quyền', 'Bảo mật']
+  },
+  {
+    category: 'Trang Admin',
+    image: '/uploads/news/5-Admin.png',
+    title: 'Trang Admin',
+    content:
+      'Trang Admin',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+  },
+  {
+    category: 'Thêm mới tài khoản',
+    image: '/uploads/news/5-AdminAddUser.png',
+    title: 'Thêm mới tài khoản',
+    content:
+      'Thêm mới tài khoản',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+  },
+  {
+    category: 'Xem thông tin tài khoản',
+    image: '/uploads/news/5-AdminClear.png',
+    title: 'Xem thông tin tài khoản',
+    content:
+      'Xem thông tin tài khoản',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+  },
+  {
+    category: 'Chỉnh sửa thông tin tài khoản',
+    image: '/uploads/news/5-AdminFix.png',
+    title: 'Chỉnh sửa thông tin tài khoản',
+    content:
+      'Chỉnh sửa thông tin tài khoản',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+  },
+  {
+    category: 'Reset mật khẩu',
+    image: '/uploads/news/5-AdminReset.png',
+    title: 'Reset mật khẩu',
+    content:
+      'Reset mật khẩu',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+  },
+  {
+    category: 'Danh sách dự án',
+    image: '/uploads/news/6-Proj.png',
+    title: 'Danh sách dự án',
+    content:
+      'Danh sách dự án',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+  },
+  {
+    category: 'Thêm mới dự án',
+    image: '/uploads/news/6-ProjAdd.png',
+    title: 'Thêm mới dự án',
+    content:
+      'Thêm mới dự án',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+  },
+  {
+    category: 'Xem thông tin dự án',
+    image: '/uploads/news/6-ProjClear.png',
+    title: 'Xem thông tin dự án',
+    content:
+      'Xem thông tin dự án',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+  },
+  {
+    category: 'Chỉnh sửa thông tin dự án',
+    image: '/uploads/news/6-ProjFix.png',
+    title: 'Chỉnh sửa thông tin dự án',
+    content:
+      'Chỉnh sửa thông tin dự án',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+  },
+  {
+    category: 'Tin tức',
+    image: '/uploads/news/7-News.png',
+    title: 'Tin tức',
+    content:
+      'Tin tức',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+  },
+  {
+    category: 'Thêm mới tin tức',
+    image: '/uploads/news/7-NewsPost.png',
+    title: 'Thêm mới tin tức',
+    content:
+      'Thêm mới tin tức',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+  },
+  {
+    category: 'Chỉnh sửa thông tin tin tức',
+    image: '/uploads/news/7-NewsFix.png',
+    title: 'Chỉnh sửa thông tin tin tức',
+    content:
+      'Chỉnh sửa thông tin tin tức',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+  },
+  {
+    category: 'Thiết bị',
+    image: '/uploads/news/8-Device.png',
+    title: 'Thiết bị',
+    content:
+      'Thiết bị',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+  },
+  {
+    category: 'Thêm mới thiết bị',
+    image: '/uploads/news/8-DevicePost.png',
+    title: 'Thêm mới thiết bị',
+    content:
+      'Thêm mới thiết bị',
+    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
   }
 ];
 
