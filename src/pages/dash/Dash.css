@@ -2774,12 +2774,12 @@ body:has(.dash-page-container) .entertain-widget,
 }
 
 /* ==========================================================================
-   TÙY CHỈNH KÍCH THƯỚC: DASHGUIDE VÀ EMPGUIDE CHIẾM 65% WIDTH MÀN HÌNH
+   TÙY CHỈNH KÍCH THƯỚC: DASHGUIDE VÀ EMPGUIDE CHIẾM 70% WIDTH MÀN HÌNH
    ========================================================================== */
 .dash-guide-popover-dash,
 .dash-guide-popover-emp {
-  width: 65vw;
-  max-width: 65vw;
+  width: 70vw;
+  max-width: 70vw;
   right: 0;
 }
 
@@ -2790,22 +2790,22 @@ body:has(.dash-page-container) .entertain-widget,
 
 .dash-guide-popover-dash .dash-guide-img-card,
 .dash-guide-popover-emp .dash-guide-img-card {
-  width: 120px;
-  height: 75px;
+  width: 125px;
+  height: 78px;
 }
 
 .dash-guide-popover-dash .dash-guide-table th.th-img,
 .dash-guide-popover-dash .dash-guide-table td.td-img,
 .dash-guide-popover-emp .dash-guide-table th.th-img,
 .dash-guide-popover-emp .dash-guide-table td.td-img {
-  width: 140px;
+  width: 145px;
 }
 
 @media (max-width: 1200px) {
   .dash-guide-popover-dash,
   .dash-guide-popover-emp {
-    width: 78vw;
-    max-width: 78vw;
+    width: 80vw;
+    max-width: 80vw;
   }
 }
 
