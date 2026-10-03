@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Menu, HelpCircle, LogOut } from 'lucide-react';
-import { GuideModal, defaultAdminGuideItems } from './GuideModal';
+import { DashGuide } from './DashGuide';
 
 export interface DashHeaderProps {
   title: string;
@@ -106,12 +106,9 @@ export const DashHeader: React.FC<DashHeaderProps> = ({
             <span>Hướng dẫn</span>
           </button>
 
-          <GuideModal
+          <DashGuide
             isOpen={isGuideOpen}
             onClose={() => setIsGuideOpen(false)}
-            title="Hướng dẫn sử dụng quản trị (Admin)"
-            subtitle="Quy trình vận hành, giám sát thiết bị và phân quyền hệ thống"
-            items={defaultAdminGuideItems}
           />
         </div>
 

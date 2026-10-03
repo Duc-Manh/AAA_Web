@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Menu, HelpCircle, LogOut } from 'lucide-react';
-import { GuideModal, defaultEmpGuideItems } from './GuideModal';
+import { EmpGuide } from './EmpGuide';
 
 export interface EmpHeaderProps {
   title?: string;
@@ -106,12 +106,9 @@ export const EmpHeader: React.FC<EmpHeaderProps> = ({
             <span>Hướng dẫn</span>
           </button>
 
-          <GuideModal
+          <EmpGuide
             isOpen={isGuideOpen}
             onClose={() => setIsGuideOpen(false)}
-            title="Hướng dẫn công việc kỹ thuật (Nhân viên)"
-            subtitle="Quy trình nhận việc, đo kiểm thông số và xử lý sự cố thiết bị"
-            items={defaultEmpGuideItems}
           />
         </div>
 

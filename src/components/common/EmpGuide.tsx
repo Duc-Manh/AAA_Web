@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { BookOpen, X, ZoomIn } from 'lucide-react';
 
-export interface GuideRowItem {
+export interface EmpGuideItem {
   stt: string | number;
   image: string;
   title: string;
@@ -9,42 +9,15 @@ export interface GuideRowItem {
   tags?: string[];
 }
 
-export interface GuideModalProps {
+export interface EmpGuideProps {
   isOpen: boolean;
   onClose: () => void;
   title?: string;
   subtitle?: string;
-  items?: GuideRowItem[];
+  items?: EmpGuideItem[];
 }
 
-export const defaultAdminGuideItems: GuideRowItem[] = [
-  {
-    stt: '01',
-    image: '/images/slide1.png',
-    title: 'Tổng quan hệ thống & Giám sát vận hành',
-    content:
-      'Theo dõi trạng thái kết nối các bộ điều khiển trung tâm BMS, thông số cảm biến môi trường (nhiệt độ, độ ẩm, CO2, áp suất) và tình trạng an ninh trực quan theo thời gian thực.',
-    tags: ['Dashboard', 'Cảm biến IoT', 'BMS']
-  },
-  {
-    stt: '02',
-    image: '/images/slide2.png',
-    title: 'Quản lý thiết bị & Kịch bản tự động hoá',
-    content:
-      'Bật / tắt, cấu hình thông số và điều khiển chiếu sáng thông minh, rèm tự động, HVAC điều hoà không khí, van tưới và kích hoạt các ngữ cảnh thông minh (Về nhà, Tiếp khách, Đi ngủ).',
-    tags: ['Thiết bị', 'Kịch bản', 'Chiếu sáng', 'Điều hoà']
-  },
-  {
-    stt: '03',
-    image: '/images/slide3.png',
-    title: 'Phân quyền nhân sự & Tra cứu lịch sử cảnh báo',
-    content:
-      'Phân quyền tài khoản kỹ thuật viên, theo dõi tiến độ thi công công trình, tiếp nhận tức thì các cảnh báo sự cố khẩn cấp và xuất báo cáo vận hành định kỳ.',
-    tags: ['Phân quyền', 'Sự cố', 'Báo cáo']
-  }
-];
-
-export const defaultEmpGuideItems: GuideRowItem[] = [
+export const employeeGuideData: EmpGuideItem[] = [
   {
     stt: '01',
     image: '/images/slide1.png',
@@ -71,12 +44,12 @@ export const defaultEmpGuideItems: GuideRowItem[] = [
   }
 ];
 
-export const GuideModal: React.FC<GuideModalProps> = ({
+export const EmpGuide: React.FC<EmpGuideProps> = ({
   isOpen,
   onClose,
-  title = 'Hướng dẫn sử dụng hệ thống',
-  subtitle = 'Khung tra cứu thao tác vận hành và hướng dẫn từng bước',
-  items = defaultAdminGuideItems
+  title = 'Hướng dẫn công việc kỹ thuật (Nhân viên)',
+  subtitle = 'Khung tra cứu quy trình nhận việc, đo kiểm thông số và xử lý sự cố thiết bị',
+  items = employeeGuideData
 }) => {
   const [previewImage, setPreviewImage] = useState<{ src: string; title: string } | null>(null);
 
@@ -198,4 +171,4 @@ export const GuideModal: React.FC<GuideModalProps> = ({
   );
 };
 
-export default GuideModal;
+export default EmpGuide;
