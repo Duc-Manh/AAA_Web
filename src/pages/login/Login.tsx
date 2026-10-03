@@ -251,7 +251,7 @@ export const Login: React.FC = () => {
                     <div>
                       <h4 className="lockout-title">Tạm khóa bảo vệ</h4>
                       <p className="lockout-desc">
-                        Bạn đã nhập sai thông tin 3 lần liên tiếp. Để ngăn chặn bot rà quét mật khẩu, vui lòng chờ hết thời gian đếm ngược để đăng nhập lại:
+                        Bạn đã nhập sai thông tin 3 lần liên tiếp. Vui lòng chờ hết thời gian đếm ngược để đăng nhập lại:
                       </p>
                     </div>
                   </div>

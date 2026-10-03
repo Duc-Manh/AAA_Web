@@ -14,7 +14,6 @@ import {
   Building,
   Upload,
   X,
-  Image as ImageIcon,
   CheckCircle
 } from 'lucide-react';
 import { DashAside } from '../../components/common/DashAside';
@@ -900,9 +899,7 @@ export const DashProject: React.FC = () => {
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '5px',
-                                background: '#eff6ff',
                                 color: '#0284c7',
-                                border: '1px solid #bae6fd',
                                 borderRadius: '8px',
                                 padding: '6px 12px',
                                 fontSize: '0.8rem',
@@ -915,12 +912,12 @@ export const DashProject: React.FC = () => {
                                 e.currentTarget.style.color = '#ffffff';
                               }}
                               onMouseLeave={(e) => {
-                                e.currentTarget.style.background = '#eff6ff';
+                                e.currentTarget.style.background = 'transparent';
                                 e.currentTarget.style.color = '#0284c7';
                               }}
                             >
-                              <ImageIcon size={14} />
-                              <span>Xem trước</span>
+
+                              <span>Xem</span>
                             </button>
                           ) : (
                             <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic' }}>

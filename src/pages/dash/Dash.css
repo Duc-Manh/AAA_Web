@@ -1718,20 +1718,20 @@ body:has(.dash-page-container) .entertain-widget,
   gap: 8px;
   padding: 10px 18px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #105ca8, #0b8645);
+  background: linear-gradient(135deg, #105ca8 0%, #1d4ed8 100%);
   color: #ffffff;
   font-weight: 600;
   font-size: 0.88rem;
   border: none;
   cursor: pointer;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 12px rgba(16, 92, 168, 0.25);
+  box-shadow: 0 4px 12px rgba(16, 92, 168, 0.28);
 }
 
 .btn-create-post:hover {
-  opacity: 0.92;
+  background: linear-gradient(135deg, #0d4a87 0%, #1e40af 100%);
   transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(16, 92, 168, 0.35);
+  box-shadow: 0 6px 16px rgba(16, 92, 168, 0.38);
 }
 
 /* Topic Selector Buttons */
