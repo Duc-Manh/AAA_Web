@@ -474,7 +474,13 @@ export const Home: React.FC = () => {
           'Accept': 'application/json'
         },
         body: JSON.stringify(mailPayload)
-      }).catch((e) => console.warn('Lỗi gửi email:', e));
+      })
+        .then(async (res) => {
+          const data = await res.json().catch(() => ({}));
+          console.log('📬 [FormSubmit Response]:', res.status, data);
+          return data;
+        })
+        .catch((e) => console.warn('Lỗi gửi email FormSubmit:', e));
 
       // 2. Lưu vào CSDL 3AHOME qua Backend API
       const apiPromise = fetch('/api/consult', {
