@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BookOpen, X, ZoomIn } from 'lucide-react';
 
 export interface DashGuideItem {
-  stt: string | number;
+  category: string;
   image: string;
   title: string;
   content: string;
@@ -19,7 +19,7 @@ export interface DashGuideProps {
 
 export const adminGuideData: DashGuideItem[] = [
   {
-    stt: '01',
+    category: 'Giám sát & BMS',
     image: '/images/slide1.png',
     title: 'Tổng quan hệ thống & Giám sát vận hành',
     content:
@@ -27,7 +27,7 @@ export const adminGuideData: DashGuideItem[] = [
     tags: ['Dashboard', 'Cảm biến IoT', 'BMS']
   },
   {
-    stt: '02',
+    category: 'Thiết bị & Kịch bản',
     image: '/images/slide2.png',
     title: 'Quản lý thiết bị & Kịch bản tự động hoá',
     content:
@@ -35,12 +35,20 @@ export const adminGuideData: DashGuideItem[] = [
     tags: ['Thiết bị', 'Kịch bản', 'Chiếu sáng', 'Điều hoà']
   },
   {
-    stt: '03',
+    category: 'Phân quyền & Sự cố',
     image: '/images/slide3.png',
     title: 'Phân quyền nhân sự & Tra cứu lịch sử cảnh báo',
     content:
       'Phân quyền tài khoản kỹ thuật viên, theo dõi tiến độ thi công công trình, tiếp nhận tức thì các cảnh báo sự cố khẩn cấp và xuất báo cáo vận hành định kỳ.',
     tags: ['Phân quyền', 'Sự cố', 'Báo cáo']
+  },
+  {
+    category: 'Báo cáo & Thống kê',
+    image: '/images/smart_home_3d.jpg',
+    title: 'Phân tích tiêu thụ năng lượng & Báo cáo kỹ thuật',
+    content:
+      'Tra cứu biểu đồ phụ tải điện năng tiêu thụ toàn toà nhà/công trình theo chu kỳ, đối chiếu hiệu suất sử dụng thiết bị và xuất file dữ liệu phục vụ nghiệm thu vận hành.',
+    tags: ['Năng lượng', 'Thống kê', 'Nghiệm thu']
   }
 ];
 
@@ -57,7 +65,7 @@ export const DashGuide: React.FC<DashGuideProps> = ({
 
   return (
     <>
-      <div className="dash-guide-popover" role="dialog" aria-modal="true">
+      <div className="dash-guide-popover dash-guide-popover-dash" role="dialog" aria-modal="true">
         {/* Header Modal */}
         <div className="dash-guide-popover-header">
           <div className="dash-guide-header-title-wrap">
@@ -79,12 +87,12 @@ export const DashGuide: React.FC<DashGuideProps> = ({
           </button>
         </div>
 
-        {/* Nội dung bảng 3 cột: STT | Hình ảnh | Nội dung */}
+        {/* Nội dung bảng 3 cột: Danh mục | Hình ảnh | Nội dung */}
         <div className="dash-guide-popover-body">
           <table className="dash-guide-table">
             <thead>
               <tr>
-                <th className="th-stt">STT</th>
+                <th className="th-category">Danh mục</th>
                 <th className="th-img">Hình ảnh</th>
                 <th className="th-content">Nội dung</th>
               </tr>
@@ -92,8 +100,8 @@ export const DashGuide: React.FC<DashGuideProps> = ({
             <tbody>
               {items.map((item, index) => (
                 <tr key={index}>
-                  <td className="td-stt">
-                    <span className="dash-guide-stt-badge">{item.stt}</span>
+                  <td className="td-category">
+                    <span className="dash-guide-category-badge">{item.category}</span>
                   </td>
                   <td className="td-img">
                     <div

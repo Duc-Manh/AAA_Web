@@ -2514,6 +2514,29 @@ body:has(.dash-page-container) .entertain-widget,
   padding: 12px 6px;
 }
 
+.dash-guide-table th.th-category,
+.dash-guide-table td.td-category {
+  width: 140px;
+  text-align: center;
+  vertical-align: top;
+  padding: 12px 10px;
+}
+
+.dash-guide-category-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background: #eff6ff;
+  color: #1d4ed8;
+  font-weight: 700;
+  font-size: 0.8rem;
+  border: 1px solid #bfdbfe;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(29, 78, 216, 0.08);
+}
+
 .dash-guide-table th.th-img,
 .dash-guide-table td.td-img {
   width: 125px;
@@ -2750,13 +2773,77 @@ body:has(.dash-page-container) .entertain-widget,
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 
-@media (max-width: 768px) {
-  .dash-guide-popover {
-    width: calc(100vw - 20px);
-    right: -10px;
+/* ==========================================================================
+   TÙY CHỈNH KÍCH THƯỚC: DASHGUIDE (85% WIDTH) VÀ EMPGUIDE (80% WIDTH)
+   ========================================================================== */
+.dash-guide-popover-dash {
+  width: 85vw;
+  max-width: 85vw;
+  right: -160px;
+}
+
+.dash-guide-popover-dash::before {
+  right: 188px;
+}
+
+.dash-guide-popover-emp {
+  width: 80vw;
+  max-width: 80vw;
+  right: -160px;
+}
+
+.dash-guide-popover-emp::before {
+  right: 188px;
+}
+
+.dash-guide-popover-dash .dash-guide-img-card,
+.dash-guide-popover-emp .dash-guide-img-card {
+  width: 130px;
+  height: 80px;
+}
+
+.dash-guide-popover-dash .dash-guide-table th.th-img,
+.dash-guide-popover-dash .dash-guide-table td.td-img,
+.dash-guide-popover-emp .dash-guide-table th.th-img,
+.dash-guide-popover-emp .dash-guide-table td.td-img {
+  width: 150px;
+}
+
+@media (max-width: 1100px) {
+  .dash-guide-popover-dash,
+  .dash-guide-popover-emp {
+    width: calc(100vw - 32px);
+    max-width: calc(100vw - 32px);
+    right: -110px;
   }
-  .dash-guide-img-card {
+  .dash-guide-popover-dash::before,
+  .dash-guide-popover-emp::before {
+    right: 138px;
+  }
+}
+
+@media (max-width: 768px) {
+  .dash-guide-popover,
+  .dash-guide-popover-dash,
+  .dash-guide-popover-emp {
+    width: calc(100vw - 20px) !important;
+    max-width: calc(100vw - 20px) !important;
+    right: -10px !important;
+  }
+  .dash-guide-popover::before,
+  .dash-guide-popover-dash::before,
+  .dash-guide-popover-emp::before {
+    right: 38px !important;
+  }
+  .dash-guide-img-card,
+  .dash-guide-popover-dash .dash-guide-img-card,
+  .dash-guide-popover-emp .dash-guide-img-card {
     width: 85px;
     height: 55px;
+  }
+  .dash-guide-table th.th-category,
+  .dash-guide-table td.td-category {
+    width: 100px;
+    font-size: 0.72rem;
   }
 }
