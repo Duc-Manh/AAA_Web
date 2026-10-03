@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, RefreshCw, HelpCircle, LogOut } from 'lucide-react';
+import { Menu, HelpCircle, LogOut } from 'lucide-react';
 
 export interface DashHeaderProps {
   title: string;
@@ -23,8 +23,6 @@ export const DashHeader: React.FC<DashHeaderProps> = ({
   isMobileOpen,
   setIsMobileOpen,
   currentFullName,
-  onRefresh,
-  refreshTitle = 'Làm mới dữ liệu',
   guideTitle = 'Hướng dẫn',
   onGuide,
   notificationTitle,
@@ -74,20 +72,11 @@ export const DashHeader: React.FC<DashHeaderProps> = ({
       <div className="dash-navbar-right">
         <button
           type="button"
-          className="dash-nav-action-btn"
-          title={refreshTitle}
-          onClick={onRefresh || (() => triggerToast('Đã làm mới dữ liệu!'))}
-        >
-          <RefreshCw size={17} />
-        </button>
-
-        <button
-          type="button"
           className="dash-navbar-guide-btn"
           title={guideTitle || notificationTitle || 'Hướng dẫn sử dụng'}
           onClick={onGuide || onNotification || (() => triggerToast('Tài liệu hướng dẫn sử dụng đang được cập nhật!'))}
         >
-          <HelpCircle size={15} />
+          <HelpCircle size={17} />
           <span>Hướng dẫn</span>
         </button>
 

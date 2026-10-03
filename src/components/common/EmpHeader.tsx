@@ -1,5 +1,5 @@
 import React from 'react';
-import { Menu, RefreshCw, HelpCircle, LogOut } from 'lucide-react';
+import { Menu, HelpCircle, LogOut } from 'lucide-react';
 
 export interface EmpHeaderProps {
   title?: string;
@@ -23,8 +23,6 @@ export const EmpHeader: React.FC<EmpHeaderProps> = ({
   setIsMobileOpen,
   currentUser,
   currentFullName,
-  onRefresh,
-  refreshTitle = 'Làm mới dữ liệu',
   notificationTitle = 'Thông báo hệ thống (2 cảnh báo)',
   onNotification,
   triggerToast = () => {},
@@ -73,17 +71,6 @@ export const EmpHeader: React.FC<EmpHeaderProps> = ({
       </div>
 
       <div className="dash-navbar-right">
-        <button
-          type="button"
-          className="dash-nav-action-btn"
-          title={refreshTitle}
-          onClick={
-            onRefresh ||
-            (() => triggerToast('Đã làm mới dữ liệu cảm biến & thiết bị!'))
-          }
-        >
-          <RefreshCw size={17} />
-        </button>
 
         <button
           type="button"
