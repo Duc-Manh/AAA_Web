@@ -33,7 +33,7 @@ export const Privacy: React.FC = () => {
           </h1>
 
           <p className="intro-hero-subtitle">
-            Cam kết minh bạch và bảo vệ tối đa dữ liệu của bạn trên website <strong>3ahome.vn</strong> và ứng dụng di động <strong>Smart IOT</strong> theo chuẩn mực bảo mật quốc tế và quy định pháp luật.
+            Cam kết minh bạch, bảo vệ tối đa dữ liệu của bạn trên website <strong>3ahome.vn</strong> và ứng dụng di động <strong>Smart IOT</strong> theo chuẩn mực bảo mật quốc tế và quy định pháp luật.
           </p>
 
           <p style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '12px' }}>
