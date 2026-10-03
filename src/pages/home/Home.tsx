@@ -452,7 +452,32 @@ export const Home: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      await fetch('/api/consult', {
+      // 1. Gửi email thông báo tự động tới 3ahomeadmin@gmail.com và CC son.lm@3ahome.vn
+      const mailPayload = {
+        _subject: `[3AHOME - Website] Yêu cầu khảo sát & tư vấn mới từ ${consultForm.fullName.trim()} (${consultForm.phone.trim()})`,
+        _cc: 'son.lm@3ahome.vn',
+        _template: 'table',
+        _captcha: 'false',
+        'Loại nhu cầu': consultForm.demandType,
+        'Họ và tên': consultForm.fullName.trim(),
+        'Số điện thoại liên hệ': consultForm.phone.trim(),
+        'Email': consultForm.email.trim(),
+        'Nội dung yêu cầu': consultForm.content.trim() || '(Không có)',
+        'Nguồn gửi': 'Website 3AHOME (https://3ahome.vn)',
+        'Thời gian': new Date().toLocaleString('vi-VN', { hour12: false })
+      };
+
+      const mailPromise = fetch('https://formsubmit.co/ajax/3ahomeadmin@gmail.com', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify(mailPayload)
+      }).catch((e) => console.warn('Lỗi gửi email:', e));
+
+      // 2. Lưu vào CSDL 3AHOME qua Backend API
+      const apiPromise = fetch('/api/consult', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -460,9 +485,12 @@ export const Home: React.FC = () => {
           email: consultForm.email.trim(),
           phone: consultForm.phone.trim(),
           type: consultForm.demandType,
-          content: consultForm.content.trim()
+          content: consultForm.content.trim(),
+          notify_emails: ['3ahomeadmin@gmail.com', 'son.lm@3ahome.vn']
         })
       });
+
+      await Promise.allSettled([mailPromise, apiPromise]);
     } catch (err) {
       console.warn('Lỗi khi gửi tư vấn tới API, sao lưu dự phòng:', err);
       try {
