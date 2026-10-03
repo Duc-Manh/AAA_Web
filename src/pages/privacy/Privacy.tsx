@@ -45,7 +45,7 @@ export const Privacy: React.FC = () => {
       {/* 3. Main Privacy Content Section */}
       <section className="intro-content-section" style={{ background: '#f8fafc', padding: '60px 20px' }}>
         <div style={{ maxWidth: '920px', margin: '0 auto' }}>
-          
+
           {/* Box tóm tắt nhanh */}
           <div
             style={{
@@ -62,7 +62,7 @@ export const Privacy: React.FC = () => {
               Tuyên bố cam kết quyền riêng tư
             </h3>
             <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: 1.7, margin: 0 }}>
-              Công Ty TNHH Công Nghệ Thông Tin 3ahome Việt Nam ("<strong>3AHOME</strong>", "chúng tôi") coi trọng sự riêng tư và bảo mật thông tin cá nhân của quý khách hàng, đối tác và người dùng ứng dụng di động <strong>Smart IOT</strong>. Chính sách này mô tả chi tiết cách thức chúng tôi thu thập, sử dụng, lưu trữ và bảo vệ dữ liệu khi bạn truy cập website hoặc sử dụng các giải pháp của chúng tôi.
+              Công Ty TNHH Công Nghệ Thông Tin 3AHOME Việt Nam coi trọng sự riêng tư và bảo mật thông tin cá nhân của quý khách hàng, đối tác và người dùng ứng dụng di động <strong>Smart IOT</strong>. Chính sách này mô tả chi tiết cách thức chúng tôi thu thập, sử dụng, lưu trữ và bảo vệ dữ liệu khi bạn truy cập website hoặc sử dụng các giải pháp của chúng tôi.
             </p>
           </div>
 
@@ -225,7 +225,7 @@ export const Privacy: React.FC = () => {
               }}
             >
               <p style={{ color: '#1e40af', fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>
-                💡 <strong>Cách gửi yêu cầu xoá dữ liệu:</strong> Bạn chỉ cần gửi email tới <a href="mailto:support@3ahome.vn" style={{ color: '#105ca8', fontWeight: 700 }}>support@3ahome.vn</a> hoặc liên hệ hotline <strong style={{ color: '#105ca8' }}>0984.777.345</strong> kèm theo thông tin tài khoản/số điện thoại đã đăng ký. Đội ngũ quản trị sẽ xử lý và xác nhận xoá sạch dữ liệu trong vòng 48 giờ làm việc.
+                💡 <strong>Cách gửi yêu cầu xoá dữ liệu:</strong> Bạn chỉ cần gửi email tới <a href="mailto:3ahomeadmin@gmail.com" style={{ color: '#105ca8', fontWeight: 700 }}>3ahomeadmin@gmail.com</a> hoặc liên hệ hotline <strong style={{ color: '#105ca8' }}>0901.994.998</strong> kèm theo thông tin tài khoản/số điện thoại đã đăng ký. Đội ngũ quản trị sẽ xử lý và xác nhận xoá sạch dữ liệu trong vòng 48 giờ làm việc.
               </p>
             </div>
           </div>
@@ -241,7 +241,7 @@ export const Privacy: React.FC = () => {
             }}
           >
             <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#0f172a', marginBottom: '16px' }}>
-              6. Đơn vị chịu trách nhiệm & Thông tin liên hệ
+              6. Đơn vị chịu trách nhiệm và Thông tin liên hệ
             </h3>
             <p style={{ color: '#475569', fontSize: '0.95rem', lineHeight: 1.7, marginBottom: '16px' }}>
               Nếu quý khách có bất kỳ câu hỏi, thắc mắc hoặc đề nghị nào liên quan đến Chính sách bảo mật này, xin vui lòng liên hệ trực tiếp với chúng tôi:
@@ -250,15 +250,15 @@ export const Privacy: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#334155', fontSize: '0.92rem' }}>
                 <MapPin size={18} color="#105ca8" />
-                <span><strong>Công Ty TNHH Công Nghệ Thông Tin 3ahome Việt Nam</strong> – 698 Nguyễn Lương Bằng, P.Hải Vân, TP. Đà Nẵng</span>
+                <span><strong>Công Ty TNHH Công Nghệ Thông Tin 3AHOME Việt Nam</strong> – 698 Nguyễn Lương Bằng, P.Hải Vân, TP. Đà Nẵng</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#334155', fontSize: '0.92rem' }}>
                 <Phone size={18} color="#105ca8" />
-                <span>Hotline hỗ trợ: <a href="tel:0984777345" style={{ color: '#105ca8', fontWeight: 600 }}>0984.777.345</a></span>
+                <span>Hotline hỗ trợ: <a href="tel:0901994998" style={{ color: '#105ca8', fontWeight: 600 }}>0901.994.998</a></span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px', color: '#334155', fontSize: '0.92rem' }}>
                 <Mail size={18} color="#105ca8" />
-                <span>Email hỗ trợ bảo mật: <a href="mailto:support@3ahome.vn" style={{ color: '#105ca8', fontWeight: 600 }}>support@3ahome.vn</a></span>
+                <span>Email hỗ trợ bảo mật: <a href="mailto:3ahomeadmin@gmail.com" style={{ color: '#105ca8', fontWeight: 600 }}>3ahomeadmin@gmail.com</a></span>
               </div>
             </div>
           </div>
