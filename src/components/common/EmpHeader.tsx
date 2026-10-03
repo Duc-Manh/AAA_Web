@@ -12,7 +12,7 @@ export interface EmpHeaderProps {
   refreshTitle?: string;
   notificationTitle?: string;
   onNotification?: () => void;
-  triggerToast: (msg: string) => void;
+  triggerToast?: (msg: string) => void;
   handleLogout?: () => void;
 }
 
@@ -27,7 +27,7 @@ export const EmpHeader: React.FC<EmpHeaderProps> = ({
   refreshTitle = 'Làm mới dữ liệu',
   notificationTitle = 'Thông báo hệ thống (2 cảnh báo)',
   onNotification,
-  triggerToast,
+  triggerToast = () => {},
   handleLogout
 }) => {
   const displayName =
