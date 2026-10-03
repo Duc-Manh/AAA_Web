@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { BookOpen, X, ZoomIn } from 'lucide-react';
+import { GuideLightbox } from './GuideLightbox';
 
 export interface EmpGuideItem {
   category: string;
@@ -140,33 +141,11 @@ export const EmpGuide: React.FC<EmpGuideProps> = ({
         </div>
       </div>
 
-      {/* Lightbox xem ảnh lớn */}
-      {previewImage && (
-        <div
-          className="dash-guide-lightbox-overlay"
-          onClick={() => setPreviewImage(null)}
-          role="dialog"
-        >
-          <div
-            className="dash-guide-lightbox-content"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="dash-guide-lightbox-header">
-              <h4>{previewImage.title}</h4>
-              <button
-                type="button"
-                className="dash-guide-lightbox-close"
-                onClick={() => setPreviewImage(null)}
-              >
-                <X size={18} />
-              </button>
-            </div>
-            <div className="dash-guide-lightbox-body">
-              <img src={previewImage.src} alt={previewImage.title} />
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Lightbox xem ảnh lớn với nút zoom -, + và hỗ trợ kéo di chuyển */}
+      <GuideLightbox
+        image={previewImage}
+        onClose={() => setPreviewImage(null)}
+      />
     </>
   );
 };
