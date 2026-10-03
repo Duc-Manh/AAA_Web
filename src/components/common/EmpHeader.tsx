@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Menu, HelpCircle, LogOut } from 'lucide-react';
+import { GuideModal, defaultEmpGuideItems } from './GuideModal';
 
 export interface EmpHeaderProps {
   title?: string;
@@ -25,9 +26,29 @@ export const EmpHeader: React.FC<EmpHeaderProps> = ({
   currentFullName,
   notificationTitle = 'Thông báo hệ thống (2 cảnh báo)',
   onNotification,
-  triggerToast = () => {},
+  triggerToast: _triggerToast = () => {},
   handleLogout
 }) => {
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const guideContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        guideContainerRef.current &&
+        !guideContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsGuideOpen(false);
+      }
+    };
+    if (isGuideOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isGuideOpen]);
+
   const displayName =
     currentFullName ||
     currentUser?.full_name ||
@@ -71,19 +92,28 @@ export const EmpHeader: React.FC<EmpHeaderProps> = ({
       </div>
 
       <div className="dash-navbar-right">
+        <div className="dash-navbar-guide-wrap" ref={guideContainerRef}>
+          <button
+            type="button"
+            className="dash-navbar-guide-btn"
+            title={notificationTitle || 'Hướng dẫn sử dụng'}
+            onClick={() => {
+              setIsGuideOpen(prev => !prev);
+              if (onNotification) onNotification();
+            }}
+          >
+            <HelpCircle size={15} />
+            <span>Hướng dẫn</span>
+          </button>
 
-        <button
-          type="button"
-          className="dash-navbar-guide-btn"
-          title={notificationTitle || 'Hướng dẫn sử dụng'}
-          onClick={
-            onNotification ||
-            (() => triggerToast('Tài liệu hướng dẫn sử dụng đang được cập nhật!'))
-          }
-        >
-          <HelpCircle size={15} />
-          <span>Hướng dẫn</span>
-        </button>
+          <GuideModal
+            isOpen={isGuideOpen}
+            onClose={() => setIsGuideOpen(false)}
+            title="Hướng dẫn công việc kỹ thuật (Nhân viên)"
+            subtitle="Quy trình nhận việc, đo kiểm thông số và xử lý sự cố thiết bị"
+            items={defaultEmpGuideItems}
+          />
+        </div>
 
         {/* Khung hiển thị thông tin đăng nhập và nút Logout */}
         <div className="dash-user-nav-wrapper">

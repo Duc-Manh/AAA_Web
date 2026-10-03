@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Menu, HelpCircle, LogOut } from 'lucide-react';
+import { GuideModal, defaultAdminGuideItems } from './GuideModal';
 
 export interface DashHeaderProps {
   title: string;
@@ -27,9 +28,29 @@ export const DashHeader: React.FC<DashHeaderProps> = ({
   onGuide,
   notificationTitle,
   onNotification,
-  triggerToast,
+  triggerToast: _triggerToast,
   handleLogout
 }) => {
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
+  const guideContainerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        guideContainerRef.current &&
+        !guideContainerRef.current.contains(event.target as Node)
+      ) {
+        setIsGuideOpen(false);
+      }
+    };
+    if (isGuideOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isGuideOpen]);
+
   const onLogoutClick = () => {
     // 1. Xoá phiên đăng nhập quản trị
     localStorage.removeItem('aaa_admin_auth');
@@ -70,15 +91,29 @@ export const DashHeader: React.FC<DashHeaderProps> = ({
       </div>
 
       <div className="dash-navbar-right">
-        <button
-          type="button"
-          className="dash-navbar-guide-btn"
-          title={guideTitle || notificationTitle || 'Hướng dẫn sử dụng'}
-          onClick={onGuide || onNotification || (() => triggerToast('Tài liệu hướng dẫn sử dụng đang được cập nhật!'))}
-        >
-          <HelpCircle size={17} />
-          <span>Hướng dẫn</span>
-        </button>
+        <div className="dash-navbar-guide-wrap" ref={guideContainerRef}>
+          <button
+            type="button"
+            className="dash-navbar-guide-btn"
+            title={guideTitle || notificationTitle || 'Hướng dẫn sử dụng'}
+            onClick={() => {
+              setIsGuideOpen(prev => !prev);
+              if (onGuide) onGuide();
+              else if (onNotification) onNotification();
+            }}
+          >
+            <HelpCircle size={17} />
+            <span>Hướng dẫn</span>
+          </button>
+
+          <GuideModal
+            isOpen={isGuideOpen}
+            onClose={() => setIsGuideOpen(false)}
+            title="Hướng dẫn sử dụng quản trị (Admin)"
+            subtitle="Quy trình vận hành, giám sát thiết bị và phân quyền hệ thống"
+            items={defaultAdminGuideItems}
+          />
+        </div>
 
         {/* Khung hiển thị thông tin đăng nhập và nút Logout */}
         <div className="dash-user-nav-wrapper">
