@@ -92,18 +92,18 @@ export const DashGuide: React.FC<DashGuideProps> = ({
           <table className="dash-guide-table">
             <thead>
               <tr>
-                <th className="th-category">Danh mục</th>
-                <th className="th-img">Hình ảnh</th>
-                <th className="th-content">Nội dung</th>
+                <th className="th-category" style={{ width: '20%' }}>Danh mục</th>
+                <th className="th-img" style={{ width: '40%' }}>Hình ảnh</th>
+                <th className="th-content" style={{ width: '40%' }}>Nội dung</th>
               </tr>
             </thead>
             <tbody>
               {items.map((item, index) => (
                 <tr key={index}>
-                  <td className="td-category">
+                  <td className="td-category" style={{ width: '20%' }}>
                     <span className="dash-guide-category-badge">{item.category}</span>
                   </td>
-                  <td className="td-img">
+                  <td className="td-img" style={{ width: '40%' }}>
                     <div
                       className="dash-guide-img-card"
                       onClick={() => setPreviewImage({ src: item.image, title: item.title })}
@@ -116,7 +116,7 @@ export const DashGuide: React.FC<DashGuideProps> = ({
                       </div>
                     </div>
                   </td>
-                  <td className="td-content">
+                  <td className="td-content" style={{ width: '40%' }}>
                     <h4 className="dash-guide-row-title">{item.title}</h4>
                     <p className="dash-guide-row-desc">{item.content}</p>
                     {item.tags && item.tags.length > 0 && (

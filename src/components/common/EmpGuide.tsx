@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { BookOpen, X, ZoomIn } from 'lucide-react';
 
 export interface EmpGuideItem {
-  stt: string | number;
+  category: string;
   image: string;
   title: string;
   content: string;
@@ -19,7 +19,7 @@ export interface EmpGuideProps {
 
 export const employeeGuideData: EmpGuideItem[] = [
   {
-    stt: '01',
+    category: 'Nhận việc & Tiến độ',
     image: '/images/slide1.png',
     title: 'Tiếp nhận công việc & Báo cáo tiến độ',
     content:
@@ -27,7 +27,7 @@ export const employeeGuideData: EmpGuideItem[] = [
     tags: ['Công việc', 'Tiến độ', 'Nghiệm thu']
   },
   {
-    stt: '02',
+    category: 'Đo kiểm & Cảm biến',
     image: '/images/slide2.png',
     title: 'Đo kiểm thông số thiết bị & Cảm biến',
     content:
@@ -35,7 +35,7 @@ export const employeeGuideData: EmpGuideItem[] = [
     tags: ['Đo kiểm', 'Cảm biến', 'Tủ điện']
   },
   {
-    stt: '03',
+    category: 'Sự cố & Đề xuất',
     image: '/images/slide4.png',
     title: 'Báo cáo sự cố khẩn cấp & Đề xuất vật tư',
     content:
@@ -79,23 +79,23 @@ export const EmpGuide: React.FC<EmpGuideProps> = ({
           </button>
         </div>
 
-        {/* Nội dung bảng 3 cột: STT | Hình ảnh | Nội dung */}
+        {/* Nội dung bảng 3 cột: Danh mục | Hình ảnh | Nội dung */}
         <div className="dash-guide-popover-body">
           <table className="dash-guide-table">
             <thead>
               <tr>
-                <th className="th-stt">STT</th>
-                <th className="th-img">Hình ảnh</th>
-                <th className="th-content">Nội dung</th>
+                <th className="th-category" style={{ width: '20%' }}>Danh mục</th>
+                <th className="th-img" style={{ width: '40%' }}>Hình ảnh</th>
+                <th className="th-content" style={{ width: '40%' }}>Nội dung</th>
               </tr>
             </thead>
             <tbody>
               {items.map((item, index) => (
                 <tr key={index}>
-                  <td className="td-stt">
-                    <span className="dash-guide-stt-badge">{item.stt}</span>
+                  <td className="td-category" style={{ width: '20%' }}>
+                    <span className="dash-guide-category-badge">{item.category}</span>
                   </td>
-                  <td className="td-img">
+                  <td className="td-img" style={{ width: '40%' }}>
                     <div
                       className="dash-guide-img-card"
                       onClick={() => setPreviewImage({ src: item.image, title: item.title })}
@@ -108,7 +108,7 @@ export const EmpGuide: React.FC<EmpGuideProps> = ({
                       </div>
                     </div>
                   </td>
-                  <td className="td-content">
+                  <td className="td-content" style={{ width: '40%' }}>
                     <h4 className="dash-guide-row-title">{item.title}</h4>
                     <p className="dash-guide-row-desc">{item.content}</p>
                     {item.tags && item.tags.length > 0 && (

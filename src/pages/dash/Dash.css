@@ -2491,6 +2491,7 @@ body:has(.dash-page-container) .entertain-widget,
 
 .dash-guide-table {
   width: 100%;
+  table-layout: fixed;
   border-collapse: collapse;
   text-align: left;
 }
@@ -2508,7 +2509,7 @@ body:has(.dash-page-container) .entertain-widget,
 
 .dash-guide-table th.th-stt,
 .dash-guide-table td.td-stt {
-  width: 50px;
+  width: 20%;
   text-align: center;
   vertical-align: middle;
   padding: 12px 6px;
@@ -2516,10 +2517,11 @@ body:has(.dash-page-container) .entertain-widget,
 
 .dash-guide-table th.th-category,
 .dash-guide-table td.td-category {
-  width: 140px;
+  width: 20%;
   text-align: center;
   vertical-align: top;
-  padding: 12px 10px;
+  padding: 14px 10px;
+  word-break: break-word;
 }
 
 .dash-guide-category-badge {
@@ -2533,22 +2535,25 @@ body:has(.dash-page-container) .entertain-widget,
   font-weight: 700;
   font-size: 0.8rem;
   border: 1px solid #bfdbfe;
-  white-space: nowrap;
+  white-space: normal;
+  text-align: center;
   box-shadow: 0 1px 3px rgba(29, 78, 216, 0.08);
 }
 
 .dash-guide-table th.th-img,
 .dash-guide-table td.td-img {
-  width: 125px;
+  width: 40%;
   text-align: center;
   vertical-align: top;
-  padding: 12px 8px;
+  padding: 14px 12px;
 }
 
 .dash-guide-table th.th-content,
 .dash-guide-table td.td-content {
+  width: 40%;
   vertical-align: top;
-  padding: 12px 14px;
+  padding: 14px 16px;
+  word-break: break-word;
 }
 
 .dash-guide-table tbody tr {
@@ -2790,15 +2795,9 @@ body:has(.dash-page-container) .entertain-widget,
 
 .dash-guide-popover-dash .dash-guide-img-card,
 .dash-guide-popover-emp .dash-guide-img-card {
-  width: 125px;
-  height: 78px;
-}
-
-.dash-guide-popover-dash .dash-guide-table th.th-img,
-.dash-guide-popover-dash .dash-guide-table td.td-img,
-.dash-guide-popover-emp .dash-guide-table th.th-img,
-.dash-guide-popover-emp .dash-guide-table td.td-img {
-  width: 145px;
+  width: 100%;
+  max-width: 280px;
+  height: 140px;
 }
 
 @media (max-width: 1200px) {
