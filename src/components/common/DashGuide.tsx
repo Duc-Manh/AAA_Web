@@ -20,7 +20,7 @@ export interface DashGuideProps {
 export const adminGuideData: DashGuideItem[] = [
   {
     category: 'Giám sát & BMS',
-    image: '/images/slide1.png',
+    image: '/uploads/news/1-Home.png',
     title: 'Tổng quan hệ thống & Giám sát vận hành',
     content:
       'Theo dõi trạng thái kết nối các bộ điều khiển trung tâm BMS, thông số cảm biến môi trường (nhiệt độ, độ ẩm, CO2, áp suất) và tình trạng an ninh trực quan theo thời gian thực.',
@@ -28,27 +28,35 @@ export const adminGuideData: DashGuideItem[] = [
   },
   {
     category: 'Thiết bị & Kịch bản',
-    image: '/images/slide2.png',
+    image: '/uploads/news/8-Device.png',
     title: 'Quản lý thiết bị & Kịch bản tự động hoá',
     content:
       'Bật / tắt, cấu hình thông số và điều khiển chiếu sáng thông minh, rèm tự động, HVAC điều hoà không khí, van tưới và kích hoạt các ngữ cảnh thông minh (Về nhà, Tiếp khách, Đi ngủ).',
     tags: ['Thiết bị', 'Kịch bản', 'Chiếu sáng', 'Điều hoà']
   },
   {
-    category: 'Phân quyền & Sự cố',
-    image: '/images/slide3.png',
-    title: 'Phân quyền nhân sự & Tra cứu lịch sử cảnh báo',
+    category: 'Quản lý Dự án',
+    image: '/uploads/news/6-Proj.png',
+    title: 'Quản lý công trình & Tiến độ thi công',
     content:
-      'Phân quyền tài khoản kỹ thuật viên, theo dõi tiến độ thi công công trình, tiếp nhận tức thì các cảnh báo sự cố khẩn cấp và xuất báo cáo vận hành định kỳ.',
-    tags: ['Phân quyền', 'Sự cố', 'Báo cáo']
+      'Theo dõi danh mục dự án, hồ sơ kỹ thuật, thông tin chủ đầu tư, tiến độ hoàn thành các hạng mục Smart Home và nghiệm thu bàn giao.',
+    tags: ['Dự án', 'Công trình', 'Tiến độ']
   },
   {
-    category: 'Báo cáo & Thống kê',
-    image: '/images/smart_home_3d.jpg',
-    title: 'Phân tích tiêu thụ năng lượng & Báo cáo kỹ thuật',
+    category: 'Tin tức & Bài đăng',
+    image: '/uploads/news/7-News.png',
+    title: 'Cập nhật tin tức & Thông báo nội bộ',
     content:
-      'Tra cứu biểu đồ phụ tải điện năng tiêu thụ toàn toà nhà/công trình theo chu kỳ, đối chiếu hiệu suất sử dụng thiết bị và xuất file dữ liệu phục vụ nghiệm thu vận hành.',
-    tags: ['Năng lượng', 'Thống kê', 'Nghiệm thu']
+      'Soạn thảo và phát hành bài viết mới, cập nhật tin tức công nghệ giải pháp 3AHome, quản lý hiển thị hoặc ẩn bài đăng trên cổng thông tin.',
+    tags: ['Tin tức', 'Bài đăng', 'Truyền thông']
+  },
+  {
+    category: 'Phân quyền & Tài khoản',
+    image: '/uploads/news/5-Admin 1.png',
+    title: 'Phân quyền nhân sự & Quản trị tài khoản',
+    content:
+      'Quản lý danh sách nhân sự, phân quyền vai trò (Admin, Kỹ thuật viên, Nhân viên), đặt lại mật khẩu và kiểm soát bảo mật truy cập hệ thống.',
+    tags: ['Tài khoản', 'Phân quyền', 'Bảo mật']
   }
 ];
 

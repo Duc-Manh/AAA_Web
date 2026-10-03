@@ -768,11 +768,17 @@ function mysqlSimuPlugin(): Plugin {
           }
         }
 
-        // Phục vụ ảnh từ /uploads/ và /AAA_Backend/uploads/
-        if (url.pathname.startsWith('/uploads/') || url.pathname.startsWith('/AAA_Backend/uploads/')) {
-          const relPath = url.pathname.startsWith('/AAA_Backend/uploads/')
-            ? url.pathname.replace(/^\/AAA_Backend/, '').slice(1)
-            : url.pathname.slice(1)
+        // Phục vụ ảnh từ /uploads/, /upload/ và /AAA_Backend/uploads/
+        if (
+          url.pathname.startsWith('/uploads/') ||
+          url.pathname.startsWith('/upload/') ||
+          url.pathname.startsWith('/AAA_Backend/uploads/') ||
+          url.pathname.startsWith('/AAA_Backend/upload/')
+        ) {
+          let relPath = url.pathname.replace(/^\/AAA_Backend/, '').slice(1)
+          if (relPath.startsWith('upload/')) {
+            relPath = 'uploads/' + relPath.slice('upload/'.length)
+          }
           const uploadsFile = path.resolve(__dirname, '../AAA_Backend', relPath)
           if (fs.existsSync(uploadsFile)) {
             const ext = path.extname(uploadsFile).toLowerCase()
