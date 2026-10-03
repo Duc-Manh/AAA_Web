@@ -1119,7 +1119,11 @@ export const Home: React.FC = () => {
           <div className="cta-card-content consult-header">
             <h2>Đăng ký nhận tư vấn miễn phí</h2>
             <p>
-              Hãy chia sẻ thông tin dự án của Quý khách. Đội ngũ kỹ sư giàu kinh nghiệm của 3AHOME
+              Hãy chia sẻ thông tin dự án của Quý khách. Đội ngũ kỹ sư giàu kinh nghiệm của{' '}
+              <strong>
+                <span className="brand-name-green" style={{ color: '#0b8645' }}>3A</span>
+                <span className="brand-name-blue" style={{ color: '#105ca8' }}>HOME</span>
+              </strong>{' '}
               sẽ trực tiếp khảo sát và gửi phương án báo giá tối ưu nhất.
             </p>
           </div>
