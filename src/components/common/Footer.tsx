@@ -25,9 +25,8 @@ export const Footer: React.FC = () => {
         <div className="footer-links-column">
           <h5>Chính sách</h5>
           <a href="#">Chính sách bảo hành</a>
-          <a href="#">Chính sách bảo mật</a>
+          <a href="#privacy" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Chính sách bảo mật</a>
           <a href="#">Chính sách tuyển dụng</a>
-
         </div>
 
         <div className="footer-links-column">

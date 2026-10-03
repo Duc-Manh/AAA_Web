@@ -10,6 +10,7 @@ import { Product } from './pages/product/Product';
 import { Project } from './pages/project/Project';
 import { News } from './pages/news/News';
 import { About } from './pages/about/About';
+import { Privacy } from './pages/privacy/Privacy';
 import { Login } from './pages/login/Login';
 import { Simu } from './pages/simu/Simu';
 import { Dash } from './pages/dash/Dash';
@@ -74,6 +75,12 @@ export const App: React.FC = () => {
     if (currentHash === '#project' || currentHash === '/project') return <Project />;
     if (currentHash === '#news' || currentHash === '/news') return <News />;
     if (currentHash === '#about' || currentHash === '/about') return <About />;
+    if (
+      currentHash === '#privacy' ||
+      currentHash === '/privacy' ||
+      currentHash === '#chinh-sach-bao-mat' ||
+      currentHash === '/chinh-sach-bao-mat'
+    ) return <Privacy />;
     if (currentHash === '#login' || currentHash === '/login' || currentHash === '#hire' || currentHash === '/hire') return <Login />;
     if (currentHash === '#simu' || currentHash === '/simu') return <Simu />;
     if (currentHash === '#dash' || currentHash === '/dash') return <Dash />;

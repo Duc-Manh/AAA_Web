@@ -13,9 +13,9 @@ export interface ApiConfig {
 }
 
 const DEFAULT_CONFIG: ApiConfig = {
-  backendUrl: 'http://localhost:5000/api',
-  wsUrl: 'ws://localhost:5000/ws',
-  isLiveServer: false, // Default to local simulator until AAA_Soft backend is started
+  backendUrl: 'https://api.3ahome.vn/api',
+  wsUrl: 'wss://api.3ahome.vn/ws',
+  isLiveServer: true,
   pollIntervalMs: 3000,
 };
 
