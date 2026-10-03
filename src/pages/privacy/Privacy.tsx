@@ -2,7 +2,6 @@ import React, { useEffect } from 'react';
 import { Header } from '../../components/common/Header';
 import { Footer } from '../../components/common/Footer';
 import {
-  ShieldCheck,
   Lock,
   Eye,
   FileText,
@@ -28,24 +27,6 @@ export const Privacy: React.FC = () => {
       {/* 2. Privacy Hero Section */}
       <section className="intro-hero-section">
         <div className="intro-hero-container">
-          <div
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '6px',
-              padding: '6px 14px',
-              borderRadius: '999px',
-              background: 'rgba(16, 92, 168, 0.08)',
-              color: '#105ca8',
-              fontSize: '0.85rem',
-              fontWeight: 700,
-              marginBottom: '16px'
-            }}
-          >
-            <ShieldCheck size={16} />
-            <span>QUYỀN RIÊNG TƯ & BẢO VỆ DỮ LIỆU</span>
-          </div>
-
           <h1 className="intro-hero-title">
             Chính Sách Bảo Mật <br />
             <span className="brand-name-green">3A</span><span className="brand-name-blue">HOME</span> Việt Nam
