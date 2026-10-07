@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import { DashAside } from '../../components/common/DashAside';
 import { DashHeader } from '../../components/common/DashHeader';
+import { DashPopup } from '../../components/common/DashPopup';
 
 interface CurrentUserData {
   id?: number;
@@ -1835,6 +1836,9 @@ export const DashEquip: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Thông báo yêu cầu trình duyệt từ nhân viên */}
+      <DashPopup />
     </div>
   );
 };

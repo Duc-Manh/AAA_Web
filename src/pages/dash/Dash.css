@@ -1537,6 +1537,7 @@ body:has(.dash-layout) .collect-widget,
     opacity: 0;
     transform: translateY(12px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -1648,7 +1649,7 @@ body:has(.dash-layout) .collect-widget,
 
 /* Ẩn widget Entertain (TikTok, YouTube) khi ở trang Dash */
 body:has(.dash-page-container) .entertain-widget,
-.dash-page-container ~ .entertain-widget,
+.dash-page-container~.entertain-widget,
 .dash-page-container .entertain-widget {
   display: none !important;
 }
@@ -1675,7 +1676,7 @@ body:has(.dash-page-container) .entertain-widget,
   padding: 16px 20px;
   border-radius: 12px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .news-stats-pills {
@@ -1971,6 +1972,7 @@ body:has(.dash-page-container) .entertain-widget,
   border-color: #bae6fd;
   background: #f0f9ff;
 }
+
 .btn-tbl-view:hover {
   background: #e0f2fe;
 }
@@ -1980,6 +1982,7 @@ body:has(.dash-page-container) .entertain-widget,
   border-color: #bfdbfe;
   background: #eff6ff;
 }
+
 .btn-tbl-edit:hover {
   background: #dbeafe;
 }
@@ -1989,6 +1992,7 @@ body:has(.dash-page-container) .entertain-widget,
   border-color: #fde68a;
   background: #fffbeb;
 }
+
 .btn-tbl-hide:hover {
   background: #fef3c7;
 }
@@ -1998,6 +2002,7 @@ body:has(.dash-page-container) .entertain-widget,
   border-color: #fecaca;
   background: #fef2f2;
 }
+
 .btn-tbl-del:hover {
   background: #fee2e2;
 }
@@ -2071,6 +2076,7 @@ body:has(.dash-page-container) .entertain-widget,
   background: #ecfdf5;
   color: #10b981;
 }
+
 .dash-metric-card.metric-online .dash-metric-value {
   color: #059669;
 }
@@ -2079,6 +2085,7 @@ body:has(.dash-page-container) .entertain-widget,
   background: #eff6ff;
   color: #2563eb;
 }
+
 .dash-metric-card.metric-today .dash-metric-value {
   color: #1d4ed8;
 }
@@ -2087,6 +2094,7 @@ body:has(.dash-page-container) .entertain-widget,
   background: #eef2ff;
   color: #6366f1;
 }
+
 .dash-metric-card.metric-month .dash-metric-value {
   color: #4f46e5;
 }
@@ -2095,6 +2103,7 @@ body:has(.dash-page-container) .entertain-widget,
   background: #fffbeb;
   color: #f59e0b;
 }
+
 .dash-metric-card.metric-year .dash-metric-value {
   color: #d97706;
 }
@@ -2103,6 +2112,7 @@ body:has(.dash-page-container) .entertain-widget,
   background: #f0fdf4;
   color: #16a34a;
 }
+
 .dash-metric-card.metric-total .dash-metric-value {
   color: #15803d;
 }
@@ -2111,6 +2121,7 @@ body:has(.dash-page-container) .entertain-widget,
   background: #faf5ff;
   color: #a855f7;
 }
+
 .dash-metric-card.metric-simu .dash-metric-value {
   color: #7e22ce;
 }
@@ -2138,8 +2149,16 @@ body:has(.dash-page-container) .entertain-widget,
 }
 
 @keyframes livePing {
-  0% { transform: scale(1); opacity: 1; }
-  75%, 100% { transform: scale(2.2); opacity: 0; }
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  75%,
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
 }
 
 /* ==========================================================================
@@ -2400,6 +2419,7 @@ body:has(.dash-page-container) .entertain-widget,
     opacity: 0;
     transform: translateY(-8px) scale(0.98);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -2712,8 +2732,13 @@ body:has(.dash-page-container) .entertain-widget,
 }
 
 @keyframes guideFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 .dash-guide-lightbox-content {
@@ -2878,34 +2903,85 @@ body:has(.dash-page-container) .entertain-widget,
 /* ==========================================================================
    TÙY CHỈNH KÍCH THƯỚC: DASHGUIDE VÀ EMPGUIDE CHIẾM 70% WIDTH MÀN HÌNH
    ========================================================================== */
-.dash-guide-popover-dash,
-.dash-guide-popover-emp {
+.dash-guide-popover-dash {
   width: 70vw;
   max-width: 70vw;
   right: 0;
 }
 
-.dash-guide-popover-dash::before,
-.dash-guide-popover-emp::before {
+.dash-guide-popover-dash::before {
   right: 38px;
 }
 
-.dash-guide-popover-dash .dash-guide-img-card,
-.dash-guide-popover-emp .dash-guide-img-card {
+.dash-guide-popover-dash .dash-guide-img-card {
   width: 100%;
   max-width: 280px;
   height: 140px;
 }
 
+/* Kích thước thu nhỏ gọn gàng cho EmpGuide */
+.dash-guide-popover-emp {
+  width: 750px;
+  max-width: calc(100vw - 28px);
+  right: 0;
+}
+
+.dash-guide-popover-emp::before {
+  right: 28px;
+}
+
+.dash-guide-popover-emp .dash-guide-img-card {
+  width: 100%;
+  max-width: 220px;
+  height: 115px;
+}
+
+.dash-guide-popover-emp .dash-guide-popover-body {
+  max-height: 420px;
+  padding: 8px 14px;
+}
+
+.dash-guide-popover-emp .dash-guide-table th,
+.dash-guide-popover-emp .dash-guide-table td {
+  padding: 10px 10px;
+}
+
+.dash-guide-popover-emp .dash-guide-row-title {
+  font-size: 0.88rem;
+  margin-bottom: 4px;
+}
+
+.dash-guide-popover-emp .dash-guide-row-desc {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  margin-bottom: 6px;
+}
+
+.dash-guide-popover-emp .dash-guide-category-badge {
+  padding: 4px 10px;
+  font-size: 0.74rem;
+  border-radius: 6px;
+}
+
+.dash-guide-popover-emp .dash-guide-tag-pill {
+  font-size: 0.7rem;
+  padding: 2px 7px;
+}
+
 @media (max-width: 1200px) {
-  .dash-guide-popover-dash,
-  .dash-guide-popover-emp {
+  .dash-guide-popover-dash {
     width: 80vw;
     max-width: 80vw;
+  }
+
+  .dash-guide-popover-emp {
+    width: 680px;
+    max-width: calc(100vw - 24px);
   }
 }
 
 @media (max-width: 900px) {
+
   .dash-guide-popover,
   .dash-guide-popover-dash,
   .dash-guide-popover-emp {
@@ -2913,17 +2989,20 @@ body:has(.dash-page-container) .entertain-widget,
     max-width: calc(100vw - 24px) !important;
     right: -10px !important;
   }
+
   .dash-guide-popover::before,
   .dash-guide-popover-dash::before,
   .dash-guide-popover-emp::before {
     right: 38px !important;
   }
+
   .dash-guide-img-card,
   .dash-guide-popover-dash .dash-guide-img-card,
   .dash-guide-popover-emp .dash-guide-img-card {
     width: 85px;
     height: 55px;
   }
+
   .dash-guide-table th.th-category,
   .dash-guide-table td.td-category {
     width: 100px;

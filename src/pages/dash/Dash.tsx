@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { DashAside } from '../../components/common/DashAside';
 import { DashHeader } from '../../components/common/DashHeader';
+import { DashPopup } from '../../components/common/DashPopup';
 import { DashVisitorChart } from './DashVisitorChart';
 import { DashUserActivityTable } from './DashUserActivityTable';
 
@@ -848,6 +849,9 @@ export const Dash: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Thông báo yêu cầu trình duyệt từ nhân viên */}
+      <DashPopup />
     </div>
   );
 };

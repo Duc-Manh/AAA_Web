@@ -20,29 +20,21 @@ export interface EmpGuideProps {
 
 export const employeeGuideData: EmpGuideItem[] = [
   {
-    category: 'Nhận việc & Tiến độ',
-    image: '/images/slide1.png',
-    title: 'Tiếp nhận công việc & Báo cáo tiến độ',
+    category: 'Dự án triển khai',
+    image: '/uploads/guide/projpost.png',
+    title: 'Đăng bài dự án để phê duyệt',
     content:
-      'Xem danh mục công việc kỹ thuật được phân công hàng ngày, cập nhật tiến độ hoàn thành, nhập nhật ký thi công và tải lên biên bản nghiệm thu trực tiếp.',
-    tags: ['Công việc', 'Tiến độ', 'Nghiệm thu']
+      'Nhập các ô thông tin, đăng hình ảnh và nhấn nút Trình duyệt',
+    tags: ['Công việc', 'Tiến độ', 'Dự án']
   },
   {
-    category: 'Đo kiểm & Cảm biến',
-    image: '/images/slide2.png',
-    title: 'Đo kiểm thông số thiết bị & Cảm biến',
+    category: 'Tin tức và sự kiện',
+    image: '/uploads/guide/newspost.png',
+    title: 'Đăng bài tin tức để phê duyệt',
     content:
-      'Kiểm tra tín hiệu cảm biến nhiệt ẩm, lưu lượng điện áp tủ điện BMS, đối chiếu thông số đo đạc thực tế tại công trình với hệ thống quản lý tập trung.',
-    tags: ['Đo kiểm', 'Cảm biến', 'Tủ điện']
+      'Nhập các ô thông tin, đăng hình ảnh và nhấn nút Trình duyệt',
+    tags: ['Công việc', 'Tin tức', 'Sự kiện']
   },
-  {
-    category: 'Sự cố & Đề xuất',
-    image: '/images/slide4.png',
-    title: 'Báo cáo sự cố khẩn cấp & Đề xuất vật tư',
-    content:
-      'Gửi phiếu báo hỏng thiết bị, yêu cầu hỗ trợ kỹ thuật trực tiếp từ ban quản lý khi phát hiện lỗi phần cứng, mất kết nối hoặc đề xuất xuất kho vật tư thay thế.',
-    tags: ['Báo hỏng', 'Hỗ trợ', 'Vật tư']
-  }
 ];
 
 export const EmpGuide: React.FC<EmpGuideProps> = ({

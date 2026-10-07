@@ -34,9 +34,9 @@ export const News: React.FC = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.data)) {
-          // Lọc các bài viết hiển thị (status === 1: Đăng bài)
+          // Lọc các bài viết hiển thị (status === 2: Đăng bài)
           const dbArticles: ArticleItem[] = data.data
-            .filter((item: any) => Number(item.status) === 1)
+            .filter((item: any) => Number(item.status) === 2)
             .map((item: any) => ({
               id: item.id,
               title: item.title,

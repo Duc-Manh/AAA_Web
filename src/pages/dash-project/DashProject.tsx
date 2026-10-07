@@ -14,10 +14,12 @@ import {
   Building,
   Upload,
   X,
-  CheckCircle
+  CheckCircle,
+  Clock
 } from 'lucide-react';
 import { DashAside } from '../../components/common/DashAside';
 import { DashHeader } from '../../components/common/DashHeader';
+import { DashPopup } from '../../components/common/DashPopup';
 
 interface CurrentUserData {
   id?: number;
@@ -38,7 +40,7 @@ export interface ProjectItem {
   year?: string;
   start: string;
   image?: string | null;
-  status: number; // 1: Đăng bài, 2: Đang ẩn
+  status: number; // 1: Trình duyệt, 2: Đăng bài, 3: Đang ẩn
 }
 
 export const DashProject: React.FC = () => {
@@ -322,10 +324,12 @@ export const DashProject: React.FC = () => {
     }
   };
 
-  // Ẩn / Đăng lại dự án (chuyển status 1: Đăng bài <-> 2: Đang ẩn)
+  // Ẩn / Đăng lại dự án (status = 1: Trình duyệt, status = 2: Đăng bài, status = 3: Ẩn)
   const handleToggleHideProject = async (proj: ProjectItem) => {
-    const nextStatus = Number(proj.status) === 2 ? 1 : 2;
-    const actionText = nextStatus === 2 ? 'ẩn' : 'đăng lại';
+    // Nếu status đang là 2 (Đăng bài) -> chuyển sang 3 (Ẩn)
+    // Nếu status đang là 3 (Ẩn) hoặc 1 (Trình duyệt) -> chuyển sang 2 (Đăng bài)
+    const nextStatus = Number(proj.status) === 2 ? 3 : 2;
+    const actionText = nextStatus === 3 ? 'ẩn' : 'đăng bài';
     if (!window.confirm(`Bạn có chắc chắn muốn ${actionText} dự án "${proj.title}" không?`)) {
       return;
     }
@@ -366,15 +370,15 @@ export const DashProject: React.FC = () => {
     }
   };
 
-  // Thống kê: 3 card theo yêu cầu
+  // Thống kê: 3 card
   // Card 1: Tổng số dự án (tất cả hàng)
-  // Card 2: Đăng bài (status = 1)
-  // Card 3: Đang ẩn (status = 2)
+  // Card 2: Đăng bài (status = 2)
+  // Card 3: Đang ẩn (status = 3)
   const totalProjects = projectsList.length;
-  const publishedProjects = projectsList.filter((p) => Number(p.status) === 1).length;
-  const hiddenProjects = projectsList.filter((p) => Number(p.status) === 2).length;
+  const publishedProjects = projectsList.filter((p) => Number(p.status) === 2).length;
+  const hiddenProjects = projectsList.filter((p) => Number(p.status) === 3).length;
 
-  // Lọc danh sách dự án: 3 tab (Tất cả, Đăng bài, Đang ẩn)
+  // Lọc danh sách dự án: 4 tab (Tất cả, Trình duyệt, Đăng bài, Đang ẩn)
   const filteredProjects = projectsList.filter((p) => {
     const matchesSearch =
       (p.title || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -384,16 +388,39 @@ export const DashProject: React.FC = () => {
       (p.start || p.year || '').toString().toLowerCase().includes(searchQuery.toLowerCase());
 
     if (selectedFilter === 'all') return matchesSearch;
-    if (selectedFilter === 'published') return matchesSearch && Number(p.status) === 1;
-    if (selectedFilter === 'hidden') return matchesSearch && Number(p.status) === 2;
+    if (selectedFilter === 'pending') return matchesSearch && Number(p.status) === 1;
+    if (selectedFilter === 'published') return matchesSearch && Number(p.status) === 2;
+    if (selectedFilter === 'hidden') return matchesSearch && Number(p.status) === 3;
     return matchesSearch;
   });
 
-  // Hiển thị nhãn trạng thái theo yêu cầu:
-  // Nếu status = 1: Đăng bài
-  // Nếu status = 2: Đang ẩn
+  // Hiển thị nhãn trạng thái theo giá trị cột status bảng project database 3ahome:
+  // status = 1: Trình duyệt
+  // status = 2: Đăng bài
+  // status = 3: Đang ẩn
   const renderStatusBadge = (status: number) => {
-    if (Number(status) === 1) {
+    const num = Number(status);
+    if (num === 1) {
+      return (
+        <span
+          style={{
+            padding: '5px 12px',
+            borderRadius: '20px',
+            fontSize: '0.8rem',
+            fontWeight: 600,
+            background: '#fef3c7',
+            color: '#d97706',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '5px'
+          }}
+        >
+          <Clock size={13} />
+          Trình duyệt
+        </span>
+      );
+    }
+    if (num === 2) {
       return (
         <span
           style={{
@@ -413,7 +440,7 @@ export const DashProject: React.FC = () => {
         </span>
       );
     }
-    if (Number(status) === 2) {
+    if (num === 3) {
       return (
         <span
           style={{
@@ -703,6 +730,7 @@ export const DashProject: React.FC = () => {
               >
                 {[
                   { id: 'all', label: 'Tất cả' },
+                  { id: 'pending', label: 'Trình duyệt' },
                   { id: 'published', label: 'Đăng bài' },
                   { id: 'hidden', label: 'Đang ẩn' }
                 ].map((tab) => (
@@ -988,8 +1016,8 @@ export const DashProject: React.FC = () => {
                                 display: 'inline-flex',
                                 alignItems: 'center',
                                 gap: '4px',
-                                background: Number(project.status) === 2 ? '#e0f2fe' : '#f8fafc',
-                                color: Number(project.status) === 2 ? '#0284c7' : '#64748b',
+                                background: Number(project.status) === 2 ? '#f8fafc' : '#e0f2fe',
+                                color: Number(project.status) === 2 ? '#64748b' : '#0284c7',
                                 border: '1px solid #cbd5e1',
                                 borderRadius: '7px',
                                 padding: '5px 10px',
@@ -997,10 +1025,10 @@ export const DashProject: React.FC = () => {
                                 fontWeight: 600,
                                 cursor: 'pointer'
                               }}
-                              title={Number(project.status) === 2 ? 'Bỏ ẩn dự án (Đăng bài)' : 'Ẩn dự án'}
+                              title={Number(project.status) === 2 ? 'Ẩn dự án' : 'Bỏ ẩn dự án (Đăng bài)'}
                             >
                               <EyeOff size={13} />
-                              <span>{Number(project.status) === 2 ? 'Hiện' : 'Ẩn'}</span>
+                              <span>{Number(project.status) === 2 ? 'Ẩn' : 'Hiện'}</span>
                             </button>
 
                             {/* Nút Xoá */}
@@ -1649,6 +1677,9 @@ export const DashProject: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Thông báo yêu cầu trình duyệt từ nhân viên */}
+      <DashPopup onApprovalDone={fetchProjects} />
     </div>
   );
 };

@@ -47,8 +47,8 @@ export const Project: React.FC = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.data)) {
-          // Lọc các dự án hiển thị (status = 1: Đăng bài)
-          const visible = data.data.filter((item: any) => Number(item.status) === 1);
+          // Lọc các dự án hiển thị (status = 2: Đăng bài)
+          const visible = data.data.filter((item: any) => Number(item.status) === 2);
           setProjects(visible);
         }
       })

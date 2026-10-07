@@ -11,10 +11,12 @@ import {
   X,
   Image as ImageIcon,
   Layers,
-  FileText
+  FileText,
+  Clock
 } from 'lucide-react';
 import { DashAside } from '../../components/common/DashAside';
 import { DashHeader } from '../../components/common/DashHeader';
+import { DashPopup } from '../../components/common/DashPopup';
 
 interface CurrentUserData {
   id?: number;
@@ -31,7 +33,7 @@ export interface NewsItem {
   content: string;
   image?: string | null;
   author: string;
-  status: number; // 1: Đăng bài, 2: Đang ẩn
+  status: number; // 1: Trình duyệt, 2: Đăng bài, 3: Đang ẩn
 }
 
 export const DashNews: React.FC = () => {
@@ -344,10 +346,12 @@ export const DashNews: React.FC = () => {
     }
   };
 
-  // Ẩn / Đăng lại bài đăng (chuyển status 1: Đăng bài <-> 2: Đang ẩn)
+  // Ẩn / Đăng lại bài đăng (status = 1: Trình duyệt, status = 2: Đăng bài, status = 3: Đang ẩn)
   const handleToggleHideNews = async (item: NewsItem) => {
-    const nextStatus = Number(item.status) === 2 ? 1 : 2;
-    const actionText = nextStatus === 2 ? 'ẩn' : 'đăng lại';
+    // Nếu đang là 2 (Đăng bài) -> chuyển sang 3 (Ẩn)
+    // Nếu đang là 3 (Ẩn) hoặc 1 (Trình duyệt) -> chuyển sang 2 (Đăng bài)
+    const nextStatus = Number(item.status) === 2 ? 3 : 2;
+    const actionText = nextStatus === 3 ? 'ẩn' : 'đăng lại';
     try {
       const res = await fetch(`/api/news/${item.id}`, {
         method: 'PUT',
@@ -420,12 +424,13 @@ export const DashNews: React.FC = () => {
     }
   };
 
-  // Thống kê nhanh theo yêu cầu:
-  // Tổng số: tất cả hàng trong bảng news
-  // Đăng bài: status = 1
-  // Đang ẩn: status = 2
-  const countPublished = newsList.filter((n) => Number(n.status) === 1).length;
-  const countHidden = newsList.filter((n) => Number(n.status) === 2).length;
+  // Thống kê nhanh:
+  // Trình duyệt: status = 1
+  // Đăng bài: status = 2
+  // Đang ẩn: status = 3
+  const countPending = newsList.filter((n) => Number(n.status) === 1).length;
+  const countPublished = newsList.filter((n) => Number(n.status) === 2).length;
+  const countHidden = newsList.filter((n) => Number(n.status) === 3).length;
 
   return (
     <div className="dash-layout">
@@ -490,6 +495,9 @@ export const DashNews: React.FC = () => {
             <div className="news-stats-pills">
               <span className="news-stat-pill">
                 <FileText size={14} /> Tổng số: <strong>{newsList.length}</strong> bài
+              </span>
+              <span className="news-stat-pill" style={{ background: '#fef3c7', color: '#b45309', border: '1px solid #fde68a' }}>
+                <Clock size={14} /> Trình duyệt: <strong>{countPending}</strong>
               </span>
               <span className="news-stat-pill pill-published">
                 <CheckCircle2 size={14} /> Đăng bài: <strong>{countPublished}</strong>
@@ -639,12 +647,39 @@ export const DashNews: React.FC = () => {
                             {item.author}
                           </td>
 
-                          {/* Trạng thái: hiển thị Đăng bài (status = 1) hoặc Đang ẩn (status = 2) */}
+                          {/* Trạng thái: hiển thị theo giá trị cột status bảng news database 3ahome: status = 1 (Trình duyệt), status = 2 (Đăng bài), status = 3 (Đang ẩn) */}
                           <td style={{ textAlign: 'center' }}>
                             {Number(item.status) === 1 ? (
-                              <span className="status-pill-2">Đăng bài</span>
+                              <span
+                                style={{
+                                  padding: '4px 10px',
+                                  borderRadius: '20px',
+                                  fontSize: '0.78rem',
+                                  fontWeight: 600,
+                                  background: '#fef3c7',
+                                  color: '#b45309',
+                                  display: 'inline-flex',
+                                  alignItems: 'center',
+                                  gap: '4px'
+                                }}
+                              >
+                                <Clock size={12} />
+                                Trình duyệt
+                              </span>
+                            ) : Number(item.status) === 2 ? (
+                              <span className="status-pill-2">
+                                <CheckCircle2 size={12} style={{ display: 'inline', marginRight: '3px' }} />
+                                Đăng bài
+                              </span>
+                            ) : Number(item.status) === 3 ? (
+                              <span className="status-pill-3">
+                                <EyeOff size={12} style={{ display: 'inline', marginRight: '3px' }} />
+                                Đang ẩn
+                              </span>
                             ) : (
-                              <span className="status-pill-3">Đang ẩn</span>
+                              <span className="status-pill-3">
+                                Không xác định
+                              </span>
                             )}
                           </td>
 
@@ -665,12 +700,12 @@ export const DashNews: React.FC = () => {
                               {/* Nút Ẩn / Hiện */}
                               <button
                                 type="button"
-                                className={`btn-tbl-action ${Number(item.status) === 2 ? 'btn-tbl-view' : 'btn-tbl-hide'}`}
+                                className={`btn-tbl-action ${Number(item.status) === 2 ? 'btn-tbl-hide' : 'btn-tbl-view'}`}
                                 onClick={() => handleToggleHideNews(item)}
-                                title={Number(item.status) === 2 ? 'Đăng lại bài viết' : 'Ẩn bài viết khỏi trang chủ'}
+                                title={Number(item.status) === 2 ? 'Ẩn bài viết khỏi trang chủ' : 'Đăng lại bài viết (Hiện)'}
                               >
                                 <EyeOff size={13} />
-                                <span>{Number(item.status) === 2 ? 'Hiện' : 'Ẩn'}</span>
+                                <span>{Number(item.status) === 2 ? 'Ẩn' : 'Hiện'}</span>
                               </button>
 
                               {/* Nút Xoá */}
@@ -940,8 +975,9 @@ export const DashNews: React.FC = () => {
                     value={editStatus}
                     onChange={(e) => setEditStatus(Number(e.target.value))}
                   >
-                    <option value={1}>1 - Đăng bài</option>
-                    <option value={2}>2 - Đang ẩn</option>
+                    <option value={1}>1 - Trình duyệt</option>
+                    <option value={2}>2 - Đăng bài</option>
+                    <option value={3}>3 - Đang ẩn</option>
                   </select>
                 </div>
 
@@ -1143,6 +1179,9 @@ export const DashNews: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* Thông báo yêu cầu trình duyệt từ nhân viên */}
+      <DashPopup onApprovalDone={fetchNews} />
     </div>
   );
 };

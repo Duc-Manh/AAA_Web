@@ -504,8 +504,8 @@ export const Home: React.FC = () => {
         const res = await fetch('/api/projects');
         const data = await res.json();
         if (data.success && Array.isArray(data.data)) {
-          // Lọc các dự án hiển thị (status === 1: Đăng bài)
-          const visible = data.data.filter((item: any) => Number(item.status) === 1);
+          // Lọc các dự án hiển thị (status === 2: Đăng bài)
+          const visible = data.data.filter((item: any) => Number(item.status) === 2);
           const mapped: HeroProjectItem[] = visible.map((p: any) => ({
             id: p.id,
             name: p.title || '',
@@ -583,7 +583,8 @@ export const Home: React.FC = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data.success && Array.isArray(data.data)) {
-          const visible = data.data.filter((item: any) => Number(item.status) === 1);
+          // Lọc các bài viết hiển thị (status === 2: Đăng bài)
+          const visible = data.data.filter((item: any) => Number(item.status) === 2);
           // Sắp xếp theo cột time mới nhất lên đầu
           visible.sort((a: any, b: any) => new Date(b.time).getTime() - new Date(a.time).getTime());
           const mapped: HomeNewsItem[] = visible.map((item: any) => ({
