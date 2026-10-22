@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Header } from '../../components/common/Header';
 import { Footer } from '../../components/common/Footer';
+import { Contact } from '../../components/common/Contact';
 
 export const Intro: React.FC = () => {
   useEffect(() => {
@@ -179,6 +180,9 @@ export const Intro: React.FC = () => {
 
       {/* 6. Footer */}
       <Footer />
+
+      {/* Nút liên hệ nhanh (Zalo & Hotline) */}
+      <Contact />
     </div>
   );
 };
