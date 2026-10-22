@@ -50,14 +50,14 @@ export const EmployJob: React.FC = () => {
         setIsCollapsed={setIsCollapsed}
         isMobileOpen={isMobileOpen}
         setIsMobileOpen={setIsMobileOpen}
-        triggerToast={() => {}}
+        triggerToast={() => { }}
       />
 
       {/* 2. KHU VỰC NỘI DUNG CHÍNH */}
       <div className="dash-main">
         {/* TOP NAVBAR */}
         <EmpHeader
-          title="Quản Lý Công Việc & Tiến Độ"
+          title="Quản Lý Công Việc và Tiến Độ"
           subtitle="Phân công nhiệm vụ, theo dõi tiến độ thi công và đánh giá KPI nhân sự 3AHOME"
           isMobileOpen={isMobileOpen}
           setIsMobileOpen={setIsMobileOpen}

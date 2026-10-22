@@ -27,6 +27,8 @@ import { EmployEquip } from './pages/employ-equip/EmployEquip';
 import { EmployCusto } from './pages/employ-custo/EmployCusto';
 import { EmployFinan } from './pages/employ-finan/EmployFinan';
 import { EmployJob } from './pages/employ-job/EmployJob';
+import { DashOperate } from './pages/dash-operate/DashOperate';
+import { EmployOperate } from './pages/employ-operate/EmployOperate';
 
 import { trackActivity, getModuleFromHash } from './utils/activityTracker';
 
@@ -90,6 +92,7 @@ export const App: React.FC = () => {
     if (currentHash === '#dash-custo' || currentHash === '/dash-custo') return <DashCusto />;
     if (currentHash === '#dash-finan' || currentHash === '/dash-finan') return <DashFinan />;
     if (currentHash === '#dash-job' || currentHash === '/dash-job') return <DashJob />;
+    if (currentHash === '#dash-operate' || currentHash === '/dash-operate') return <DashOperate />;
     if (currentHash === '#employ' || currentHash === '/employ') return <Employ />;
     if (currentHash === '#employ-proj' || currentHash === '/employ-proj') return <EmployProj />;
     if (currentHash === '#employ-news' || currentHash === '/employ-news') return <EmployNews />;
@@ -97,6 +100,7 @@ export const App: React.FC = () => {
     if (currentHash === '#employ-custo' || currentHash === '/employ-custo') return <EmployCusto />;
     if (currentHash === '#employ-finan' || currentHash === '/employ-finan') return <EmployFinan />;
     if (currentHash === '#employ-job' || currentHash === '/employ-job') return <EmployJob />;
+    if (currentHash === '#employ-operate' || currentHash === '/employ-operate') return <EmployOperate />;
     return <Home />;
   };
 

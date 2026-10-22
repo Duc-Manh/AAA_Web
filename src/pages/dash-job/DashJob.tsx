@@ -92,7 +92,7 @@ export const DashJob: React.FC = () => {
       <div className="dash-main">
         {/* TOP NAVBAR */}
         <DashHeader
-          title="Quản Lý Công Việc & Tiến Độ"
+          title="Quản Lý Công Việc và Tiến Độ"
           subtitle="Phân công nhiệm vụ, giám sát tiến độ thi công và lịch trình kỹ thuật 3AHOME"
           isMobileOpen={isMobileOpen}
           setIsMobileOpen={setIsMobileOpen}

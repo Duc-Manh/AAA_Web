@@ -9,7 +9,8 @@ import {
   Settings,
   Menu,
   Wallet,
-  ClipboardList
+  ClipboardList,
+  Activity
 } from 'lucide-react';
 
 export interface DashAsideProps {
@@ -33,9 +34,8 @@ export const DashAside: React.FC<DashAsideProps> = ({
 }) => {
   return (
     <aside
-      className={`dash-sidebar ${isCollapsed ? 'collapsed' : ''} ${
-        isMobileOpen ? 'mobile-open' : ''
-      }`}
+      className={`dash-sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''
+        }`}
     >
       <div className="dash-sidebar-header">
         <div className="dash-header-icon-box">
@@ -78,7 +78,7 @@ export const DashAside: React.FC<DashAsideProps> = ({
           }}
         >
           <FolderKanban size={19} className="dash-menu-icon" />
-          {!isCollapsed && <span>Dự án triển khai</span>}
+          {!isCollapsed && <span>Dự án đăng bài</span>}
         </button>
 
         <button
@@ -102,7 +102,7 @@ export const DashAside: React.FC<DashAsideProps> = ({
           }}
         >
           <Package size={19} className="dash-menu-icon" />
-          {!isCollapsed && <span>Vật tư thiết bị</span>}
+          {!isCollapsed && <span>Vật tư tồn kho</span>}
         </button>
 
         <button
@@ -114,9 +114,19 @@ export const DashAside: React.FC<DashAsideProps> = ({
           }}
         >
           <Users size={19} className="dash-menu-icon" />
-          {!isCollapsed && <span>Khách hàng</span>}
+          {!isCollapsed && <span>Quản lý khách hàng</span>}
         </button>
-
+        <button
+          type="button"
+          className={`dash-menu-item ${activeTab === 'operate' ? 'active' : ''}`}
+          onClick={() => {
+            setIsMobileOpen(false);
+            window.location.hash = '#dash-operate';
+          }}
+        >
+          <Activity size={19} className="dash-menu-icon" />
+          {!isCollapsed && <span>Quản lý vận hành</span>}
+        </button>
         <button
           type="button"
           className={`dash-menu-item ${activeTab === 'finance' ? 'active' : ''}`}
@@ -140,6 +150,8 @@ export const DashAside: React.FC<DashAsideProps> = ({
           <ClipboardList size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Quản lý công việc</span>}
         </button>
+
+
 
         <div className="dash-menu-group-label" style={{ marginTop: '12px' }}>
           {!isCollapsed ? 'Cấu Hình' : '•••'}

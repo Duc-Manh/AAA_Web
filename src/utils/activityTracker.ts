@@ -59,5 +59,6 @@ export const getModuleFromHash = (hash: string): string | null => {
   if (clean === 'dash-custo' || clean === 'employ-custo') return 'customers';
   if (clean === 'dash-finan' || clean === 'employ-finan') return 'finance';
   if (clean === 'dash-job' || clean === 'employ-job') return 'tasks';
+  if (clean === 'dash-operate' || clean === 'employ-operate') return 'operate';
   return null;
 };

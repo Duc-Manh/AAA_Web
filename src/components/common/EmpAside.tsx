@@ -8,6 +8,7 @@ import {
   Users,
   Wallet,
   ClipboardList,
+  Activity,
   Settings,
   Menu
 } from 'lucide-react';
@@ -33,9 +34,8 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
 }) => {
   return (
     <aside
-      className={`dash-sidebar ${isCollapsed ? 'collapsed' : ''} ${
-        isMobileOpen ? 'mobile-open' : ''
-      }`}
+      className={`dash-sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''
+        }`}
     >
       <div className="dash-sidebar-header">
         <div className="dash-header-icon-box">
@@ -83,7 +83,7 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
           }}
         >
           <FolderKanban size={19} className="dash-menu-icon" />
-          {!isCollapsed && <span>Dự án triển khai</span>}
+          {!isCollapsed && <span>Dự án đăng bài</span>}
         </button>
 
         {/* 3. Tin tức truyền thông -> EmployNews.tsx (#employ-news) */}
@@ -115,7 +115,7 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
           }}
         >
           <Package size={19} className="dash-menu-icon" />
-          {!isCollapsed && <span>Vật tư thiết bị</span>}
+          {!isCollapsed && <span>Vật tư tồn kho</span>}
         </button>
 
         {/* 5. Khách hàng -> EmployCusto.tsx (#employ-custo) */}
@@ -131,9 +131,23 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
           }}
         >
           <Users size={19} className="dash-menu-icon" />
-          {!isCollapsed && <span>Khách hàng</span>}
+          {!isCollapsed && <span>Quản lý khách hàng</span>}
         </button>
-
+        {/* 8. Quản lý vận hành -> EmployOperate.tsx (#employ-operate) */}
+        <button
+          type="button"
+          className={`dash-menu-item ${activeTab === 'operate' ? 'active' : ''}`}
+          onClick={() => {
+            setIsMobileOpen(false);
+            if (setActiveTab) {
+              setActiveTab('operate');
+            }
+            window.location.hash = '#employ-operate';
+          }}
+        >
+          <Activity size={19} className="dash-menu-icon" />
+          {!isCollapsed && <span>Quản lý vận hành</span>}
+        </button>
         {/* 6. Tài chính kế toán -> EmployFinan.tsx (#employ-finan) */}
         <button
           type="button"
@@ -165,6 +179,8 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
           <ClipboardList size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Quản lý công việc</span>}
         </button>
+
+
 
         <div className="dash-menu-group-label" style={{ marginTop: '12px' }}>
           {!isCollapsed ? 'Cấu Hình' : '•••'}

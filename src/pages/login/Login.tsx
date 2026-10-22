@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Header } from '../../components/common/Header';
 import { Footer } from '../../components/common/Footer';
+import { Contact } from '../../components/common/Contact';
 import {
   Lock,
   User,
@@ -441,6 +442,9 @@ export const Login: React.FC = () => {
 
       {/* 3. Footer chân trang */}
       <Footer />
+
+      {/* Nút liên hệ nhanh (Zalo & Hotline) */}
+      <Contact />
     </div>
   );
 };

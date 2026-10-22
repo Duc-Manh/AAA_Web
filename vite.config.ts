@@ -1393,6 +1393,237 @@ function mysqlSimuPlugin(): Plugin {
           }
         }
 
+        // API Quản lý thông tin Dự án Khách hàng & Thiết bị IoT: /api/customer-projects
+        if (url.pathname === '/api/customer-projects' || url.pathname.startsWith('/api/customer-projects/')) {
+          const connection = await mysql.createConnection(mysqlConfig)
+          try {
+            // 1. GET /api/customer-projects
+            if (url.pathname === '/api/customer-projects' && req.method === 'GET') {
+              const [locations]: any = await connection.execute(`
+                SELECT 
+                  l.location_id AS id,
+                  l.location_name AS projectName,
+                  l.address,
+                  l.customer_name AS customerName,
+                  COALESCE(l.customer_phone, 'Chưa có SĐT') AS phone,
+                  COALESCE(l.customer_email, 'Chưa có Email') AS email,
+                  l.status,
+                  DATE_FORMAT(l.created_at, '%Y-%m-%d %H:%i') AS createdAt,
+                  g.gateway_id AS gatewayId,
+                  COALESCE(g.gateway_sn, 'CHƯA_GÁN') AS gatewaySn,
+                  COALESCE(g.ip_address, '192.168.1.250') AS gatewayIp,
+                  COALESCE(g.status, 'offline') AS gatewayStatus,
+                  g.last_seen AS lastSeen
+                FROM locations l
+                LEFT JOIN gateways g ON l.location_id = g.location_id
+                ORDER BY l.location_id DESC
+              `)
+
+              const [allDevices]: any = await connection.execute(`
+                SELECT 
+                  device_id AS id,
+                  gateway_id AS gatewayId,
+                  device_code,
+                  device_name,
+                  device_type,
+                  slave_address,
+                  COALESCE(floor, 'Khu vực chính') AS location_name,
+                  DATE_FORMAT(created_at, '%Y-%m-%d') AS created_at
+                FROM devices
+                ORDER BY slave_address ASC, device_id ASC
+              `)
+
+              const result = locations.map((loc: any) => {
+                const devList = allDevices.filter((d: any) => d.gatewayId === loc.gatewayId)
+                return {
+                  id: loc.id,
+                  projectName: loc.projectName,
+                  address: loc.address,
+                  phone: loc.phone,
+                  email: loc.email,
+                  status: loc.status || 'installing',
+                  createdAt: loc.createdAt,
+                  gateway: {
+                    gateway_sn: loc.gatewaySn,
+                    ip_address: loc.gatewayIp,
+                    status: loc.gatewayStatus
+                  },
+                  devices: devList.map((d: any) => ({
+                    id: d.id,
+                    device_code: d.device_code,
+                    device_name: d.device_name,
+                    device_type: d.device_type,
+                    slave_address: d.slave_address,
+                    location_name: d.location_name,
+                    created_at: d.created_at
+                  }))
+                }
+              })
+
+              res.setHeader('Content-Type', 'application/json; charset=utf-8')
+              res.end(JSON.stringify({ success: true, data: result }))
+              await connection.end()
+              return
+            }
+
+            // 2. POST /api/customer-projects (Tạo dự án mới vào locations -> gateways -> devices)
+            if (url.pathname === '/api/customer-projects' && req.method === 'POST') {
+              let body = ''
+              req.on('data', (chunk) => { body += chunk })
+              req.on('end', async () => {
+                try {
+                  const { projectName, address, phone, email, gateway, status, devices } = JSON.parse(body || '{}')
+                  const [locResult]: any = await connection.execute(`
+                    INSERT INTO locations (location_name, address, customer_phone, customer_email, status)
+                    VALUES (?, ?, ?, ?, ?)
+                  `, [projectName, address, phone, email || null, status || 'installing'])
+                  const locationId = locResult.insertId
+
+                  let gatewayId = null
+                  if (gateway && gateway.gateway_sn) {
+                    const [existingGws]: any = await connection.execute('SELECT gateway_id FROM gateways WHERE gateway_sn = ?', [gateway.gateway_sn.toUpperCase()])
+                    if (existingGws.length > 0) {
+                      gatewayId = existingGws[0].gateway_id
+                      await connection.execute('UPDATE gateways SET location_id = ?, ip_address = ?, status = ? WHERE gateway_id = ?', 
+                        [locationId, gateway.ip_address || '192.168.1.250', gateway.status || 'online', gatewayId])
+                    } else {
+                      const [gwResult]: any = await connection.execute(`
+                        INSERT INTO gateways (location_id, gateway_sn, ip_address, status)
+                        VALUES (?, ?, ?, ?)
+                      `, [locationId, gateway.gateway_sn.toUpperCase(), gateway.ip_address || '192.168.1.250', gateway.status || 'online'])
+                      gatewayId = gwResult.insertId
+                    }
+                  }
+
+                  if (gatewayId && Array.isArray(devices) && devices.length > 0) {
+                    for (const dev of devices) {
+                      await connection.execute(`
+                        INSERT INTO devices (gateway_id, device_code, device_name, device_type, slave_address, floor)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        ON DUPLICATE KEY UPDATE device_name = VALUES(device_name), slave_address = VALUES(slave_address), floor = VALUES(floor)
+                      `, [gatewayId, dev.device_code.toUpperCase(), dev.device_name, dev.device_type || 'sensor', Number(dev.slave_address) || 1, dev.location_name || dev.floor || 'Khu vực chính'])
+                    }
+                  }
+
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: true, message: 'Đã tạo dự án thành công vào database', locationId }))
+                } catch (createErr: any) {
+                  res.statusCode = 500
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: false, message: createErr.message }))
+                } finally {
+                  await connection.end()
+                }
+              })
+              return
+            }
+
+            // 3. PUT /api/customer-projects/:id
+            if (url.pathname.startsWith('/api/customer-projects/') && req.method === 'PUT') {
+              const id = url.pathname.split('/')[3]
+              let body = ''
+              req.on('data', (chunk) => { body += chunk })
+              req.on('end', async () => {
+                try {
+                  const { projectName, address, phone, email, gateway, status } = JSON.parse(body || '{}')
+                  await connection.execute(`
+                    UPDATE locations 
+                    SET location_name = ?, address = ?, customer_phone = ?, customer_email = ?, status = ?
+                    WHERE location_id = ?
+                  `, [projectName, address, phone, email, status, id])
+
+                  if (gateway && gateway.gateway_sn) {
+                    await connection.execute(`
+                      UPDATE gateways 
+                      SET gateway_sn = ?, ip_address = ?, status = ?
+                      WHERE location_id = ?
+                    `, [gateway.gateway_sn.toUpperCase(), gateway.ip_address, gateway.status, id])
+                  }
+
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: true, message: 'Đã cập nhật dự án thành công' }))
+                } catch (updateErr: any) {
+                  res.statusCode = 500
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: false, message: updateErr.message }))
+                } finally {
+                  await connection.end()
+                }
+              })
+              return
+            }
+
+            // 4. DELETE /api/customer-projects/:id
+            if (url.pathname.startsWith('/api/customer-projects/') && req.method === 'DELETE') {
+              const id = url.pathname.split('/')[3]
+              await connection.execute('DELETE FROM locations WHERE location_id = ?', [id])
+              res.setHeader('Content-Type', 'application/json; charset=utf-8')
+              res.end(JSON.stringify({ success: true, message: 'Đã xóa dự án khỏi database thành công' }))
+              await connection.end()
+              return
+            }
+
+            // 5. POST /api/customer-projects/:id/devices
+            if (url.pathname.endsWith('/devices') && req.method === 'POST') {
+              const parts = url.pathname.split('/')
+              const id = parts[3]
+              let body = ''
+              req.on('data', (chunk) => { body += chunk })
+              req.on('end', async () => {
+                try {
+                  const { device_code, device_name, device_type, slave_address, floor, location_name } = JSON.parse(body || '{}')
+                  const [gws]: any = await connection.execute('SELECT gateway_id FROM gateways WHERE location_id = ?', [id])
+                  if (gws.length === 0) {
+                    res.statusCode = 404
+                    res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                    res.end(JSON.stringify({ success: false, message: 'Không tìm thấy Gateway của dự án này' }))
+                    return
+                  }
+                  const gatewayId = gws[0].gateway_id
+                  const [result]: any = await connection.execute(`
+                    INSERT INTO devices (gateway_id, device_code, device_name, device_type, slave_address, floor)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                  `, [gatewayId, device_code.toUpperCase(), device_name, device_type || 'sensor', Number(slave_address) || 1, floor || location_name || 'Khu vực chính'])
+
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: true, message: 'Đã thêm thiết bị vào database', deviceId: result.insertId }))
+                } catch (devErr: any) {
+                  res.statusCode = 500
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: false, message: devErr.message }))
+                } finally {
+                  await connection.end()
+                }
+              })
+              return
+            }
+          } catch (err: any) {
+            await connection.end()
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.end(JSON.stringify({ success: false, message: err.message || 'Lỗi server customer-projects' }))
+            return
+          }
+        }
+
+        // DELETE /api/customer-devices/:deviceId
+        if (url.pathname.startsWith('/api/customer-devices/') && req.method === 'DELETE') {
+          const deviceId = url.pathname.split('/')[3]
+          const connection = await mysql.createConnection(mysqlConfig)
+          try {
+            await connection.execute('DELETE FROM devices WHERE device_id = ?', [deviceId])
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.end(JSON.stringify({ success: true, message: 'Đã xóa thiết bị thành công' }))
+          } catch (err: any) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.end(JSON.stringify({ success: false, message: err.message }))
+          } finally {
+            await connection.end()
+          }
+          return
+        }
+
         next()
       })
     },

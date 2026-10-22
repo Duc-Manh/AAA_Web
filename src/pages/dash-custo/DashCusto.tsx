@@ -92,7 +92,7 @@ export const DashCusto: React.FC = () => {
       <div className="dash-main">
         {/* TOP NAVBAR */}
         <DashHeader
-          title="Quản Lý Khách Hàng & Đối Tác"
+          title="Quản Lý Khách Hàng và Đối Tác"
           subtitle="Quản lý dữ liệu CRM, thông tin liên hệ và các dự án thông minh của khách hàng 3AHOME"
           isMobileOpen={isMobileOpen}
           setIsMobileOpen={setIsMobileOpen}

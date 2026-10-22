@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { Header } from '../../components/common/Header';
 import { Footer } from '../../components/common/Footer';
+import { Contact } from '../../components/common/Contact';
 import { ArrowRight, X, Cpu, Tag } from 'lucide-react';
 
 interface DeviceProduct {
@@ -178,6 +179,9 @@ export const Product: React.FC = () => {
 
       {/* 4. Footer */}
       <Footer />
+
+      {/* Nút liên hệ nhanh (Zalo & Hotline) */}
+      <Contact />
 
       {/* Contact Info Modal */}
       {isContactModalOpen && (

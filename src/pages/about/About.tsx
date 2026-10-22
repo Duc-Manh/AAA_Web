@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { Header } from '../../components/common/Header';
 import { Footer } from '../../components/common/Footer';
+import { Contact } from '../../components/common/Contact';
 import {
   Globe,
   CheckCircle2,
@@ -338,6 +339,9 @@ export const About: React.FC = () => {
 
       {/* 4. Footer */}
       <Footer />
+
+      {/* Nút liên hệ nhanh (Zalo & Hotline) */}
+      <Contact />
     </div>
   );
 };

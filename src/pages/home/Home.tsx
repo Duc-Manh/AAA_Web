@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { splitText, createTimeline, stagger } from 'animejs';
 import { Header } from '../../components/common/Header';
 import { Footer } from '../../components/common/Footer';
+import { Contact } from '../../components/common/Contact';
 import { SmartBuilding3D } from '../../components/home/SmartBuilding3D';
 import slide1 from '../../assets/images/slide1.png';
 import slide2 from '../../assets/images/slide2.png';
 import slide3 from '../../assets/images/slide3.png';
 import slide4 from '../../assets/images/slide4.png';
+import sauterLogo from '../../assets/images/sauter.png';
 import project1 from '../../assets/project/1.webp';
 import {
   ShieldCheck,
@@ -141,6 +143,17 @@ const BRAND_LOGOS = [
       <svg className="brand-logo-svg" viewBox="0 0 140 32" height="26" fill="none" xmlns="http://www.w3.org/2000/svg">
         <text x="2" y="23" fill="#EE1C25" fontFamily="Arial Black, Impact, sans-serif" fontSize="18" fontWeight="900" letterSpacing="1.2">BECKHOFF</text>
       </svg>
+    )
+  },
+  {
+    name: 'Sauter',
+    logo: (
+      <img
+        src={sauterLogo}
+        alt="Sauter"
+        className="brand-logo-svg"
+        style={{ height: '30px', width: 'auto', objectFit: 'contain', display: 'block' }}
+      />
     )
   }
 ];
@@ -1296,6 +1309,9 @@ export const Home: React.FC = () => {
           11. FOOTER
          =================================================================== */}
       <Footer />
+
+      {/* Nút liên hệ nhanh (Zalo & Hotline) */}
+      <Contact />
     </div>
   );
 };

@@ -192,7 +192,9 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: all 0.2s ease;
+  box-sizing: border-box;
+  transform: none !important;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   box-shadow: 0 1px 3px rgba(29, 88, 187, 0.2);
 }
 
@@ -200,21 +202,25 @@
   background: #ffffff;
   border-color: #1D58BB;
   color: #1D58BB;
-  box-shadow: 0 2px 6px rgba(29, 88, 187, 0.15);
+  transform: none !important;
+  box-shadow: 0 1px 3px rgba(29, 88, 187, 0.2);
 }
 
 .dash-popup-tab-btn.active {
   background: #15459b;
   border-color: #15459b;
   color: #ffffff;
-  box-shadow: 0 2px 8px rgba(21, 69, 155, 0.35);
-  font-weight: 700;
+  font-weight: 600;
+  transform: none !important;
+  box-shadow: 0 1px 3px rgba(21, 69, 155, 0.25);
 }
 
 .dash-popup-tab-btn.active:hover {
   background: #ffffff;
   border-color: #1D58BB;
   color: #1D58BB;
+  transform: none !important;
+  box-shadow: 0 1px 3px rgba(29, 88, 187, 0.2);
 }
 
 .dash-popup-tab-count {
@@ -224,24 +230,31 @@
   background: rgba(255, 255, 255, 0.25);
   color: #ffffff;
   font-weight: 700;
-  transition: all 0.2s ease;
+  border: 1px solid transparent;
+  box-sizing: border-box;
+  transform: none !important;
+  transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
 }
 
 .dash-popup-tab-btn:hover .dash-popup-tab-count {
   background: #eff6ff;
   color: #1D58BB;
-  border: 1px solid #bfdbfe;
+  border-color: #bfdbfe;
+  transform: none !important;
 }
 
 .dash-popup-tab-btn.active .dash-popup-tab-count {
   background: rgba(255, 255, 255, 0.3);
   color: #ffffff;
+  border-color: transparent;
+  transform: none !important;
 }
 
 .dash-popup-tab-btn.active:hover .dash-popup-tab-count {
   background: #eff6ff;
   color: #1D58BB;
-  border: 1px solid #bfdbfe;
+  border-color: #bfdbfe;
+  transform: none !important;
 }
 
 /* List Body */

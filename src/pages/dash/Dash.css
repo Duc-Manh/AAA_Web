@@ -3009,3 +3009,16 @@ body:has(.dash-page-container) .entertain-widget,
     font-size: 0.72rem;
   }
 }
+
+.dash-spin {
+  animation: dashSpin 0.8s linear infinite;
+}
+
+@keyframes dashSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
