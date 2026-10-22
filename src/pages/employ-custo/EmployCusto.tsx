@@ -126,8 +126,29 @@ export const EmployCusto: React.FC = () => {
   // Modal 4: Xem chi tiết
   const [viewingItem, setViewingItem] = useState<ProjectCustomerItem | null>(null);
 
-  // Modal 5: Xóa
+  // Modal 5: Xóa có mã xác thực
   const [deletingItem, setDeletingItem] = useState<ProjectCustomerItem | null>(null);
+  const [deleteAuthCode, setDeleteAuthCode] = useState<string>('');
+  const [deleteInputCode, setDeleteInputCode] = useState<string>('');
+  const [deleteError, setDeleteError] = useState<string>('');
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+
+  const generateDeleteAuthCode = () => {
+    const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ';
+    let code = '';
+    for (let i = 0; i < 4; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    setDeleteAuthCode(code);
+    setDeleteInputCode('');
+    setDeleteError('');
+    return code;
+  };
+
+  const openDeleteModal = (item: ProjectCustomerItem) => {
+    setDeletingItem(item);
+    generateDeleteAuthCode();
+  };
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -481,10 +502,22 @@ export const EmployCusto: React.FC = () => {
     triggerToast('Đã xóa thiết bị khỏi hệ thống!');
   };
 
-  // Xóa dự án
+  // Xóa dự án có mã xác thực
   const handleConfirmDelete = async () => {
     if (!deletingItem) return;
 
+    if (!deleteInputCode.trim()) {
+      setDeleteError('Vui lòng nhập mã xác thực!');
+      return;
+    }
+
+    if (deleteInputCode.trim().toUpperCase() !== deleteAuthCode.toUpperCase()) {
+      setDeleteError('Mã xác thực không chính xác. Vui lòng nhập lại!');
+      generateDeleteAuthCode();
+      return;
+    }
+
+    setIsDeleting(true);
     try {
       const res = await fetch(`/api/customer-projects/${deletingItem.id}`, {
         method: 'DELETE'
@@ -496,10 +529,14 @@ export const EmployCusto: React.FC = () => {
       }
     } catch {
       setProjects(projects.filter((item) => item.id !== deletingItem.id));
+    } finally {
+      setIsDeleting(false);
     }
 
-    triggerToast(`Đã xóa dự án "${deletingItem.projectName}" khỏi hệ thống!`);
+    triggerToast(`Đã xóa vĩnh viễn dự án "${deletingItem.projectName}" khỏi locations, gateways và devices!`);
     setDeletingItem(null);
+    setDeleteInputCode('');
+    setDeleteError('');
   };
 
   // Thống kê nhanh
@@ -1090,7 +1127,7 @@ export const EmployCusto: React.FC = () => {
                               <button
                                 type="button"
                                 title="Xóa dự án"
-                                onClick={() => setDeletingItem(item)}
+                                onClick={() => openDeleteModal(item)}
                                 style={{
                                   width: '32px',
                                   height: '32px',
@@ -2319,7 +2356,7 @@ export const EmployCusto: React.FC = () => {
       )}
 
       {/* ============================================================ */}
-      {/* MODAL 5: XÁC NHẬN XÓA DỰ ÁN                                  */}
+      {/* MODAL 5: XÁC NHẬN XÓA DỰ ÁN (YÊU CẦU MÃ XÁC THỰC)             */}
       {/* ============================================================ */}
       {deletingItem && (
         <div
@@ -2340,7 +2377,7 @@ export const EmployCusto: React.FC = () => {
               backgroundColor: '#ffffff',
               borderRadius: '16px',
               width: '100%',
-              maxWidth: '440px',
+              maxWidth: '460px',
               padding: '24px',
               boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
               border: '1px solid #e2e8f0',
@@ -2363,17 +2400,121 @@ export const EmployCusto: React.FC = () => {
               <AlertCircle size={28} />
             </div>
 
-            <h3 style={{ margin: '0 0 8px', fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>
-              Xác Nhận Xóa Dự Án?
+            <h3 style={{ margin: '0 0 8px', fontSize: '1.2rem', fontWeight: 700, color: '#0f172a' }}>
+              Xác Nhận Xóa Vĩnh Viễn Dự Án?
             </h3>
-            <p style={{ margin: '0 0 24px', fontSize: '0.88rem', color: '#64748b', lineHeight: 1.5 }}>
-              Bạn có chắc chắn muốn xóa dự án <strong>"{deletingItem.projectName}"</strong> kèm Gateway và toàn bộ {deletingItem.devices.length} thiết bị liên quan khỏi hệ thống? Thao tác này không thể hoàn tác.
+            <p style={{ margin: '0 0 16px', fontSize: '0.88rem', color: '#475569', lineHeight: 1.5 }}>
+              Bạn đang thực hiện xóa dự án <strong>"{deletingItem.projectName}"</strong> (Gateway: <code style={{ color: '#1D58BB', fontWeight: 700 }}>{deletingItem.gateway.gateway_sn}</code>).
             </p>
+
+            {/* Hộp thông báo ảnh hưởng database */}
+            <div
+              style={{
+                backgroundColor: '#fff1f2',
+                border: '1px solid #fecdd3',
+                borderRadius: '10px',
+                padding: '12px',
+                marginBottom: '18px',
+                textAlign: 'left',
+                fontSize: '0.82rem',
+                color: '#9f1239',
+                lineHeight: 1.6
+              }}
+            >
+              <div style={{ fontWeight: 700, marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <AlertCircle size={14} /> Thao tác này sẽ xóa đồng bộ 3 bảng trong Database:
+              </div>
+              <ul style={{ margin: 0, paddingLeft: '18px' }}>
+                <li>Hàng dự án trong bảng <strong>locations</strong></li>
+                <li>Hàng Gateway liên quan trong bảng <strong>gateways</strong></li>
+                <li>Toàn bộ {deletingItem.devices.length} thiết bị con trong bảng <strong>devices</strong></li>
+              </ul>
+            </div>
+
+            {/* Khung yêu cầu nhập mã xác thực */}
+            <div style={{ marginBottom: '20px', textAlign: 'left' }}>
+              <label style={{ display: 'block', fontSize: '0.84rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                Nhập mã xác thực để tiếp tục:
+              </label>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <input
+                  type="text"
+                  placeholder="Nhập mã xác thực..."
+                  value={deleteInputCode}
+                  onChange={(e) => {
+                    setDeleteInputCode(e.target.value);
+                    if (deleteError) setDeleteError('');
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      handleConfirmDelete();
+                    }
+                  }}
+                  maxLength={6}
+                  style={{
+                    flex: 1,
+                    padding: '10px 14px',
+                    fontSize: '0.95rem',
+                    fontWeight: 700,
+                    letterSpacing: '2px',
+                    textAlign: 'center',
+                    border: deleteError ? '2px solid #ef4444' : '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    fontFamily: 'monospace',
+                    textTransform: 'uppercase'
+                  }}
+                  autoFocus
+                />
+
+                <div
+                  onClick={generateDeleteAuthCode}
+                  title="Nhấn để đổi mã xác thực mới"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '9px 12px',
+                    backgroundColor: '#f1f5f9',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    cursor: 'pointer',
+                    userSelect: 'none'
+                  }}
+                >
+                  <span
+                    style={{
+                      fontFamily: 'monospace',
+                      fontWeight: 800,
+                      fontSize: '1.05rem',
+                      letterSpacing: '3px',
+                      color: '#0f172a'
+                    }}
+                  >
+                    {deleteAuthCode}
+                  </span>
+                  <RefreshCw size={14} color="#64748b" />
+                </div>
+              </div>
+
+              {deleteError && (
+                <div style={{ marginTop: '6px', fontSize: '0.8rem', color: '#ef4444', fontWeight: 600 }}>
+                  ⚠️ {deleteError}
+                </div>
+              )}
+            </div>
 
             <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
               <button
                 type="button"
-                onClick={() => setDeletingItem(null)}
+                disabled={isDeleting}
+                onClick={() => {
+                  setDeletingItem(null);
+                  setDeleteInputCode('');
+                  setDeleteError('');
+                }}
                 style={{
                   padding: '9px 18px',
                   backgroundColor: '#f1f5f9',
@@ -2389,20 +2530,21 @@ export const EmployCusto: React.FC = () => {
               </button>
               <button
                 type="button"
+                disabled={isDeleting}
                 onClick={handleConfirmDelete}
                 style={{
                   padding: '9px 20px',
-                  backgroundColor: '#ef4444',
+                  backgroundColor: isDeleting ? '#f87171' : '#ef4444',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: '8px',
                   fontSize: '0.86rem',
                   fontWeight: 600,
-                  cursor: 'pointer',
+                  cursor: isDeleting ? 'not-allowed' : 'pointer',
                   boxShadow: '0 2px 8px rgba(239, 68, 68, 0.3)'
                 }}
               >
-                Xác nhận xóa
+                {isDeleting ? 'Đang xóa...' : 'Xác nhận xóa vĩnh viễn'}
               </button>
             </div>
           </div>
