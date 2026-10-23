@@ -11,7 +11,6 @@ import {
   Search,
   Building2,
   CheckCircle2,
-  Clock,
   Server,
   Play,
   Pause,
@@ -648,19 +647,13 @@ export const EmployOperate: React.FC = () => {
                     >
                       <th style={{ padding: '14px 16px', width: '48px', textAlign: 'center' }}></th>
                       <th style={{ padding: '14px 20px', width: '38%' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Building2 size={15} color="#7c3aed" /> DỰ ÁN KHÁCH HÀNG
-                        </div>
+                        DỰ ÁN KHÁCH HÀNG
                       </th>
                       <th style={{ padding: '14px 20px', width: '38%' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <Network size={15} color="#16a34a" /> IOT GATEWAY KẾT NỐI
-                        </div>
+                        IOT GATEWAY KẾT NỐI
                       </th>
                       <th style={{ padding: '14px 20px', textAlign: 'right' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '6px' }}>
-                          <Clock size={14} /> CHI TIẾT & THAO TÁC
-                        </div>
+                        CHI TIẾT và THAO TÁC
                       </th>
                     </tr>
                   </thead>
