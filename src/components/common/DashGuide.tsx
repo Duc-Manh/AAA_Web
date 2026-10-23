@@ -193,7 +193,7 @@ export const DashGuide: React.FC<DashGuideProps> = ({
 
   return (
     <>
-      <div className="dash-guide-popover dash-guide-popover-dash" role="dialog" aria-modal="true">
+      <div className="dash-guide-popover dash-guide-popover-emp" role="dialog" aria-modal="true">
         {/* Header Modal */}
         <div className="dash-guide-popover-header">
           <div className="dash-guide-header-title-wrap">

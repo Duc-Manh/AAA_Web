@@ -2901,79 +2901,68 @@ body:has(.dash-page-container) .entertain-widget,
 }
 
 /* ==========================================================================
-   TÙY CHỈNH KÍCH THƯỚC: DASHGUIDE VÀ EMPGUIDE CHIẾM 70% WIDTH MÀN HÌNH
+   TÙY CHỈNH KÍCH THƯỚC: DASHGUIDE VÀ EMPGUIDE ĐỒNG BỘ 750PX
    ========================================================================== */
-.dash-guide-popover-dash {
-  width: 70vw;
-  max-width: 70vw;
-  right: 0;
-}
-
-.dash-guide-popover-dash::before {
-  right: 38px;
-}
-
-.dash-guide-popover-dash .dash-guide-img-card {
-  width: 100%;
-  max-width: 280px;
-  height: 140px;
-}
-
-/* Kích thước thu nhỏ gọn gàng cho EmpGuide */
+.dash-guide-popover-dash,
 .dash-guide-popover-emp {
   width: 750px;
   max-width: calc(100vw - 28px);
   right: 0;
 }
 
+.dash-guide-popover-dash::before,
 .dash-guide-popover-emp::before {
   right: 28px;
 }
 
+.dash-guide-popover-dash .dash-guide-img-card,
 .dash-guide-popover-emp .dash-guide-img-card {
   width: 100%;
   max-width: 220px;
   height: 115px;
 }
 
+.dash-guide-popover-dash .dash-guide-popover-body,
 .dash-guide-popover-emp .dash-guide-popover-body {
   max-height: 420px;
   padding: 8px 14px;
 }
 
+.dash-guide-popover-dash .dash-guide-table th,
+.dash-guide-popover-dash .dash-guide-table td,
 .dash-guide-popover-emp .dash-guide-table th,
 .dash-guide-popover-emp .dash-guide-table td {
   padding: 10px 10px;
 }
 
+.dash-guide-popover-dash .dash-guide-row-title,
 .dash-guide-popover-emp .dash-guide-row-title {
   font-size: 0.88rem;
   margin-bottom: 4px;
 }
 
+.dash-guide-popover-dash .dash-guide-row-desc,
 .dash-guide-popover-emp .dash-guide-row-desc {
   font-size: 0.8rem;
   line-height: 1.45;
   margin-bottom: 6px;
 }
 
+.dash-guide-popover-dash .dash-guide-category-badge,
 .dash-guide-popover-emp .dash-guide-category-badge {
   padding: 4px 10px;
   font-size: 0.74rem;
   border-radius: 6px;
 }
 
+.dash-guide-popover-dash .dash-guide-tag-pill,
 .dash-guide-popover-emp .dash-guide-tag-pill {
   font-size: 0.7rem;
   padding: 2px 7px;
 }
 
 @media (max-width: 1200px) {
-  .dash-guide-popover-dash {
-    width: 80vw;
-    max-width: 80vw;
-  }
-
+  .dash-guide-popover-dash,
   .dash-guide-popover-emp {
     width: 680px;
     max-width: calc(100vw - 24px);
