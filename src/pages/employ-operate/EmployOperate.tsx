@@ -8,7 +8,6 @@ import {
   Droplets,
   Zap,
   Cpu,
-  Radio,
   Search,
   Building2,
   CheckCircle2,
@@ -320,20 +319,6 @@ export const EmployOperate: React.FC = () => {
                 gap: '16px'
               }}
             >
-              <div
-                style={{
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: '14px',
-                  backgroundColor: '#eff6ff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#1D58BB'
-                }}
-              >
-                <Cpu size={26} strokeWidth={2} />
-              </div>
               <div>
                 <div style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
                   Thiết bị giám sát
@@ -360,20 +345,6 @@ export const EmployOperate: React.FC = () => {
                 gap: '16px'
               }}
             >
-              <div
-                style={{
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: '14px',
-                  backgroundColor: '#faf5ff',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#7c3aed'
-                }}
-              >
-                <Building2 size={26} strokeWidth={2} />
-              </div>
               <div>
                 <div style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
                   Dự án triển khai
@@ -400,20 +371,6 @@ export const EmployOperate: React.FC = () => {
                 gap: '16px'
               }}
             >
-              <div
-                style={{
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: '14px',
-                  backgroundColor: '#f0fdf4',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#16a34a'
-                }}
-              >
-                <Network size={26} strokeWidth={2} />
-              </div>
               <div>
                 <div style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
                   IoT Gateway
@@ -440,20 +397,6 @@ export const EmployOperate: React.FC = () => {
                 gap: '16px'
               }}
             >
-              <div
-                style={{
-                  width: '52px',
-                  height: '52px',
-                  borderRadius: '14px',
-                  backgroundColor: '#ecfdf5',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#10b981'
-                }}
-              >
-                <Radio size={26} strokeWidth={2} />
-              </div>
               <div>
                 <div style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
                   MQTT Broker & WS
