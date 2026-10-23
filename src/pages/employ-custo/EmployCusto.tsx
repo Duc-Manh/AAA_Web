@@ -1641,7 +1641,7 @@ export const EmployCusto: React.FC = () => {
                     boxShadow: '0 2px 8px rgba(29, 88, 187, 0.3)'
                   }}
                 >
-                  Tạo dự án & Lưu dữ liệu
+                  Tạo dự án và Lưu dữ liệu
                 </button>
               </div>
             </form>
@@ -1709,7 +1709,7 @@ export const EmployCusto: React.FC = () => {
                 </div>
                 <div>
                   <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>
-                    Danh Mục Thiết Bị: {deviceModalProject.projectName}
+                    Danh Mục Thiết Bị Dùng Trong Dự Án: {deviceModalProject.projectName}
                   </h3>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginTop: '2px', fontSize: '0.8rem', color: '#64748b' }}>
                     <span>Gateway SN: <strong style={{ fontFamily: 'monospace', color: '#1D58BB' }}>{deviceModalProject.gateway.gateway_sn}</strong></span>
