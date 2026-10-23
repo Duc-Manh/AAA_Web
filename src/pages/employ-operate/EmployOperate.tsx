@@ -1053,7 +1053,7 @@ export const EmployOperate: React.FC = () => {
                                                       fontWeight: 600
                                                     }}
                                                   >
-                                                    <CheckCircle2 size={11} /> Hoạt động
+                                                    <CheckCircle2 size={11} /> Online
                                                   </span>
                                                 </td>
                                               </tr>
