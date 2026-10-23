@@ -9,6 +9,7 @@ import {
   Building2,
   Mail,
   Phone,
+  KeyRound,
   Cpu,
   Edit3,
   Trash2,
@@ -55,6 +56,7 @@ export interface ProjectCustomerItem {
   address: string;           // maps to locations.address
   email: string;
   phone: string;
+  customer_pass?: string;    // maps to locations.customer_pass
   gateway: GatewayInfo;      // maps to gateways
   devices: DeviceItem[];     // maps to devices
   status: 'active' | 'installing' | 'maintenance'; // Trạng thái dự án
@@ -305,6 +307,7 @@ export const DashCusto: React.FC = () => {
       address: newAddress.trim(),
       email: newEmail.trim() || 'Chưa cập nhật',
       phone: newPhone.trim(),
+      customer_pass: '3AH@me', // Tự động tạo giá trị cột customer_pass là 3AH@me
       gateway: {
         gateway_sn: newGatewaySn.trim().toUpperCase(),
         ip_address: newGatewayIp.trim() || '192.168.1.250',
@@ -329,6 +332,7 @@ export const DashCusto: React.FC = () => {
         const newProject: ProjectCustomerItem = {
           ...payload,
           id: Date.now(),
+          customer_pass: '3AH@me',
           createdAt: formattedDate,
           devices: newDevices.map((d, idx) => ({ ...d, id: Date.now() + idx }))
         };
@@ -376,6 +380,7 @@ export const DashCusto: React.FC = () => {
       address: editAddress.trim(),
       email: editEmail.trim() || 'Chưa cập nhật',
       phone: editPhone.trim(),
+      customer_pass: editingItem.customer_pass || '3AH@me',
       gateway: {
         ...editingItem.gateway,
         gateway_sn: editGatewaySn.trim().toUpperCase(),
@@ -1000,6 +1005,10 @@ export const DashCusto: React.FC = () => {
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b' }}>
                                 <Mail size={13} color="#94a3b8" />
                                 <span style={{ fontSize: '0.8rem' }}>{item.email}</span>
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669' }}>
+                                <KeyRound size={12} color="#059669" />
+                                <span style={{ fontSize: '0.78rem', fontWeight: 600, fontFamily: 'monospace' }}>Pass: {item.customer_pass || '3AH@me'}</span>
                               </div>
                             </div>
                           </td>
@@ -2259,6 +2268,10 @@ export const DashCusto: React.FC = () => {
                   <div>
                     <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'block' }}>Email</span>
                     <span style={{ fontSize: '0.88rem', color: '#334155' }}>{viewingItem.email}</span>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '0.78rem', color: '#64748b', display: 'block' }}>Mật khẩu khách hàng</span>
+                    <span style={{ fontSize: '0.88rem', fontWeight: 600, color: '#059669', fontFamily: 'monospace' }}>{viewingItem.customer_pass || '3AH@me'}</span>
                   </div>
                 </div>
               </div>
