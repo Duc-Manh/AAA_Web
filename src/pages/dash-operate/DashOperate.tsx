@@ -114,7 +114,8 @@ export const DashOperate: React.FC = () => {
   const fetchTelemetryData = async (showLoading = false) => {
     if (showLoading) setLoading(true);
     try {
-      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+      const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+      const backendUrl = import.meta.env.VITE_API_URL || (isLocal ? 'http://localhost:5000' : '');
       const res = await fetch(`${backendUrl}/api/telemetry-data`);
       if (res.ok) {
         const json = await res.json();
@@ -150,8 +151,11 @@ export const DashOperate: React.FC = () => {
 
     const connectWs = () => {
       try {
-        const hostname = window.location.hostname || 'localhost';
-        const wsUrl = `ws://${hostname}:5000/ws`;
+        const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+        const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = isLocal 
+          ? `ws://${window.location.hostname}:5000/ws`
+          : `${wsProtocol}//${window.location.host}/ws`;
         ws = new WebSocket(wsUrl);
         wsRef.current = ws;
 
