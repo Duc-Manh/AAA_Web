@@ -1337,8 +1337,8 @@ export const EmployCusto: React.FC = () => {
               {/* PHẦN 2: THÔNG TIN GATEWAY 3ONEDATA (gateways) */}
               <div style={{ marginBottom: '22px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px dashed #cbd5e1', paddingBottom: '6px' }}>
-                  <Radio size={16} color="#059669" />
-                  <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#059669', textTransform: 'uppercase' }}>
+                  <Radio size={16} color="#1D58BB" />
+                  <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#1D58BB', textTransform: 'uppercase' }}>
                     2. Khai báo Gateway IoT
                   </span>
                 </div>
@@ -1415,11 +1415,11 @@ export const EmployCusto: React.FC = () => {
               <div style={{ marginBottom: '22px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', borderBottom: '1px dashed #cbd5e1', paddingBottom: '6px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                    <Cpu size={16} color="#7c3aed" />
-                    <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#7c3aed', textTransform: 'uppercase' }}>
+                    <Cpu size={16} color="#1D58BB" />
+                    <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#1D58BB', textTransform: 'uppercase' }}>
                       3. Danh mục Thiết bị kết nối
                     </span>
-                    <span style={{ fontSize: '0.78rem', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#ede9fe', color: '#6d28d9', fontWeight: 600 }}>
+                    <span style={{ fontSize: '0.78rem', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#eff6ff', color: '#1D58BB', fontWeight: 600 }}>
                       {newDevices.length} Thiết bị
                     </span>
                   </div>
