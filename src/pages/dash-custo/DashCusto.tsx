@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import bcrypt from 'bcryptjs';
 import '../dash/Dash.css';
 import { DashAside } from '../../components/common/DashAside';
 import { DashHeader } from '../../components/common/DashHeader';
@@ -302,12 +303,21 @@ export const DashCusto: React.FC = () => {
       return;
     }
 
+    // Tự động tạo giá trị customer_pass trong bảng locations của database 3ahome là 3AH@me, mã hoá 3AH@me rồi lưu vào giá trị cột customer_pass bảng locations
+    const defaultRawPass = '3AH@me';
+    let hashedCustomerPass = defaultRawPass;
+    try {
+      hashedCustomerPass = bcrypt.hashSync(defaultRawPass, 10);
+    } catch (err) {
+      console.warn('Lỗi mã hoá customer_pass với bcryptjs:', err);
+    }
+
     const payload = {
       projectName: newProjectName.trim(),
       address: newAddress.trim(),
       email: newEmail.trim() || 'Chưa cập nhật',
       phone: newPhone.trim(),
-      customer_pass: '3AH@me', // Tự động tạo giá trị cột customer_pass là 3AH@me
+      customer_pass: hashedCustomerPass, // Tự động tạo và mã hoá 3AH@me
       gateway: {
         gateway_sn: newGatewaySn.trim().toUpperCase(),
         ip_address: newGatewayIp.trim() || '192.168.1.250',
@@ -332,7 +342,7 @@ export const DashCusto: React.FC = () => {
         const newProject: ProjectCustomerItem = {
           ...payload,
           id: Date.now(),
-          customer_pass: '3AH@me',
+          customer_pass: hashedCustomerPass,
           createdAt: formattedDate,
           devices: newDevices.map((d, idx) => ({ ...d, id: Date.now() + idx }))
         };

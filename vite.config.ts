@@ -7,7 +7,7 @@ import fs from 'fs'
 import path from 'path'
 
 const mysqlConfig = {
-  host: process.env.DB_HOST || 'localhost',
+  host: process.env.DB_HOST || '103.68.85.209',
   user: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '12345678',
   database: process.env.DB_NAME || '3ahome',
@@ -1472,11 +1472,20 @@ function mysqlSimuPlugin(): Plugin {
               req.on('data', (chunk) => { body += chunk })
               req.on('end', async () => {
                 try {
-                  const { projectName, address, phone, email, gateway, status, devices } = JSON.parse(body || '{}')
+                  const { projectName, address, phone, email, customer_pass, gateway, status, devices } = JSON.parse(body || '{}')
+                  const rawPass = customer_pass || '3AH@me'
+                  let hashedPass = rawPass
+                  try {
+                    if (!rawPass.startsWith('$2a$') && !rawPass.startsWith('$2b$')) {
+                      hashedPass = bcrypt.hashSync(rawPass, 10)
+                    }
+                  } catch {
+                    hashedPass = rawPass
+                  }
                   const [locResult]: any = await connection.execute(`
-                    INSERT INTO locations (location_name, address, customer_phone, customer_email, status)
-                    VALUES (?, ?, ?, ?, ?)
-                  `, [projectName, address, phone, email || null, status || 'installing'])
+                    INSERT INTO locations (location_name, address, customer_phone, customer_email, customer_pass, status)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                  `, [projectName, address, phone, email || null, hashedPass, status || 'installing'])
                   const locationId = locResult.insertId
 
                   let gatewayId = null

@@ -17,8 +17,10 @@ import {
   Pause,
   Network,
   ChevronDown,
-  ChevronRight
+  ChevronRight,
+  BarChart3
 } from 'lucide-react';
+import { ProjectTelemetryChartModal } from '../../components/common/ProjectTelemetryChartModal';
 
 interface CurrentUserData {
   id?: number;
@@ -77,6 +79,9 @@ export const DashOperate: React.FC = () => {
 
   // Trạng thái đóng/mở dropdown của từng Dự án (mặc định mở dự án đầu tiên)
   const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
+
+  // Dự án được chọn để xem Biểu đồ viễn trắc (telemetry_history)
+  const [selectedChartProject, setSelectedChartProject] = useState<ProjectGroup | null>(null);
 
   // Bộ lọc
   const [searchQuery, setSearchQuery] = useState('');
@@ -363,7 +368,7 @@ export const DashOperate: React.FC = () => {
                 <div style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
                   Thiết bị giám sát
                 </div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#1d58bb', lineHeight: 1.2 }}>
                   {telemetryList.length} thiết bị
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#16a34a', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -389,7 +394,7 @@ export const DashOperate: React.FC = () => {
                 <div style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
                   Dự án triển khai
                 </div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#7c3aed', lineHeight: 1.2 }}>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#1d58bb', lineHeight: 1.2 }}>
                   {uniqueProjects.length} Dự án
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
@@ -415,7 +420,7 @@ export const DashOperate: React.FC = () => {
                 <div style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
                   IoT Gateway
                 </div>
-                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#16a34a', lineHeight: 1.2 }}>
+                <div style={{ fontSize: '1.6rem', fontWeight: 800, color: '#1d58bb', lineHeight: 1.2 }}>
                   {uniqueGateways.length} Gateway
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#16a34a', marginTop: '4px' }}>
@@ -441,7 +446,7 @@ export const DashOperate: React.FC = () => {
                 <div style={{ fontSize: '0.82rem', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>
                   MQTT Broker & WS
                 </div>
-                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#0f172a', lineHeight: 1.2 }}>
+                <div style={{ fontSize: '1.2rem', fontWeight: 800, color: '#1d58bb', lineHeight: 1.2 }}>
                   Port 1883 / 5000
                 </div>
                 <div style={{ fontSize: '0.75rem', color: wsStatus === 'connected' ? '#16a34a' : '#d97706', marginTop: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}>
@@ -761,8 +766,8 @@ export const DashOperate: React.FC = () => {
                                       width: '36px',
                                       height: '36px',
                                       borderRadius: '8px',
-                                      backgroundColor: '#ede9fe',
-                                      color: '#7c3aed',
+                                      backgroundColor: '#eff6ff',
+                                      color: '#1d58bb',
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
@@ -790,8 +795,8 @@ export const DashOperate: React.FC = () => {
                                       width: '36px',
                                       height: '36px',
                                       borderRadius: '8px',
-                                      backgroundColor: '#ecfdf5',
-                                      color: '#16a34a',
+                                      backgroundColor: '#eff6ff',
+                                      color: '#1d58bb',
                                       display: 'flex',
                                       alignItems: 'center',
                                       justifyContent: 'center',
@@ -837,34 +842,71 @@ export const DashOperate: React.FC = () => {
                               </td>
 
                               {/* Cột 3: CHI TIẾT & NÚT DROPDOWN */}
-                              <td style={{ padding: '16px 20px', textAlign: 'right' }}>
-                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                                  <button
-                                    type="button"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      toggleProject(group.project_name);
-                                    }}
-                                    style={{
-                                      display: 'inline-flex',
-                                      alignItems: 'center',
-                                      gap: '6px',
-                                      padding: '6px 14px',
-                                      borderRadius: '8px',
-                                      border: isExpanded ? '1px solid #93c5fd' : '1px solid #cbd5e1',
-                                      backgroundColor: isExpanded ? '#1D58BB' : '#ffffff',
-                                      color: isExpanded ? '#ffffff' : '#1D58BB',
-                                      fontSize: '0.8rem',
-                                      fontWeight: 600,
-                                      cursor: 'pointer',
-                                      boxShadow: isExpanded ? '0 2px 6px rgba(29, 88, 187, 0.25)' : 'none',
-                                      transition: 'all 0.15s ease'
-                                    }}
-                                  >
-                                    <span>{group.devices.length} Thiết bị con</span>
-                                    {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-                                  </button>
-                                  <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'monospace' }}>
+                              <td style={{ padding: '16px 20px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px', flexShrink: 0 }}>
+                                  {/* HÀNG NGANG CHỨA NÚT BIỂU ĐỒ & NÚT THIẾT BỊ CON */}
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    {/* NÚT BIỂU ĐỒ VIỄN TRẮC (telemetry_history) */}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setSelectedChartProject(group);
+                                      }}
+                                      style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        padding: '6px 14px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #1D58BB',
+                                        backgroundColor: '#eff6ff',
+                                        color: '#1D58BB',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        boxShadow: '0 1px 3px rgba(29, 88, 187, 0.12)',
+                                        transition: 'all 0.15s ease',
+                                        whiteSpace: 'nowrap',
+                                        flexShrink: 0
+                                      }}
+                                      title={`Xem biểu đồ đường & cột của các giá trị viễn trắc trong bảng telemetry_history (${group.project_name})`}
+                                    >
+                                      <BarChart3 size={14} />
+                                      <span>Biểu đồ</span>
+                                    </button>
+
+                                    {/* NÚT THIẾT BỊ CON */}
+                                    <button
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        toggleProject(group.project_name);
+                                      }}
+                                      style={{
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: '6px',
+                                        padding: '6px 14px',
+                                        borderRadius: '8px',
+                                        border: isExpanded ? '1px solid #93c5fd' : '1px solid #cbd5e1',
+                                        backgroundColor: isExpanded ? '#1D58BB' : '#ffffff',
+                                        color: isExpanded ? '#ffffff' : '#1D58BB',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 600,
+                                        cursor: 'pointer',
+                                        boxShadow: isExpanded ? '0 2px 6px rgba(29, 88, 187, 0.25)' : 'none',
+                                        transition: 'all 0.15s ease',
+                                        whiteSpace: 'nowrap',
+                                        flexShrink: 0
+                                      }}
+                                    >
+                                      <span>{group.devices.length} Thiết bị con</span>
+                                      {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+                                    </button>
+                                  </div>
+
+                                  <div style={{ fontSize: '0.72rem', color: '#94a3b8', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>
                                     Cập nhật: {group.latest_recorded_at || 'Vừa xong'}
                                   </div>
                                 </div>
@@ -1139,6 +1181,14 @@ export const DashOperate: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Modal Biểu đồ lịch sử viễn trắc (telemetry_history) */}
+      {selectedChartProject && (
+        <ProjectTelemetryChartModal
+          project={selectedChartProject}
+          onClose={() => setSelectedChartProject(null)}
+        />
+      )}
 
       {/* Thông báo yêu cầu trình duyệt từ nhân viên */}
       <DashPopup />
