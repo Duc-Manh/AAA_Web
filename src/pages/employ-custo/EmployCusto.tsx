@@ -105,6 +105,7 @@ export const EmployCusto: React.FC = () => {
   const [tempDevType, setTempDevType] = useState<'sensor' | 'motor' | 'light' | 'ac'>('sensor');
   const [tempSlaveAddr, setTempSlaveAddr] = useState<number>(1);
   const [tempLocation, setTempLocation] = useState('');
+  const [showDevCodeTip, setShowDevCodeTip] = useState(false);
 
   // Modal 2: Sửa dự án
   const [editingItem, setEditingItem] = useState<ProjectCustomerItem | null>(null);
@@ -1436,14 +1437,61 @@ export const EmployCusto: React.FC = () => {
                   }}
                 >
                   <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.6fr 1.2fr 0.8fr 1.2fr auto', gap: '8px', alignItems: 'flex-end' }}>
-                    <div>
-                      <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '2px' }}>Mã device_code</label>
+                    <div style={{ position: 'relative' }}>
+                      {showDevCodeTip && (
+                        <div
+                          style={{
+                            position: 'absolute',
+                            bottom: 'calc(100% + 5px)',
+                            left: '0',
+                            backgroundColor: '#ea580c',
+                            color: '#ffffff',
+                            padding: '4px 8px',
+                            borderRadius: '6px',
+                            fontSize: '0.72rem',
+                            fontWeight: 600,
+                            whiteSpace: 'nowrap',
+                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.15)',
+                            zIndex: 30,
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          <span>Đây là mã kết nối chính</span>
+                          <div
+                            style={{
+                              position: 'absolute',
+                              top: '100%',
+                              left: '12px',
+                              width: 0,
+                              height: 0,
+                              borderLeft: '5px solid transparent',
+                              borderRight: '5px solid transparent',
+                              borderTop: '5px solid #ea580c'
+                            }}
+                          />
+                        </div>
+                      )}
+                      <label style={{ fontSize: '0.74rem', color: '#ea580c', fontWeight: 600, display: 'block', marginBottom: '2px' }}>
+                        Mã device_code
+                      </label>
                       <input
                         type="text"
                         placeholder="TEMP_T1_01"
                         value={tempDevCode}
+                        onFocus={() => setShowDevCodeTip(true)}
+                        onBlur={() => setShowDevCodeTip(false)}
                         onChange={(e) => setTempDevCode(e.target.value)}
-                        style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem', border: '1px solid #cbd5e1', borderRadius: '6px', fontFamily: 'monospace' }}
+                        style={{
+                          width: '100%',
+                          padding: '6px 8px',
+                          fontSize: '0.8rem',
+                          border: showDevCodeTip ? '1px solid #ea580c' : '1px solid #cbd5e1',
+                          borderRadius: '6px',
+                          fontFamily: 'monospace',
+                          outline: 'none'
+                        }}
                       />
                     </div>
                     <div>
