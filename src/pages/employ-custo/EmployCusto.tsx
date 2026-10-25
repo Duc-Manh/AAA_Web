@@ -1495,7 +1495,7 @@ export const EmployCusto: React.FC = () => {
                       onClick={handleAddTempDevice}
                       style={{
                         padding: '7px 12px',
-                        backgroundColor: '#7c3aed',
+                        backgroundColor: '#1D58BB',
                         color: '#ffffff',
                         border: 'none',
                         borderRadius: '6px',
