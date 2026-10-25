@@ -19,7 +19,6 @@ import {
   Radio,
   SlidersHorizontal,
   CheckCircle,
-  Zap,
   ListPlus,
   RefreshCw
 } from 'lucide-react';
@@ -236,21 +235,6 @@ export const EmployCusto: React.FC = () => {
     return matchQuery && matchStatus && matchGateway;
   });
 
-  // Tiện ích: Tạo nhanh mẫu 8 thiết bị (4 tầng x 2 thiết bị: CB nhiệt & Công tơ)
-  const handleLoadTemplateDevices = () => {
-    const template: Array<Omit<DeviceItem, 'id'>> = [
-      { device_code: 'TEMP_T1_01', device_name: 'Cảm biến nhiệt độ CB Tầng 1', device_type: 'sensor', slave_address: 1, location_name: 'Tầng 1' },
-      { device_code: 'EM_T1_01', device_name: 'Công tơ điện Tầng 1', device_type: 'sensor', slave_address: 2, location_name: 'Tầng 1' },
-      { device_code: 'TEMP_T2_01', device_name: 'Cảm biến nhiệt độ CB Tầng 2', device_type: 'sensor', slave_address: 3, location_name: 'Tầng 2' },
-      { device_code: 'EM_T2_01', device_name: 'Công tơ điện Tầng 2', device_type: 'sensor', slave_address: 4, location_name: 'Tầng 2' },
-      { device_code: 'TEMP_T3_01', device_name: 'Cảm biến nhiệt độ CB Tầng 3', device_type: 'sensor', slave_address: 5, location_name: 'Tầng 3' },
-      { device_code: 'EM_T3_01', device_name: 'Công tơ điện Tầng 3', device_type: 'sensor', slave_address: 6, location_name: 'Tầng 3' },
-      { device_code: 'TEMP_T4_01', device_name: 'Cảm biến nhiệt độ CB Tầng 4', device_type: 'sensor', slave_address: 7, location_name: 'Tầng 4' },
-      { device_code: 'EM_T4_01', device_name: 'Công tơ điện Tầng 4', device_type: 'sensor', slave_address: 8, location_name: 'Tầng 4' },
-    ];
-    setNewDevices(template);
-    triggerToast('Đã nạp khuôn mẫu 8 thiết bị cho 4 tầng thành công!');
-  };
 
   // Thêm thiết bị vào danh sách tạm khi tạo dự án
   const handleAddTempDevice = () => {
@@ -1237,9 +1221,6 @@ export const EmployCusto: React.FC = () => {
                   <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>
                     Tạo Thông Tin Dự Án Mới
                   </h3>
-                  <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>
-                    Khởi tạo dữ liệu đồng bộ 3 bảng (locations → gateways → devices)
-                  </p>
                 </div>
               </div>
               <button
@@ -1264,7 +1245,7 @@ export const EmployCusto: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px dashed #cbd5e1', paddingBottom: '6px' }}>
                   <Building2 size={16} color="#1D58BB" />
                   <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#1D58BB', textTransform: 'uppercase' }}>
-                    1. Thông tin Vị trí & Khách hàng (Bảng `locations`)
+                    1. Thông tin Vị trí & Khách hàng
                   </span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
@@ -1358,7 +1339,7 @@ export const EmployCusto: React.FC = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px dashed #cbd5e1', paddingBottom: '6px' }}>
                   <Radio size={16} color="#059669" />
                   <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#059669', textTransform: 'uppercase' }}>
-                    2. Khai báo Gateway IoT (Bảng `gateways`)
+                    2. Khai báo Gateway IoT
                   </span>
                 </div>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
@@ -1436,34 +1417,12 @@ export const EmployCusto: React.FC = () => {
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <Cpu size={16} color="#7c3aed" />
                     <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#7c3aed', textTransform: 'uppercase' }}>
-                      3. Danh mục Thiết bị kết nối (Bảng `devices`)
+                      3. Danh mục Thiết bị kết nối
                     </span>
                     <span style={{ fontSize: '0.78rem', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#ede9fe', color: '#6d28d9', fontWeight: 600 }}>
                       {newDevices.length} Thiết bị
                     </span>
                   </div>
-
-                  {/* Nút nạp nhanh mẫu 8 thiết bị */}
-                  <button
-                    type="button"
-                    onClick={handleLoadTemplateDevices}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: '5px 10px',
-                      backgroundColor: '#ede9fe',
-                      border: '1px solid #c4b5fd',
-                      borderRadius: '6px',
-                      fontSize: '0.78rem',
-                      fontWeight: 600,
-                      color: '#6d28d9',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <Zap size={13} />
-                    Nạp nhanh mẫu 8 thiết bị (4 tầng)
-                  </button>
                 </div>
 
                 {/* Form thêm thiết bị con */}
