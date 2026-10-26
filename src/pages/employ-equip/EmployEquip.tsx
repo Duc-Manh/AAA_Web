@@ -626,8 +626,8 @@ export const EmployEquip: React.FC = () => {
                     <th style={{ padding: '12px 14px', textAlign: 'right' }}>Đơn giá</th>
                     <th style={{ padding: '12px 14px', textAlign: 'right' }}>Thành tiền</th>
                     <th style={{ padding: '12px 14px' }}>Số chứng từ</th>
-                    <th style={{ padding: '12px 14px' }}>Thời gian nhập kho</th>
-                    <th style={{ padding: '12px 14px' }}>Thời gian xuất kho</th>
+                    <th style={{ padding: '12px 14px' }}>Nhập kho</th>
+                    <th style={{ padding: '12px 14px' }}>Xuất kho</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Tình trạng</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center', width: '90px' }}>Thao tác</th>
                   </tr>
@@ -837,9 +837,6 @@ export const EmployEquip: React.FC = () => {
                   <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
                     {editingItem ? 'Chỉnh Sửa Thông Tin Vật Tư' : 'Thêm Vật Tư Mới Vào Kho'}
                   </h3>
-                  <p style={{ margin: 0, fontSize: '0.78rem', color: '#64748b' }}>
-                    Lưu trữ vào bảng <code>storage</code> trong database 3ahome
-                  </p>
                 </div>
               </div>
               <button
