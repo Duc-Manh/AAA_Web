@@ -882,7 +882,7 @@ export const EmployEquip: React.FC = () => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Tên vật tư (name) <span style={{ color: '#ef4444' }}>*</span>
+                    Tên vật tư <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -903,7 +903,7 @@ export const EmployEquip: React.FC = () => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Đơn vị tính (unit)
+                    Đơn vị tính <span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -923,7 +923,7 @@ export const EmployEquip: React.FC = () => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Số lượng
+                    Số lượng<span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input
                     type="number"
@@ -943,7 +943,7 @@ export const EmployEquip: React.FC = () => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Đơn giá (VNĐ)
+                    Đơn giá (VNĐ)<span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input
                     type="number"
@@ -983,7 +983,7 @@ export const EmployEquip: React.FC = () => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Số chứng từ (invoice)
+                    Số chứng từ<span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input
                     type="text"
@@ -1003,7 +1003,7 @@ export const EmployEquip: React.FC = () => {
 
                 <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Tình trạng
+                    Tình trạng<span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <select
                     value={formStatus}
@@ -1018,17 +1018,14 @@ export const EmployEquip: React.FC = () => {
                       backgroundColor: '#ffffff'
                     }}
                   >
-                    <option value="Mới">🟢 Mới</option>
-                    <option value="Tồn kho">📦 Tồn kho</option>
-                    <option value="Đang sử dụng">⚡ Đang sử dụng</option>
-                    <option value="Bảo hành">⚠️ Bảo hành</option>
-                    <option value="Hỏng">❌ Hỏng</option>
+                    <option value="Tại kho">Tại kho</option>
+                    <option value="Tại dự án">Tại dự án</option>
                   </select>
                 </div>
 
-                <div>
+                <div style={{ gridColumn: editingItem ? 'span 2' : 'span 1' }}>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Thời gian nhập kho (time-in)
+                    Thời gian nhập kho<span style={{ color: '#ef4444' }}>*</span>
                   </label>
                   <input
                     type="datetime-local"
@@ -1045,24 +1042,26 @@ export const EmployEquip: React.FC = () => {
                   />
                 </div>
 
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Thời gian xuất kho (time-out)
-                  </label>
-                  <input
-                    type="datetime-local"
-                    value={formTimeOut}
-                    onChange={(e) => setFormTimeOut(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      fontSize: '0.85rem',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      outline: 'none'
-                    }}
-                  />
-                </div>
+                {!editingItem && (
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                      Thời gian xuất kho<span style={{ color: '#ef4444' }}>*</span>
+                    </label>
+                    <input
+                      type="datetime-local"
+                      value={formTimeOut}
+                      onChange={(e) => setFormTimeOut(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '9px 12px',
+                        fontSize: '0.85rem',
+                        border: '1px solid #cbd5e1',
+                        borderRadius: '8px',
+                        outline: 'none'
+                      }}
+                    />
+                  </div>
+                )}
               </div>
 
               {/* Action Buttons */}
