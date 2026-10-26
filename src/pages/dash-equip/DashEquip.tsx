@@ -1,24 +1,22 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../dash/Dash.css';
-import {
-  CheckCircle2,
-  Plus,
-  Search,
-  X,
-  Edit3,
-  Trash2,
-  Eye,
-  EyeOff,
-  Image as ImageIcon,
-  Cpu,
-  RefreshCw,
-  CheckCircle,
-  Tag,
-  UploadCloud
-} from 'lucide-react';
 import { DashAside } from '../../components/common/DashAside';
 import { DashHeader } from '../../components/common/DashHeader';
 import { DashPopup } from '../../components/common/DashPopup';
+import {
+  Package,
+  Plus,
+  Search,
+  Edit2,
+  Trash2,
+  RefreshCw,
+  Boxes,
+  DollarSign,
+  FileText,
+  X,
+  CheckCircle,
+  AlertCircle
+} from 'lucide-react';
 
 interface CurrentUserData {
   id?: number;
@@ -27,61 +25,77 @@ interface CurrentUserData {
   username?: string;
 }
 
-export interface DeviceItem {
+export interface StorageItem {
   id: number;
-  time: string;
-  brand: string;
+  device_code: string;
   name: string;
-  image?: string | null;
-  status: number; // 1: Đăng bài, 2: Đang ẩn
+  unit: string;
+  quantity: number;
+  'quantity-out'?: number;
+  'quantity-remain'?: number;
+  quantity_out?: number;
+  quantity_remain?: number;
+  price: number | string;
+  total: number | string;
+  invoice: string;
+  time?: string;
+  'time-in'?: string;
+  'time-out'?: string;
+  time_in?: string;
+  time_out?: string;
+  status: string;
 }
 
 export const DashEquip: React.FC = () => {
   const [activeTab] = useState('supplies');
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<CurrentUserData | null>(null);
 
-  // Danh sách thiết bị từ database
-  const [devicesList, setDevicesList] = useState<DeviceItem[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Bộ lọc và tìm kiếm
+  // Danh sách vật tư kho
+  const [items, setItems] = useState<StorageItem[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'published' | 'hidden'>('all');
-  const [filterBrand, setFilterBrand] = useState('all');
+  const [filterStatus, setFilterStatus] = useState('all');
 
-  // Modal Thêm sản phẩm mới
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [formBrand, setFormBrand] = useState('');
+  // Toast thông báo
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const triggerToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3500);
+  };
+
+  // Modal Thêm / Sửa
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<StorageItem | null>(null);
+
+  // Form states
+  const [formDeviceCode, setFormDeviceCode] = useState('');
   const [formName, setFormName] = useState('');
-  const [imageBase64, setImageBase64] = useState<string>('');
-  const [imageFileName, setImageFileName] = useState<string>('');
-  const [imagePreview, setImagePreview] = useState<string>('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [formUnit, setFormUnit] = useState('Cái');
+  const [formQuantity, setFormQuantity] = useState<number>(1);
+  const [formQuantityOut, setFormQuantityOut] = useState<number>(0);
+  const [formPrice, setFormPrice] = useState<number>(0);
+  const [formInvoice, setFormInvoice] = useState('');
+  const [formStatus, setFormStatus] = useState('Tồn kho');
+  const [formTimeIn, setFormTimeIn] = useState('');
+  const [formTimeOut, setFormTimeOut] = useState('');
 
-  // Modal Sửa thiết bị
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingDevice, setEditingDevice] = useState<DeviceItem | null>(null);
-  const [editBrand, setEditBrand] = useState('');
-  const [editName, setEditName] = useState('');
-  const [editStatus, setEditStatus] = useState<number>(1);
-  const [isSavingEdit, setIsSavingEdit] = useState(false);
-
-  // Modal Xem trước hình ảnh
-  const [previewImageModal, setPreviewImageModal] = useState<{
-    open: boolean;
-    url: string;
-    title: string;
-    brand: string;
-  }>({
-    open: false,
-    url: '',
-    title: '',
-    brand: ''
-  });
+  // Lấy danh sách từ API
+  const fetchStorageData = async () => {
+    setLoading(true);
+    try {
+      const res = await fetch('/api/storage');
+      const data = await res.json();
+      if (data && data.success && Array.isArray(data.data)) {
+        setItems(data.data);
+      }
+    } catch (err) {
+      console.warn('Lỗi lấy dữ liệu storage:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -93,24 +107,8 @@ export const DashEquip: React.FC = () => {
         // ignore
       }
     }
-    fetchDevices();
+    fetchStorageData();
   }, []);
-
-  // Lấy danh sách thiết bị từ database 3ahome
-  const fetchDevices = async () => {
-    setIsLoading(true);
-    try {
-      const res = await fetch('/api/device');
-      const data = await res.json();
-      if (data.success && Array.isArray(data.data)) {
-        setDevicesList(data.data);
-      }
-    } catch (err) {
-      console.error('Lỗi nạp danh sách thiết bị:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleLogout = () => {
     localStorage.removeItem('aaa_admin_auth');
@@ -122,304 +120,252 @@ export const DashEquip: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const triggerToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => {
-      setToastMessage(null);
-    }, 3000);
+  const currentFullName = currentUser?.full_name || currentUser?.username || 'Quản Trị Viên';
+
+  // Mở modal tạo mới
+  const handleOpenCreateModal = () => {
+    setEditingItem(null);
+    setFormDeviceCode('');
+    setFormName('');
+    setFormUnit('Cái');
+    setFormQuantity(1);
+    setFormQuantityOut(0);
+    setFormPrice(0);
+    setFormInvoice('');
+    setFormStatus('Tồn kho');
+    const now = new Date();
+    const localIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    setFormTimeIn(localIso);
+    setFormTimeOut('');
+    setIsModalOpen(true);
   };
 
-  const currentFullName = currentUser?.full_name || currentUser?.username || 'Quản Trị Viên 3A';
+  // Mở modal sửa
+  const handleOpenEditModal = (item: StorageItem) => {
+    setEditingItem(item);
+    setFormDeviceCode(item.device_code);
+    setFormName(item.name);
+    setFormUnit(item.unit || 'Cái');
+    setFormQuantity(Number(item.quantity) || 1);
+    setFormQuantityOut(Number(item['quantity-out'] !== undefined ? item['quantity-out'] : (item.quantity_out ?? 0)));
+    setFormPrice(Number(item.price) || 0);
+    setFormInvoice(item.invoice || '');
+    setFormStatus(item.status || 'Tồn kho');
 
-  // Format link hình ảnh từ database
-  const formatImageUrl = (imgPath?: string | null) => {
-    if (!imgPath) return '';
-    if (imgPath.startsWith('data:image') || imgPath.startsWith('http://') || imgPath.startsWith('https://')) {
-      return imgPath;
+    const rawIn = item['time-in'] || item.time_in || item.time;
+    if (rawIn) {
+      const d = new Date(rawIn);
+      const localIso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      setFormTimeIn(localIso);
+    } else {
+      setFormTimeIn('');
     }
-    const cleanFilename = imgPath.split(/[\\/]/).pop();
-    if (imgPath.includes('device') || cleanFilename?.startsWith('device[')) {
-      return `/uploads/device/${cleanFilename}`;
+
+    const rawOut = item['time-out'] || item.time_out;
+    if (rawOut) {
+      const d = new Date(rawOut);
+      const localIso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      setFormTimeOut(localIso);
+    } else {
+      setFormTimeOut('');
     }
-    if (imgPath.includes('project') || cleanFilename?.startsWith('proj[')) {
-      return `/uploads/project/${cleanFilename}`;
-    }
-    return `/uploads/news/${cleanFilename}`;
+
+    setIsModalOpen(true);
   };
 
-  // Format thời gian hiển thị
+  // Lưu vật tư (Tạo mới hoặc Sửa)
+  const handleSubmitForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formDeviceCode.trim()) {
+      alert('Vui lòng nhập Mã thiết bị!');
+      return;
+    }
+    if (!formName.trim()) {
+      alert('Vui lòng nhập Tên vật tư!');
+      return;
+    }
+
+    const qty = Number(formQuantity) || 1;
+    const qtyOut = Number(formQuantityOut) || 0;
+    const qtyRemain = Math.max(0, qty - qtyOut);
+
+    const payload = {
+      device_code: formDeviceCode.trim().toUpperCase(),
+      name: formName.trim(),
+      unit: formUnit.trim() || 'Cái',
+      quantity: qty,
+      'quantity-out': qtyOut,
+      'quantity-remain': qtyRemain,
+      quantity_out: qtyOut,
+      quantity_remain: qtyRemain,
+      price: Number(formPrice) || 0,
+      total: qty * (Number(formPrice) || 0),
+      invoice: formInvoice.trim(),
+      status: formStatus,
+      'time-in': formTimeIn ? new Date(formTimeIn).toISOString() : null,
+      'time-out': formTimeOut ? new Date(formTimeOut).toISOString() : null,
+      time_in: formTimeIn ? new Date(formTimeIn).toISOString() : null,
+      time_out: formTimeOut ? new Date(formTimeOut).toISOString() : null,
+      time: formTimeIn ? new Date(formTimeIn).toISOString() : new Date().toISOString()
+    };
+
+    try {
+      if (editingItem) {
+        // Cập nhật
+        const res = await fetch(`/api/storage/${editingItem.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          triggerToast(`Đã cập nhật vật tư "${payload.name}" thành công!`);
+          setIsModalOpen(false);
+          await fetchStorageData();
+        } else {
+          alert(data.message || 'Lỗi cập nhật');
+        }
+      } else {
+        // Thêm mới
+        const res = await fetch('/api/storage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+          triggerToast(`Đã thêm vật tư [${payload.device_code}] vào kho thành công!`);
+          setIsModalOpen(false);
+          await fetchStorageData();
+        } else {
+          alert(data.message || 'Lỗi thêm mới');
+        }
+      }
+    } catch (err) {
+      console.error('Lỗi khi gửi form storage:', err);
+      alert('Không thể kết nối đến máy chủ!');
+    }
+  };
+
+  // Xóa vật tư
+  const handleDeleteItem = async (item: StorageItem) => {
+    if (!window.confirm(`Bạn có chắc chắn muốn xóa vật tư "${item.name}" (${item.device_code}) không?`)) {
+      return;
+    }
+    try {
+      const res = await fetch(`/api/storage/${item.id}`, {
+        method: 'DELETE'
+      });
+      const data = await res.json();
+      if (data.success) {
+        triggerToast(`Đã xóa vật tư "${item.name}" khỏi kho!`);
+        await fetchStorageData();
+      } else {
+        alert(data.message || 'Lỗi khi xóa');
+      }
+    } catch (err) {
+      console.error('Lỗi xóa vật tư:', err);
+      alert('Không thể kết nối đến máy chủ!');
+    }
+  };
+
+  // Format tiền tệ VNĐ
+  const formatVND = (num: number | string) => {
+    const n = Number(num) || 0;
+    return n.toLocaleString('vi-VN') + ' ₫';
+  };
+
+  // Format ngày giờ
   const formatDateTime = (dateStr?: string) => {
-    if (!dateStr) return '-';
+    if (!dateStr) return '---';
     try {
       const d = new Date(dateStr);
       if (isNaN(d.getTime())) return dateStr;
-      const day = String(d.getDate()).padStart(2, '0');
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const year = d.getFullYear();
-      const hours = String(d.getHours()).padStart(2, '0');
-      const mins = String(d.getMinutes()).padStart(2, '0');
-      return `${hours}:${mins} ${day}/${month}/${year}`;
+      const pad = (n: number) => String(n).padStart(2, '0');
+      return `${pad(d.getHours())}:${pad(d.getMinutes())} ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
     } catch {
       return dateStr;
     }
   };
 
-  // Xử lý chọn hình ảnh khi nhấn nút "Tải hình ảnh"
-  const handleImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Lọc danh sách
+  const filteredItems = items.filter((item) => {
+    const q = searchQuery.toLowerCase().trim();
+    const matchSearch =
+      !q ||
+      item.device_code.toLowerCase().includes(q) ||
+      item.name.toLowerCase().includes(q) ||
+      (item.invoice && item.invoice.toLowerCase().includes(q)) ||
+      (item.unit && item.unit.toLowerCase().includes(q));
 
-    // 1. Kiểm tra dung lượng > 5MB
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Chọn hình ảnh có dung lượng nhỏ hơn 5mb');
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
-      return;
-    }
-
-    // 2. Rename tên file có dạng device[dd-mm-yy][codeimg]
-    const now = new Date();
-    const dd = String(now.getDate()).padStart(2, '0');
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const yy = String(now.getFullYear()).slice(-2);
-    const codeimg = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const customName = `device[${dd}-${mm}-${yy}][${codeimg}].jpg`;
-
-    // 3. Resize và nén hình ảnh bằng HTML5 Canvas
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const img = new Image();
-      img.onload = () => {
-        const maxWidth = 1200;
-        let width = img.width;
-        let height = img.height;
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-
-        const canvas = document.createElement('canvas');
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        ctx?.drawImage(img, 0, 0, width, height);
-
-        const compressedBase64 = canvas.toDataURL('image/jpeg', 0.85);
-        setImagePreview(compressedBase64);
-        setImageBase64(compressedBase64);
-        setImageFileName(customName);
-      };
-      img.src = event.target?.result as string;
-    };
-    reader.readAsDataURL(file);
-  };
-
-  const removeSelectedImage = () => {
-    setImagePreview('');
-    setImageBase64('');
-    setImageFileName('');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  // Mở modal Thêm sản phẩm
-  const handleOpenCreateModal = () => {
-    setFormBrand('');
-    setFormName('');
-    setImageBase64('');
-    setImageFileName('');
-    setImagePreview('');
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-    setIsCreateModalOpen(true);
-  };
-
-  // Đăng thiết bị (Lưu vào bảng device database 3ahome)
-  const handleCreateDevice = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formBrand.trim()) {
-      alert('Vui lòng nhập Hãng sản xuất!');
-      return;
-    }
-    if (!formName.trim()) {
-      alert('Vui lòng nhập Tên thiết bị!');
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      const res = await fetch('/api/device', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          brand: formBrand.trim(),
-          name: formName.trim(),
-          imageBase64: imageBase64 || null,
-          imageFileName: imageFileName || ''
-        })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        triggerToast('Đăng thiết bị mới thành công!');
-        setIsCreateModalOpen(false);
-        fetchDevices();
-      } else {
-        alert(data.message || 'Lỗi lưu thiết bị!');
-      }
-    } catch {
-      alert('Không thể kết nối máy chủ để lưu thiết bị.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  // Mở modal Sửa thiết bị
-  const handleOpenEditModal = (dev: DeviceItem) => {
-    setEditingDevice(dev);
-    setEditBrand(dev.brand || '');
-    setEditName(dev.name || '');
-    setEditStatus(dev.status || 1);
-    setIsEditModalOpen(true);
-  };
-
-  // Lưu chỉnh sửa thiết bị (không sửa cột image)
-  const handleSaveEdit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingDevice) return;
-    if (!editBrand.trim()) {
-      alert('Vui lòng nhập Hãng sản xuất!');
-      return;
-    }
-    if (!editName.trim()) {
-      alert('Vui lòng nhập Tên thiết bị!');
-      return;
-    }
-
-    setIsSavingEdit(true);
-    try {
-      const res = await fetch(`/api/device/${editingDevice.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          brand: editBrand.trim(),
-          name: editName.trim(),
-          status: editStatus
-        })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        triggerToast(`Đã cập nhật thiết bị "${editName}" thành công!`);
-        setIsEditModalOpen(false);
-        setEditingDevice(null);
-        fetchDevices();
-      } else {
-        alert(data.message || 'Lỗi cập nhật thiết bị!');
-      }
-    } catch {
-      alert('Không thể kết nối máy chủ để cập nhật thiết bị.');
-    } finally {
-      setIsSavingEdit(false);
-    }
-  };
-
-  // Ẩn / Bỏ ẩn thiết bị
-  const handleToggleHide = async (dev: DeviceItem) => {
-    const newStatus = Number(dev.status) === 2 ? 1 : 2;
-    const actionLabel = newStatus === 2 ? 'ẩn' : 'đăng lại';
-
-    try {
-      const res = await fetch(`/api/device/${dev.id}/status`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: newStatus })
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        triggerToast(`Đã ${actionLabel} thiết bị "${dev.name}" thành công!`);
-        setDevicesList((prev) =>
-          prev.map((item) => (item.id === dev.id ? { ...item, status: newStatus } : item))
-        );
-      } else {
-        triggerToast(data.message || `Lỗi ${actionLabel} thiết bị!`);
-      }
-    } catch {
-      triggerToast('Không thể kết nối máy chủ!');
-    }
-  };
-
-  // Xoá thiết bị khỏi bảng device và xoá hình ảnh trên server
-  const handleDeleteDevice = async (id: number, name: string) => {
-    if (!window.confirm(`Bạn có chắc chắn muốn xoá thiết bị "${name}" và hình ảnh tương ứng không?`)) {
-      return;
-    }
-
-    try {
-      const res = await fetch(`/api/device/${id}`, {
-        method: 'DELETE'
-      });
-      const data = await res.json();
-      if (res.ok && data.success) {
-        triggerToast(`Đã xoá thiết bị "${name}" thành công!`);
-        setDevicesList((prev) => prev.filter((item) => item.id !== id));
-      } else {
-        triggerToast(data.message || 'Lỗi xoá thiết bị!');
-      }
-    } catch {
-      triggerToast('Không thể kết nối máy chủ để xoá thiết bị.');
-    }
-  };
-
-  // Danh sách hãng sản xuất duy nhất để lọc
-  const uniqueBrands = Array.from(new Set(devicesList.map((d) => d.brand).filter(Boolean)));
-
-  // Dữ liệu sau khi lọc và tìm kiếm
-  const filteredDevices = devicesList.filter((dev) => {
-    const matchesSearch =
-      (dev.name && dev.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      (dev.brand && dev.brand.toLowerCase().includes(searchQuery.toLowerCase()));
-
-    const matchesStatus =
-      filterStatus === 'all' ||
-      (filterStatus === 'published' && Number(dev.status) === 1) ||
-      (filterStatus === 'hidden' && Number(dev.status) === 2);
-
-    const matchesBrand = filterBrand === 'all' || dev.brand === filterBrand;
-
-    return matchesSearch && matchesStatus && matchesBrand;
+    const matchStatus = filterStatus === 'all' || item.status === filterStatus;
+    return matchSearch && matchStatus;
   });
 
-  // Thống kê nhanh
-  const totalDevices = devicesList.length;
-  const publishedDevices = devicesList.filter((d) => Number(d.status) === 1).length;
-  const hiddenDevices = devicesList.filter((d) => Number(d.status) === 2).length;
+  // Tính thống kê
+  const totalQuantity = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
+  const totalValue = items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+
+  // Badge màu theo tình trạng
+  const renderStatusBadge = (status: string) => {
+    switch (status) {
+      case 'Mới':
+        return (
+          <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }}>
+            🟢 Mới
+          </span>
+        );
+      case 'Đang sử dụng':
+        return (
+          <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>
+            ⚡ Đang sử dụng
+          </span>
+        );
+      case 'Tồn kho':
+        return (
+          <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#eff6ff', color: '#1D58BB', border: '1px solid #bfdbfe' }}>
+            📦 Tồn kho
+          </span>
+        );
+      case 'Bảo hành':
+      case 'Hỏng':
+        return (
+          <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+            ⚠️ {status}
+          </span>
+        );
+      default:
+        return (
+          <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0' }}>
+            {status}
+          </span>
+        );
+    }
+  };
 
   return (
     <div className="dash-layout">
-      {/* Toast thông báo nhanh */}
+      {/* TOAST THÔNG BÁO */}
       {toastMessage && (
         <div
           style={{
             position: 'fixed',
-            top: '20px',
+            top: '24px',
             right: '24px',
-            zIndex: 9999,
-            background: '#0f172a',
+            backgroundColor: '#0f172a',
             color: '#ffffff',
-            padding: '12px 18px',
+            padding: '12px 20px',
             borderRadius: '10px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.25)',
+            boxShadow: '0 10px 25px rgba(0,0,0,0.2)',
+            zIndex: 9999,
             display: 'flex',
             alignItems: 'center',
             gap: '10px',
-            fontSize: '0.86rem',
-            fontWeight: 600,
-            border: '1px solid rgba(56, 189, 248, 0.3)'
+            fontSize: '0.88rem',
+            fontWeight: 500
           }}
         >
-          <CheckCircle2 size={18} color="#38bdf8" />
+          <CheckCircle size={18} color="#10b981" />
           <span>{toastMessage}</span>
         </div>
       )}
@@ -438,681 +384,424 @@ export const DashEquip: React.FC = () => {
       <div className="dash-main">
         {/* TOP NAVBAR */}
         <DashHeader
-          title="Quản Lý Danh Mục Vật Tư và Thiết Bị"
-          subtitle="Quản lý chi tiết danh mục thiết bị, hãng sản xuất, hình ảnh và trạng thái hoạt động trong hệ thống 3AHOME"
+          title="Quản Lý Thiết Bị Và Kho Hàng"
+          subtitle="Quản lý danh mục thiết bị tự động hoá, cảm biến IoT và kho hàng 3AHOME"
           isMobileOpen={isMobileOpen}
           setIsMobileOpen={setIsMobileOpen}
           currentFullName={currentFullName}
-          refreshTitle="Làm mới danh sách thiết bị"
+          refreshTitle="Làm mới danh sách vật tư"
           onRefresh={() => {
-            fetchDevices();
-            triggerToast('Đã làm mới dữ liệu danh mục thiết bị!');
+            fetchStorageData();
+            triggerToast('Đã làm mới dữ liệu vật tư kho!');
           }}
           triggerToast={triggerToast}
           handleLogout={handleLogout}
         />
 
-        {/* CONTAINER NỘI DUNG */}
+        {/* NỘI DUNG CHÍNH: BẢNG QUẢN LÝ VẬT TƯ */}
         <div className="dash-content" style={{ padding: '24px' }}>
-          {/* THẺ THỐNG KÊ TỔNG QUAN */}
+          {/* HÀNG THỐNG KÊ NHANH */}
           <div
             style={{
               display: 'grid',
               gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
               gap: '16px',
-              marginBottom: '24px'
+              marginBottom: '20px'
             }}
           >
-            {/* Card 1: Tổng số thiết bị */}
             <div
               style={{
-                background: '#ffffff',
-                borderRadius: '14px',
-                padding: '18px 22px',
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                padding: '18px 20px',
                 border: '1px solid #e2e8f0',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                gap: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
               }}
             >
-              <div>
-                <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b', fontWeight: 500 }}>
-                  Tổng số thiết bị
-                </p>
-                <h3 style={{ margin: '6px 0 0', fontSize: '1.65rem', color: '#0f172a', fontWeight: 700 }}>
-                  {totalDevices}
-                </h3>
-              </div>
               <div
                 style={{
                   width: '46px',
                   height: '46px',
-                  borderRadius: '12px',
-                  background: '#eff6ff',
-                  color: '#2563eb',
+                  borderRadius: '10px',
+                  backgroundColor: '#eff6ff',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  color: '#1D58BB'
                 }}
               >
-                <Cpu size={24} />
+                <Package size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>TỔNG MÃ VẬT TƯ</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#0f172a' }}>{items.length}</div>
               </div>
             </div>
 
-            {/* Card 2: Đang đăng bài */}
             <div
               style={{
-                background: '#ffffff',
-                borderRadius: '14px',
-                padding: '18px 22px',
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                padding: '18px 20px',
                 border: '1px solid #e2e8f0',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                gap: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
               }}
             >
-              <div>
-                <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b', fontWeight: 500 }}>
-                  Đang đăng bài
-                </p>
-                <h3 style={{ margin: '6px 0 0', fontSize: '1.65rem', color: '#16a34a', fontWeight: 700 }}>
-                  {publishedDevices}
-                </h3>
-              </div>
               <div
                 style={{
                   width: '46px',
                   height: '46px',
-                  borderRadius: '12px',
-                  background: '#f0fdf4',
-                  color: '#16a34a',
+                  borderRadius: '10px',
+                  backgroundColor: '#ecfdf5',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  color: '#059669'
                 }}
               >
-                <CheckCircle size={24} />
+                <Boxes size={24} />
+              </div>
+              <div>
+                <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>TỔNG SỐ LƯỢNG KHO</div>
+                <div style={{ fontSize: '1.4rem', fontWeight: 700, color: '#0f172a' }}>{totalQuantity.toLocaleString('vi-VN')}</div>
               </div>
             </div>
 
-            {/* Card 3: Đang ẩn */}
             <div
               style={{
-                background: '#ffffff',
-                borderRadius: '14px',
-                padding: '18px 22px',
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                padding: '18px 20px',
                 border: '1px solid #e2e8f0',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                gap: '16px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.03)'
               }}
             >
-              <div>
-                <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b', fontWeight: 500 }}>
-                  Đang ẩn
-                </p>
-                <h3 style={{ margin: '6px 0 0', fontSize: '1.65rem', color: '#ea580c', fontWeight: 700 }}>
-                  {hiddenDevices}
-                </h3>
-              </div>
               <div
                 style={{
                   width: '46px',
                   height: '46px',
-                  borderRadius: '12px',
-                  background: '#fff7ed',
-                  color: '#ea580c',
+                  borderRadius: '10px',
+                  backgroundColor: '#fef3c7',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  color: '#d97706'
                 }}
               >
-                <EyeOff size={24} />
+                <DollarSign size={24} />
               </div>
-            </div>
-
-            {/* Card 4: Tổng số hãng */}
-            <div
-              style={{
-                background: '#ffffff',
-                borderRadius: '14px',
-                padding: '18px 22px',
-                border: '1px solid #e2e8f0',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between'
-              }}
-            >
               <div>
-                <p style={{ margin: 0, fontSize: '0.82rem', color: '#64748b', fontWeight: 500 }}>
-                  Hãng sản xuất
-                </p>
-                <h3 style={{ margin: '6px 0 0', fontSize: '1.65rem', color: '#7c3aed', fontWeight: 700 }}>
-                  {uniqueBrands.length}
-                </h3>
-              </div>
-              <div
-                style={{
-                  width: '46px',
-                  height: '46px',
-                  borderRadius: '12px',
-                  background: '#f5f3ff',
-                  color: '#7c3aed',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}
-              >
-                <Tag size={24} />
+                <div style={{ fontSize: '0.78rem', color: '#64748b', fontWeight: 600 }}>TỔNG GIÁ TRỊ VẬT TƯ</div>
+                <div style={{ fontSize: '1.35rem', fontWeight: 700, color: '#ea580c' }}>{formatVND(totalValue)}</div>
               </div>
             </div>
           </div>
 
-          {/* TOOLBAR: TÌM KIẾM, BỘ LỌC, NÚT THÊM SẢN PHẨM */}
+          {/* BẢNG CHÍNH VÀ TOOLBAR */}
           <div
             style={{
-              background: '#ffffff',
+              backgroundColor: '#ffffff',
               borderRadius: '14px',
-              padding: '16px 20px',
               border: '1px solid #e2e8f0',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-              marginBottom: '20px',
-              display: 'flex',
-              flexWrap: 'wrap',
-              gap: '14px',
-              alignItems: 'center',
-              justifyContent: 'space-between'
+              boxShadow: '0 4px 16px rgba(0,0,0,0.03)',
+              overflow: 'hidden'
             }}
           >
-            {/* Thanh tìm kiếm */}
+            {/* THANH CÔNG CỤ TÌM KIẾM & NÚT THAO TÁC */}
             <div
               style={{
+                padding: '16px 20px',
+                borderBottom: '1px solid #f1f5f9',
                 display: 'flex',
+                flexWrap: 'wrap',
+                gap: '12px',
                 alignItems: 'center',
-                gap: '10px',
-                background: '#f8fafc',
-                border: '1px solid #cbd5e1',
-                borderRadius: '10px',
-                padding: '8px 14px',
-                width: '100%',
-                maxWidth: '360px'
+                justifyContent: 'space-between'
               }}
             >
-              <Search size={18} color="#64748b" />
-              <input
-                type="text"
-                placeholder="Tìm hãng sản xuất, tên thiết bị..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                style={{
-                  border: 'none',
-                  background: 'transparent',
-                  outline: 'none',
-                  width: '100%',
-                  fontSize: '0.88rem',
-                  color: '#0f172a'
-                }}
-              />
-              {searchQuery && (
-                <button
-                  type="button"
-                  onClick={() => setSearchQuery('')}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flex: 1, minWidth: '280px', maxWidth: '540px' }}>
+                <div
                   style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    color: '#94a3b8',
-                    padding: 0
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '8px 14px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    flex: 1
                   }}
                 >
-                  <X size={16} />
-                </button>
-              )}
-            </div>
+                  <Search size={16} color="#64748b" />
+                  <input
+                    type="text"
+                    placeholder="Tìm theo Mã thiết bị, Tên vật tư, Số chứng từ..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    style={{
+                      border: 'none',
+                      outline: 'none',
+                      backgroundColor: 'transparent',
+                      fontSize: '0.86rem',
+                      width: '100%',
+                      color: '#1e293b'
+                    }}
+                  />
+                  {searchQuery && (
+                    <button
+                      onClick={() => setSearchQuery('')}
+                      style={{ border: 'none', background: 'none', cursor: 'pointer', padding: 0 }}
+                    >
+                      <X size={14} color="#94a3b8" />
+                    </button>
+                  )}
+                </div>
 
-            {/* Filter buttons & Nút Thêm sản phẩm */}
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', alignItems: 'center' }}>
-              {/* Lọc theo Hãng sản xuất nếu có */}
-              {uniqueBrands.length > 0 && (
                 <select
-                  value={filterBrand}
-                  onChange={(e) => setFilterBrand(e.target.value)}
+                  value={filterStatus}
+                  onChange={(e) => setFilterStatus(e.target.value)}
                   style={{
-                    background: '#f8fafc',
-                    border: '1px solid #cbd5e1',
-                    borderRadius: '10px',
                     padding: '8px 12px',
-                    fontSize: '0.84rem',
-                    color: '#0f172a',
-                    fontWeight: 500,
+                    fontSize: '0.86rem',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    backgroundColor: '#ffffff',
                     outline: 'none',
                     cursor: 'pointer'
                   }}
                 >
-                  <option value="all">Tất cả hãng sản xuất</option>
-                  {uniqueBrands.map((b) => (
-                    <option key={b} value={b}>
-                      {b}
-                    </option>
-                  ))}
+                  <option value="all">Tất cả tình trạng</option>
+                  <option value="Mới">Mới</option>
+                  <option value="Tồn kho">Tồn kho</option>
+                  <option value="Đang sử dụng">Đang sử dụng</option>
+                  <option value="Bảo hành">Bảo hành</option>
+                  <option value="Hỏng">Hỏng</option>
                 </select>
-              )}
-
-              {/* Lọc theo Trạng thái */}
-              <div
-                style={{
-                  display: 'flex',
-                  gap: '4px',
-                  background: '#f1f5f9',
-                  padding: '4px',
-                  borderRadius: '10px'
-                }}
-              >
-                {[
-                  { id: 'all', label: 'Tất cả' },
-                  { id: 'published', label: 'Đăng bài' },
-                  { id: 'hidden', label: 'Đang ẩn' }
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setFilterStatus(tab.id as any)}
-                    style={{
-                      border: 'none',
-                      background: filterStatus === tab.id ? '#ffffff' : 'transparent',
-                      color: filterStatus === tab.id ? '#0f172a' : '#64748b',
-                      fontWeight: filterStatus === tab.id ? 600 : 500,
-                      fontSize: '0.82rem',
-                      padding: '6px 14px',
-                      borderRadius: '8px',
-                      cursor: 'pointer',
-                      boxShadow: filterStatus === tab.id ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-                      transition: 'all 0.15s'
-                    }}
-                  >
-                    {tab.label}
-                  </button>
-                ))}
               </div>
 
-              {/* Nút Thêm sản phẩm */}
-              <button
-                type="button"
-                onClick={handleOpenCreateModal}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={fetchStorageData}
+                  title="Tải lại dữ liệu"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 12px',
+                    backgroundColor: '#f8fafc',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    fontSize: '0.84rem',
+                    fontWeight: 600,
+                    color: '#475569',
+                    cursor: 'pointer'
+                  }}
+                >
+                  <RefreshCw size={14} className={loading ? 'spin-anim' : ''} />
+                  <span>Làm mới</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleOpenCreateModal}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '8px 16px',
+                    backgroundColor: '#1D58BB',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '0.84rem',
+                    fontWeight: 600,
+                    color: '#ffffff',
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 6px rgba(29, 88, 187, 0.25)'
+                  }}
+                >
+                  <Plus size={16} />
+                  <span>Thêm vật tư mới</span>
+                </button>
+              </div>
+            </div>
+
+            {/* BẢNG DỮ LIỆU VẬT TƯ */}
+            <div
+              className="dash-table-wrap"
+              style={{
+                width: '100%',
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              <table
                 style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '8px',
-                  background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                  color: '#ffffff',
-                  border: 'none',
-                  borderRadius: '10px',
-                  padding: '9px 18px',
-                  fontSize: '0.86rem',
-                  fontWeight: 600,
-                  cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(2,132,199,0.3)',
-                  transition: 'transform 0.2s, box-shadow 0.2s'
+                  width: '100%',
+                  minWidth: '1380px',
+                  borderCollapse: 'collapse',
+                  fontSize: '0.84rem',
+                  textAlign: 'left'
                 }}
               >
-                <Plus size={16} />
-                <span>Thêm sản phẩm</span>
-              </button>
-            </div>
-          </div>
-
-          {/* BẢNG DANH SÁCH THIẾT BỊ (THEO YÊU CẦU: 7 CỘT) */}
-          <div
-            style={{
-              background: '#ffffff',
-              borderRadius: '14px',
-              border: '1px solid #e2e8f0',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.03)',
-              overflow: 'hidden'
-            }}
-          >
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
                 <thead>
-                  <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                    <th
-                      style={{
-                        padding: '14px 16px',
-                        fontSize: '0.82rem',
-                        color: '#475569',
-                        fontWeight: 600,
-                        width: '60px',
-                        textAlign: 'center'
-                      }}
-                    >
-                      STT
-                    </th>
-                    <th
-                      style={{
-                        padding: '14px 16px',
-                        fontSize: '0.82rem',
-                        color: '#475569',
-                        fontWeight: 600,
-                        width: '160px',
-                        textAlign: 'center'
-                      }}
-                    >
-                      THỜI GIAN ĐĂNG
-                    </th>
-                    <th
-                      style={{
-                        padding: '14px 16px',
-                        fontSize: '0.82rem',
-                        color: '#475569',
-                        fontWeight: 600,
-                        minWidth: '160px'
-                      }}
-                    >
-                      HÃNG SẢN XUẤT
-                    </th>
-                    <th
-                      style={{
-                        padding: '14px 16px',
-                        fontSize: '0.82rem',
-                        color: '#475569',
-                        fontWeight: 600,
-                        minWidth: '220px'
-                      }}
-                    >
-                      TÊN THIẾT BỊ
-                    </th>
-                    <th
-                      style={{
-                        padding: '14px 16px',
-                        fontSize: '0.82rem',
-                        color: '#475569',
-                        fontWeight: 600,
-                        width: '130px',
-                        textAlign: 'center'
-                      }}
-                    >
-                      TRẠNG THÁI
-                    </th>
-                    <th
-                      style={{
-                        padding: '14px 16px',
-                        fontSize: '0.82rem',
-                        color: '#475569',
-                        fontWeight: 600,
-                        width: '130px',
-                        textAlign: 'center'
-                      }}
-                    >
-                      HÌNH ẢNH
-                    </th>
-                    <th
-                      style={{
-                        padding: '14px 16px',
-                        fontSize: '0.82rem',
-                        color: '#475569',
-                        fontWeight: 600,
-                        width: '180px',
-                        textAlign: 'center'
-                      }}
-                    >
-                      THAO TÁC
-                    </th>
+                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', whiteSpace: 'nowrap' }}>
+                    <th style={{ padding: '12px 14px', width: '45px', textAlign: 'center' }}>STT</th>
+                    <th style={{ padding: '12px 14px' }}>Mã thiết bị</th>
+                    <th style={{ padding: '12px 14px', minWidth: '220px' }}>Tên vật tư</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Đơn vị</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Số lượng</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Số lượng xuất</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Số lượng còn lại</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Đơn giá</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Thành tiền</th>
+                    <th style={{ padding: '12px 14px' }}>Số chứng từ</th>
+                    <th style={{ padding: '12px 14px' }}>Nhập kho</th>
+                    <th style={{ padding: '12px 14px' }}>Xuất kho</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Tình trạng</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center', width: '90px' }}>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {isLoading ? (
+                  {loading && items.length === 0 ? (
                     <tr>
-                      <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
-                        <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 8px' }} />
-                        <div>Đang nạp dữ liệu thiết bị từ database 3ahome...</div>
+                      <td colSpan={14} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                        Đang tải danh sách vật tư...
                       </td>
                     </tr>
-                  ) : filteredDevices.length === 0 ? (
+                  ) : filteredItems.length === 0 ? (
                     <tr>
-                      <td colSpan={7} style={{ padding: '40px', textAlign: 'center', color: '#94a3b8' }}>
-                        <Cpu size={40} style={{ margin: '0 auto 12px', opacity: 0.4 }} />
-                        <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 500 }}>
-                          Chưa có thiết bị nào trong danh sách. Hãy nhấn "Thêm sản phẩm" để bắt đầu!
-                        </p>
+                      <td colSpan={14} style={{ padding: '48px 20px', textAlign: 'center', color: '#64748b' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                          <AlertCircle size={32} color="#94a3b8" />
+                          <div style={{ fontWeight: 600 }}>Không tìm thấy vật tư nào</div>
+                          <div style={{ fontSize: '0.8rem' }}>Thử tìm kiếm với từ khóa khác hoặc nhấn "Thêm vật tư mới" để khởi tạo.</div>
+                        </div>
                       </td>
                     </tr>
                   ) : (
-                    filteredDevices.map((dev, index) => (
+                    filteredItems.map((item, index) => (
                       <tr
-                        key={dev.id}
+                        key={item.id}
                         style={{
                           borderBottom: '1px solid #f1f5f9',
-                          transition: 'background 0.15s'
+                          transition: 'background-color 0.15s'
                         }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = '#f8fafc')}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
+                        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                       >
-                        {/* 1. Cột STT: tự động tăng lên 1 */}
-                        <td
-                          style={{
-                            padding: '14px 16px',
-                            fontSize: '0.86rem',
-                            fontWeight: 600,
-                            color: '#64748b',
-                            textAlign: 'center'
-                          }}
-                        >
+                        <td style={{ padding: '12px 14px', textAlign: 'center', color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap' }}>
                           {index + 1}
                         </td>
-
-                        {/* 2. Cột Thời gian đăng: hiển thị giá trị trong cột time */}
-                        <td
-                          style={{
-                            padding: '14px 16px',
-                            fontSize: '0.82rem',
-                            color: '#475569',
-                            textAlign: 'center',
-                            whiteSpace: 'nowrap'
-                          }}
-                        >
-                          {formatDateTime(dev.time)}
-                        </td>
-
-                        {/* 3. Cột Hãng sản xuất: hiển thị giá trị trong cột brand */}
-                        <td style={{ padding: '14px 16px' }}>
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '5px',
-                              background: '#f1f5f9',
-                              color: '#334155',
-                              padding: '4px 10px',
-                              borderRadius: '6px',
-                              fontSize: '0.82rem',
-                              fontWeight: 600
-                            }}
-                          >
-                            <Tag size={12} color="#0284c7" />
-                            {dev.brand}
+                        <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
+                          <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#1D58BB', backgroundColor: '#eff6ff', padding: '3px 8px', borderRadius: '6px' }}>
+                            {item.device_code}
                           </span>
                         </td>
-
-                        {/* 4. Cột Tên thiết bị: hiển thị giá trị trong cột name */}
-                        <td style={{ padding: '14px 16px', fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' }}>
-                          {dev.name}
+                        <td style={{ padding: '12px 14px', fontWeight: 600, color: '#0f172a', minWidth: '220px' }}>
+                          {item.name}
                         </td>
-
-                        {/* 5. Cột Trạng thái: hiển thị Đăng bài hoặc Đang ẩn */}
-                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                          {Number(dev.status) === 1 ? (
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                background: '#f0fdf4',
-                                color: '#16a34a',
-                                border: '1px solid #bbf7d0',
-                                padding: '4px 10px',
-                                borderRadius: '20px',
-                                fontSize: '0.78rem',
-                                fontWeight: 600
-                              }}
-                            >
-                              <span
-                                style={{
-                                  width: '6px',
-                                  height: '6px',
-                                  borderRadius: '50%',
-                                  background: '#16a34a'
-                                }}
-                              />
-                              Đăng bài
+                        <td style={{ padding: '12px 14px', textAlign: 'center', color: '#475569', whiteSpace: 'nowrap' }}>
+                          {item.unit || 'Cái'}
+                        </td>
+                        <td style={{ padding: '12px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                          <span style={{ fontWeight: 700, color: '#0f172a', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#f1f5f9' }}>
+                            {item.quantity}
+                          </span>
+                        </td>
+                        {/* Số lượng xuất (lấy từ cột quantity-out) */}
+                        <td style={{ padding: '12px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                          <span style={{ fontWeight: 700, color: '#dc2626', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#fef2f2' }}>
+                            {item['quantity-out'] !== undefined ? item['quantity-out'] : (item.quantity_out ?? 0)}
+                          </span>
+                        </td>
+                        {/* Số lượng còn lại (lấy từ cột quantity-remain) */}
+                        <td style={{ padding: '12px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                          <span style={{ fontWeight: 700, color: '#059669', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#ecfdf5' }}>
+                            {item['quantity-remain'] !== undefined
+                              ? item['quantity-remain']
+                              : (item.quantity_remain ?? Math.max(0, (Number(item.quantity) || 0) - (Number(item['quantity-out'] || item.quantity_out) || 0)))}
+                          </span>
+                        </td>
+                        <td style={{ padding: '12px 14px', textAlign: 'right', color: '#475569', whiteSpace: 'nowrap' }}>
+                          {formatVND(item.price)}
+                        </td>
+                        <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 700, color: '#ea580c', whiteSpace: 'nowrap' }}>
+                          {formatVND(item.total)}
+                        </td>
+                        <td style={{ padding: '12px 14px', color: '#334155', whiteSpace: 'nowrap' }}>
+                          {item.invoice ? (
+                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem' }}>
+                              <FileText size={13} color="#64748b" />
+                              {item.invoice}
                             </span>
                           ) : (
-                            <span
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                background: '#fff7ed',
-                                color: '#ea580c',
-                                border: '1px solid #fed7aa',
-                                padding: '4px 10px',
-                                borderRadius: '20px',
-                                fontSize: '0.78rem',
-                                fontWeight: 600
-                              }}
-                            >
-                              <span
-                                style={{
-                                  width: '6px',
-                                  height: '6px',
-                                  borderRadius: '50%',
-                                  background: '#ea580c'
-                                }}
-                              />
-                              Đang ẩn
-                            </span>
+                            <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>---</span>
                           )}
                         </td>
-
-                        {/* 6. Cột Hình ảnh: hiển thị nút Xem khi nhấn nút Xem hiển thị cửa sổ xem trước hình ảnh */}
-                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                          {dev.image ? (
+                        {/* Thời gian nhập kho (lấy từ cột time-in) */}
+                        <td style={{ padding: '12px 14px', color: '#1e293b', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                          {formatDateTime(item['time-in'] || item.time_in || item.time)}
+                        </td>
+                        {/* Thời gian xuất kho (lấy từ cột time-out) */}
+                        <td style={{ padding: '12px 14px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                          {(item['time-out'] || item.time_out) ? (
+                            <span style={{ color: '#059669', fontWeight: 600 }}>
+                              {formatDateTime(item['time-out'] || item.time_out)}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Chưa xuất kho</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '12px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                          {renderStatusBadge(item.status)}
+                        </td>
+                        <td style={{ padding: '12px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                             <button
                               type="button"
-                              onClick={() =>
-                                setPreviewImageModal({
-                                  open: true,
-                                  url: formatImageUrl(dev.image),
-                                  title: dev.name,
-                                  brand: dev.brand
-                                })
-                              }
+                              onClick={() => handleOpenEditModal(item)}
+                              title="Chỉnh sửa vật tư"
                               style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '5px',
-                                background: '#eff6ff',
-                                color: '#0284c7',
-                                border: '1px solid #bae6fd',
-                                borderRadius: '8px',
-                                padding: '6px 12px',
-                                fontSize: '0.8rem',
-                                fontWeight: 600,
+                                border: 'none',
+                                background: 'none',
                                 cursor: 'pointer',
-                                transition: 'all 0.2s'
-                              }}
-                              onMouseEnter={(e) => {
-                                e.currentTarget.style.background = '#0284c7';
-                                e.currentTarget.style.color = '#ffffff';
-                              }}
-                              onMouseLeave={(e) => {
-                                e.currentTarget.style.background = '#eff6ff';
-                                e.currentTarget.style.color = '#0284c7';
+                                color: '#1D58BB',
+                                padding: '4px',
+                                borderRadius: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
                               }}
                             >
-                              <Eye size={13} />
-                              <span>Xem</span>
+                              <Edit2 size={15} />
                             </button>
-                          ) : (
-                            <span style={{ fontSize: '0.78rem', color: '#94a3b8', fontStyle: 'italic' }}>
-                              Không có ảnh
-                            </span>
-                          )}
-                        </td>
-
-                        {/* 7. Cột Thao tác: hiển thị nút chọn Sửa, Ẩn, Xoá */}
-                        <td style={{ padding: '14px 16px', textAlign: 'center' }}>
-                          <div style={{ display: 'inline-flex', gap: '6px', alignItems: 'center' }}>
-                            {/* Nút Sửa */}
                             <button
                               type="button"
-                              onClick={() => handleOpenEditModal(dev)}
+                              onClick={() => handleDeleteItem(item)}
+                              title="Xóa vật tư"
                               style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                background: '#fefce8',
-                                color: '#ca8a04',
-                                border: '1px solid #fef08a',
-                                borderRadius: '7px',
-                                padding: '5px 10px',
-                                fontSize: '0.78rem',
-                                fontWeight: 600,
-                                cursor: 'pointer'
-                              }}
-                              title="Chỉnh sửa thông tin thiết bị"
-                            >
-                              <Edit3 size={13} />
-                              <span>Sửa</span>
-                            </button>
-
-                            {/* Nút Ẩn / Bỏ ẩn */}
-                            <button
-                              type="button"
-                              onClick={() => handleToggleHide(dev)}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                background: Number(dev.status) === 2 ? '#e0f2fe' : '#f8fafc',
-                                color: Number(dev.status) === 2 ? '#0284c7' : '#64748b',
-                                border: '1px solid #cbd5e1',
-                                borderRadius: '7px',
-                                padding: '5px 10px',
-                                fontSize: '0.78rem',
-                                fontWeight: 600,
-                                cursor: 'pointer'
-                              }}
-                              title={Number(dev.status) === 2 ? 'Đăng lại thiết bị' : 'Ẩn thiết bị khỏi hệ thống'}
-                            >
-                              <EyeOff size={13} />
-                              <span>{Number(dev.status) === 2 ? 'Hiện' : 'Ẩn'}</span>
-                            </button>
-
-                            {/* Nút Xoá */}
-                            <button
-                              type="button"
-                              onClick={() => handleDeleteDevice(dev.id, dev.name)}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px',
-                                background: '#fef2f2',
+                                border: 'none',
+                                background: 'none',
+                                cursor: 'pointer',
                                 color: '#ef4444',
-                                border: '1px solid #fecaca',
-                                borderRadius: '7px',
-                                padding: '5px 10px',
-                                fontSize: '0.78rem',
-                                fontWeight: 600,
-                                cursor: 'pointer'
+                                padding: '4px',
+                                borderRadius: '4px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
                               }}
-                              title="Xoá thiết bị vĩnh viễn"
                             >
-                              <Trash2 size={13} />
-                              <span>Xoá</span>
+                              <Trash2 size={15} />
                             </button>
                           </div>
                         </td>
@@ -1123,68 +812,63 @@ export const DashEquip: React.FC = () => {
               </table>
             </div>
 
-            {/* Chân bảng */}
+            {/* PHẦN DƯỚI BẢNG: ĐẾM KẾT QUẢ */}
             <div
               style={{
-                padding: '12px 18px',
-                background: '#f8fafc',
+                padding: '12px 20px',
+                backgroundColor: '#f8fafc',
                 borderTop: '1px solid #e2e8f0',
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
-                fontSize: '0.82rem',
+                fontSize: '0.8rem',
                 color: '#64748b'
               }}
             >
-              <span>
-                Hiển thị <strong>{filteredDevices.length}</strong> / <strong>{devicesList.length}</strong> thiết bị
-              </span>
-              <span>Hệ thống cơ sở dữ liệu bảng <code>device</code></span>
+              <span>Hiển thị <strong>{filteredItems.length}</strong> / <strong>{items.length}</strong> vật tư</span>
+              <span>Cập nhật đồng bộ với các cột <code>time-in</code> &amp; <code>time-out</code> bảng <code>storage</code></span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ========================================================================= */}
-      {/* MODAL THÊM SẢN PHẨM MỚI */}
-      {/* ========================================================================= */}
-      {isCreateModalOpen && (
+      {/* ============================================================ */}
+      {/* MODAL: THÊM / CHỈNH SỬA VẬT TƯ */}
+      {/* ============================================================ */}
+      {isModalOpen && (
         <div
           style={{
             position: 'fixed',
             inset: 0,
-            zIndex: 9999,
-            background: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(4px)',
+            backgroundColor: 'rgba(15, 23, 42, 0.5)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 999,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             padding: '20px'
           }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setIsCreateModalOpen(false);
-          }}
         >
           <div
             style={{
-              background: '#ffffff',
+              backgroundColor: '#ffffff',
               borderRadius: '16px',
+              maxWidth: '620px',
               width: '100%',
-              maxWidth: '560px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
+              boxShadow: '0 20px 40px rgba(0,0,0,0.15)',
               overflow: 'hidden',
               animation: 'fadeIn 0.2s ease-out'
             }}
           >
-            {/* Modal Header */}
+            {/* Header Modal */}
             <div
               style={{
                 padding: '18px 24px',
-                borderBottom: '1px solid #e2e8f0',
+                borderBottom: '1px solid #f1f5f9',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                background: '#f8fafc'
+                backgroundColor: '#f8fafc'
               }}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -1192,647 +876,334 @@ export const DashEquip: React.FC = () => {
                   style={{
                     width: '36px',
                     height: '36px',
-                    borderRadius: '10px',
-                    background: '#eff6ff',
-                    color: '#0284c7',
+                    borderRadius: '8px',
+                    backgroundColor: '#eff6ff',
+                    color: '#1D58BB',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center'
                   }}
                 >
-                  <Plus size={20} />
+                  <Package size={18} />
                 </div>
                 <div>
-                  <h3 style={{ margin: 0, fontSize: '1.1rem', color: '#0f172a', fontWeight: 700 }}>
-                    Thêm Sản Phẩm Mới
+                  <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
+                    {editingItem ? 'Chỉnh Sửa Thông Tin Vật Tư' : 'Thêm Vật Tư Mới Vào Kho'}
                   </h3>
-                  <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#64748b' }}>
-                    Nhập thông tin sản phẩm và tải hình ảnh lên bảng device
-                  </p>
                 </div>
               </div>
               <button
                 type="button"
-                onClick={() => setIsCreateModalOpen(false)}
+                onClick={() => setIsModalOpen(false)}
                 style={{
+                  border: 'none',
                   background: 'none',
-                  border: 'none',
                   cursor: 'pointer',
-                  color: '#64748b',
-                  padding: '4px',
-                  borderRadius: '6px'
-                }}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Modal Body Form */}
-            <form onSubmit={handleCreateDevice} style={{ padding: '24px' }}>
-              {/* 1. Ô nhập Hãng sản xuất */}
-              <div style={{ marginBottom: '18px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.84rem',
-                    fontWeight: 600,
-                    color: '#334155',
-                    marginBottom: '8px'
-                  }}
-                >
-                  Hãng sản xuất <span style={{ color: '#ef4444' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="Nhập hãng sản xuất (VD: Xiaomi, Aqara, Tuya, Philips, Schneider...)"
-                  value={formBrand}
-                  onChange={(e) => setFormBrand(e.target.value)}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.88rem',
-                    color: '#0f172a',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-
-              {/* 2. Ô nhập Tên thiết bị */}
-              <div style={{ marginBottom: '20px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.84rem',
-                    fontWeight: 600,
-                    color: '#334155',
-                    marginBottom: '8px'
-                  }}
-                >
-                  Tên thiết bị <span style={{ color: '#ef4444' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  placeholder="Nhập tên thiết bị (VD: Cảm biến chuyển động Aqara P1, Công tắc Zigbee...)"
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.88rem',
-                    color: '#0f172a',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-
-              {/* 3. Nút Tải hình ảnh & Khu vực Preview */}
-              <div style={{ marginBottom: '24px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.84rem',
-                    fontWeight: 600,
-                    color: '#334155',
-                    marginBottom: '8px'
-                  }}
-                >
-                  Hình ảnh sản phẩm
-                </label>
-
-                {/* Ẩn input file thực tế */}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  accept="image/*"
-                  onChange={handleImageSelect}
-                  style={{ display: 'none' }}
-                />
-
-                {!imagePreview ? (
-                  <div
-                    onClick={() => fileInputRef.current?.click()}
-                    style={{
-                      border: '2px dashed #cbd5e1',
-                      borderRadius: '12px',
-                      padding: '24px',
-                      textAlign: 'center',
-                      cursor: 'pointer',
-                      background: '#f8fafc',
-                      transition: 'border-color 0.2s, background 0.2s'
-                    }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = '#0284c7';
-                      e.currentTarget.style.background = '#f0f9ff';
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = '#cbd5e1';
-                      e.currentTarget.style.background = '#f8fafc';
-                    }}
-                  >
-                    <UploadCloud size={36} color="#0284c7" style={{ margin: '0 auto 8px' }} />
-                    <div style={{ fontSize: '0.88rem', fontWeight: 600, color: '#0f172a' }}>
-                      Nhấn vào đây để tải hình ảnh
-                    </div>
-                    <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '4px' }}>
-                      Hỗ trợ JPG, PNG, WEBP. Dung lượng tối đa: 5MB
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        fileInputRef.current?.click();
-                      }}
-                      style={{
-                        marginTop: '12px',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '6px',
-                        background: '#0284c7',
-                        color: '#ffffff',
-                        border: 'none',
-                        borderRadius: '8px',
-                        padding: '7px 16px',
-                        fontSize: '0.82rem',
-                        fontWeight: 600,
-                        cursor: 'pointer'
-                      }}
-                    >
-                      <ImageIcon size={15} />
-                      <span>Tải hình ảnh</span>
-                    </button>
-                  </div>
-                ) : (
-                  <div
-                    style={{
-                      border: '1px solid #e2e8f0',
-                      borderRadius: '12px',
-                      padding: '12px',
-                      background: '#f8fafc',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '14px'
-                    }}
-                  >
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      style={{
-                        width: '70px',
-                        height: '70px',
-                        objectFit: 'cover',
-                        borderRadius: '8px',
-                        border: '1px solid #cbd5e1'
-                      }}
-                    />
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                      <div
-                        style={{
-                          fontSize: '0.82rem',
-                          fontWeight: 600,
-                          color: '#0f172a',
-                          whiteSpace: 'nowrap',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        }}
-                      >
-                        {imageFileName}
-                      </div>
-                      <div style={{ fontSize: '0.76rem', color: '#16a34a', marginTop: '2px' }}>
-                        ✓ Đã nén và chuẩn hoá tên file thành công
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => fileInputRef.current?.click()}
-                        style={{
-                          marginTop: '6px',
-                          background: 'none',
-                          border: 'none',
-                          padding: 0,
-                          fontSize: '0.78rem',
-                          color: '#0284c7',
-                          fontWeight: 600,
-                          cursor: 'pointer',
-                          textDecoration: 'underline'
-                        }}
-                      >
-                        Chọn ảnh khác
-                      </button>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={removeSelectedImage}
-                      style={{
-                        background: '#fee2e2',
-                        border: 'none',
-                        color: '#ef4444',
-                        padding: '6px',
-                        borderRadius: '6px',
-                        cursor: 'pointer'
-                      }}
-                      title="Xoá ảnh đã chọn"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Nút Đăng thiết bị */}
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
-                  style={{
-                    padding: '10px 18px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    background: '#ffffff',
-                    color: '#475569',
-                    fontSize: '0.86rem',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Huỷ bỏ
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '10px 22px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: isSubmitting
-                      ? '#94a3b8'
-                      : 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                    color: '#ffffff',
-                    fontSize: '0.86rem',
-                    fontWeight: 600,
-                    cursor: isSubmitting ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 2px 6px rgba(2,132,199,0.3)'
-                  }}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <RefreshCw size={15} className="animate-spin" />
-                      <span>Đang lưu...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus size={16} />
-                      <span>Đăng thiết bị</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* MODAL SỬA THIẾT BỊ (THEO YÊU CẦU: SỬA CÁC CỘT TRỪ CỘT IMAGE) */}
-      {/* ========================================================================= */}
-      {isEditModalOpen && editingDevice && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 9999,
-            background: 'rgba(15, 23, 42, 0.65)',
-            backdropFilter: 'blur(4px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '20px'
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setIsEditModalOpen(false);
-          }}
-        >
-          <div
-            style={{
-              background: '#ffffff',
-              borderRadius: '16px',
-              width: '100%',
-              maxWidth: '520px',
-              boxShadow: '0 20px 40px rgba(0,0,0,0.2)',
-              overflow: 'hidden',
-              animation: 'fadeIn 0.2s ease-out'
-            }}
-          >
-            {/* Modal Header */}
-            <div
-              style={{
-                padding: '18px 24px',
-                borderBottom: '1px solid #e2e8f0',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                background: '#f8fafc'
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <div
-                  style={{
-                    width: '36px',
-                    height: '36px',
-                    borderRadius: '10px',
-                    background: '#fefce8',
-                    color: '#ca8a04',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center'
-                  }}
-                >
-                  <Edit3 size={18} />
-                </div>
-                <div>
-                  <h3 style={{ margin: 0, fontSize: '1.05rem', color: '#0f172a', fontWeight: 700 }}>
-                    Sửa Thông Tin Thiết Bị
-                  </h3>
-                  <p style={{ margin: '2px 0 0', fontSize: '0.78rem', color: '#64748b' }}>
-                    Cập nhật Hãng sản xuất, Tên thiết bị và Trạng thái (giữ nguyên hình ảnh)
-                  </p>
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() => setIsEditModalOpen(false)}
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  color: '#64748b',
-                  padding: '4px',
-                  borderRadius: '6px'
-                }}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            {/* Modal Edit Form */}
-            <form onSubmit={handleSaveEdit} style={{ padding: '24px' }}>
-              {/* 1. Sửa Hãng sản xuất */}
-              <div style={{ marginBottom: '18px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.84rem',
-                    fontWeight: 600,
-                    color: '#334155',
-                    marginBottom: '8px'
-                  }}
-                >
-                  Hãng sản xuất <span style={{ color: '#ef4444' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={editBrand}
-                  onChange={(e) => setEditBrand(e.target.value)}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.88rem',
-                    color: '#0f172a',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-
-              {/* 2. Sửa Tên thiết bị */}
-              <div style={{ marginBottom: '18px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.84rem',
-                    fontWeight: 600,
-                    color: '#334155',
-                    marginBottom: '8px'
-                  }}
-                >
-                  Tên thiết bị <span style={{ color: '#ef4444' }}>*</span>
-                </label>
-                <input
-                  type="text"
-                  value={editName}
-                  onChange={(e) => setEditName(e.target.value)}
-                  required
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.88rem',
-                    color: '#0f172a',
-                    outline: 'none',
-                    boxSizing: 'border-box'
-                  }}
-                />
-              </div>
-
-              {/* 3. Sửa Trạng thái */}
-              <div style={{ marginBottom: '24px' }}>
-                <label
-                  style={{
-                    display: 'block',
-                    fontSize: '0.84rem',
-                    fontWeight: 600,
-                    color: '#334155',
-                    marginBottom: '8px'
-                  }}
-                >
-                  Trạng thái
-                </label>
-                <select
-                  value={editStatus}
-                  onChange={(e) => setEditStatus(Number(e.target.value))}
-                  style={{
-                    width: '100%',
-                    padding: '10px 14px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    fontSize: '0.88rem',
-                    color: '#0f172a',
-                    outline: 'none',
-                    background: '#ffffff',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <option value={1}>Đăng bài (Hiển thị)</option>
-                  <option value={2}>Đang ẩn</option>
-                </select>
-              </div>
-
-              {/* Nút Huỷ & Nút Lưu */}
-              <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end' }}>
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  style={{
-                    padding: '10px 18px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    background: '#ffffff',
-                    color: '#475569',
-                    fontSize: '0.86rem',
-                    fontWeight: 600,
-                    cursor: 'pointer'
-                  }}
-                >
-                  Huỷ bỏ
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSavingEdit}
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '10px 22px',
-                    borderRadius: '8px',
-                    border: 'none',
-                    background: isSavingEdit
-                      ? '#94a3b8'
-                      : 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)',
-                    color: '#ffffff',
-                    fontSize: '0.86rem',
-                    fontWeight: 600,
-                    cursor: isSavingEdit ? 'not-allowed' : 'pointer',
-                    boxShadow: '0 2px 6px rgba(2,132,199,0.3)'
-                  }}
-                >
-                  {isSavingEdit ? (
-                    <>
-                      <RefreshCw size={15} className="animate-spin" />
-                      <span>Đang lưu...</span>
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle size={16} />
-                      <span>Lưu thay đổi</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* ========================================================================= */}
-      {/* MODAL XEM TRƯỚC HÌNH ẢNH */}
-      {/* ========================================================================= */}
-      {previewImageModal.open && (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 99999,
-            background: 'rgba(15, 23, 42, 0.85)',
-            backdropFilter: 'blur(6px)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '24px'
-          }}
-          onClick={(e) => {
-            if (e.target === e.currentTarget) {
-              setPreviewImageModal({ open: false, url: '', title: '', brand: '' });
-            }
-          }}
-        >
-          <div
-            style={{
-              position: 'relative',
-              maxWidth: '680px',
-              width: '100%',
-              background: '#0f172a',
-              borderRadius: '16px',
-              overflow: 'hidden',
-              boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5)',
-              border: '1px solid rgba(255,255,255,0.1)'
-            }}
-          >
-            {/* Header popup */}
-            <div
-              style={{
-                padding: '14px 20px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                borderBottom: '1px solid rgba(255,255,255,0.1)'
-              }}
-            >
-              <div>
-                <div style={{ color: '#38bdf8', fontSize: '0.76rem', fontWeight: 600 }}>
-                  {previewImageModal.brand}
-                </div>
-                <div style={{ color: '#ffffff', fontSize: '0.96rem', fontWeight: 700 }}>
-                  {previewImageModal.title}
-                </div>
-              </div>
-              <button
-                type="button"
-                onClick={() =>
-                  setPreviewImageModal({ open: false, url: '', title: '', brand: '' })
-                }
-                style={{
-                  background: 'rgba(255,255,255,0.1)',
-                  border: 'none',
-                  color: '#ffffff',
-                  width: '32px',
-                  height: '32px',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer'
+                  color: '#94a3b8',
+                  padding: '4px'
                 }}
               >
                 <X size={18} />
               </button>
             </div>
 
-            {/* Khung ảnh */}
-            <div
-              style={{
-                padding: '16px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                background: '#020617',
-                maxHeight: '75vh',
-                overflow: 'hidden'
-              }}
-            >
-              <img
-                src={previewImageModal.url}
-                alt={previewImageModal.title}
+            {/* Form Body */}
+            <form onSubmit={handleSubmitForm} style={{ padding: '24px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Mã thiết bị (device_code) <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ví dụ: GW_3ONEDATA_01"
+                    value={formDeviceCode}
+                    onChange={(e) => setFormDeviceCode(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      fontSize: '0.85rem',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      outline: 'none',
+                      fontFamily: 'monospace',
+                      textTransform: 'uppercase'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Tên vật tư <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ví dụ: Cảm biến nhiệt độ SHT30"
+                    value={formName}
+                    onChange={(e) => setFormName(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      fontSize: '0.85rem',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Đơn vị tính <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Cái, Bộ, Mét, Chiếc, Bo mạch..."
+                    value={formUnit}
+                    onChange={(e) => setFormUnit(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      fontSize: '0.85rem',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Số lượng<span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={formQuantity}
+                    onChange={(e) => setFormQuantity(Number(e.target.value))}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      fontSize: '0.85rem',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Đơn giá (VNĐ)<span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1000"
+                    value={formPrice}
+                    onChange={(e) => setFormPrice(Number(e.target.value))}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      fontSize: '0.85rem',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Thành tiền (Tự động tính)
+                  </label>
+                  <div
+                    style={{
+                      padding: '9px 12px',
+                      fontSize: '0.9rem',
+                      fontWeight: 700,
+                      color: '#ea580c',
+                      backgroundColor: '#fff7ed',
+                      border: '1px solid #fed7aa',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    {formatVND((Number(formQuantity) || 0) * (Number(formPrice) || 0))}
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Số chứng từ<span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="Ví dụ: HD-2026-009"
+                    value={formInvoice}
+                    onChange={(e) => setFormInvoice(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      fontSize: '0.85rem',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Tình trạng<span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <select
+                    value={formStatus}
+                    onChange={(e) => setFormStatus(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      fontSize: '0.85rem',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      outline: 'none',
+                      backgroundColor: '#ffffff'
+                    }}
+                  >
+                    <option value="Tại kho">Tại kho</option>
+                    <option value="Tại dự án">Tại dự án</option>
+                  </select>
+                </div>
+
+                <div style={{ gridColumn: !editingItem ? 'span 2' : 'span 1' }}>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Thời gian nhập kho<span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={formTimeIn}
+                    onChange={(e) => setFormTimeIn(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      fontSize: '0.85rem',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                {editingItem && (
+                  <>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                        Thời gian xuất kho
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={formTimeOut}
+                        onChange={(e) => setFormTimeOut(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '9px 12px',
+                          fontSize: '0.85rem',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '8px',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                        Số lượng xuất
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max={formQuantity}
+                        value={formQuantityOut}
+                        onChange={(e) => setFormQuantityOut(Number(e.target.value))}
+                        style={{
+                          width: '100%',
+                          padding: '9px 12px',
+                          fontSize: '0.85rem',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '8px',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                        Số lượng còn lại (Tự động tính)
+                      </label>
+                      <div
+                        style={{
+                          padding: '9px 12px',
+                          fontSize: '0.9rem',
+                          fontWeight: 700,
+                          color: '#059669',
+                          backgroundColor: '#ecfdf5',
+                          border: '1px solid #a7f3d0',
+                          borderRadius: '8px'
+                        }}
+                      >
+                        {Math.max(0, (Number(formQuantity) || 0) - (Number(formQuantityOut) || 0))}
+                      </div>
+                    </div>
+                  </>
+                )}
+              </div>
+
+              {/* Action Buttons */}
+              <div
                 style={{
-                  maxWidth: '100%',
-                  maxHeight: '70vh',
-                  objectFit: 'contain',
-                  borderRadius: '10px'
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  gap: '12px',
+                  marginTop: '24px',
+                  paddingTop: '16px',
+                  borderTop: '1px solid #f1f5f9'
                 }}
-              />
-            </div>
+              >
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  style={{
+                    padding: '9px 18px',
+                    backgroundColor: '#f1f5f9',
+                    color: '#475569',
+                    border: '1px solid #cbd5e1',
+                    borderRadius: '8px',
+                    fontSize: '0.86rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  type="submit"
+                  style={{
+                    padding: '9px 24px',
+                    backgroundColor: '#1D58BB',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    fontSize: '0.86rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    boxShadow: '0 2px 8px rgba(29, 88, 187, 0.3)'
+                  }}
+                >
+                  {editingItem ? 'Lưu thay đổi' : 'Thêm vào kho'}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
