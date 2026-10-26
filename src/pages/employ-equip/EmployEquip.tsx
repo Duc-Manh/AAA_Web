@@ -30,6 +30,10 @@ export interface StorageItem {
   name: string;
   unit: string;
   quantity: number;
+  'quantity-out'?: number;
+  'quantity-remain'?: number;
+  quantity_out?: number;
+  quantity_remain?: number;
   price: number | string;
   total: number | string;
   invoice: string;
@@ -69,6 +73,7 @@ export const EmployEquip: React.FC = () => {
   const [formName, setFormName] = useState('');
   const [formUnit, setFormUnit] = useState('Cái');
   const [formQuantity, setFormQuantity] = useState<number>(1);
+  const [formQuantityOut, setFormQuantityOut] = useState<number>(0);
   const [formPrice, setFormPrice] = useState<number>(0);
   const [formInvoice, setFormInvoice] = useState('');
   const [formStatus, setFormStatus] = useState('Tồn kho');
@@ -123,6 +128,7 @@ export const EmployEquip: React.FC = () => {
     setFormName('');
     setFormUnit('Cái');
     setFormQuantity(1);
+    setFormQuantityOut(0);
     setFormPrice(0);
     setFormInvoice('');
     setFormStatus('Tồn kho');
@@ -140,6 +146,7 @@ export const EmployEquip: React.FC = () => {
     setFormName(item.name);
     setFormUnit(item.unit || 'Cái');
     setFormQuantity(Number(item.quantity) || 1);
+    setFormQuantityOut(Number(item['quantity-out'] !== undefined ? item['quantity-out'] : (item.quantity_out ?? 0)));
     setFormPrice(Number(item.price) || 0);
     setFormInvoice(item.invoice || '');
     setFormStatus(item.status || 'Tồn kho');
@@ -177,13 +184,21 @@ export const EmployEquip: React.FC = () => {
       return;
     }
 
+    const qty = Number(formQuantity) || 1;
+    const qtyOut = Number(formQuantityOut) || 0;
+    const qtyRemain = Math.max(0, qty - qtyOut);
+
     const payload = {
       device_code: formDeviceCode.trim().toUpperCase(),
       name: formName.trim(),
       unit: formUnit.trim() || 'Cái',
-      quantity: Number(formQuantity) || 1,
+      quantity: qty,
+      'quantity-out': qtyOut,
+      'quantity-remain': qtyRemain,
+      quantity_out: qtyOut,
+      quantity_remain: qtyRemain,
       price: Number(formPrice) || 0,
-      total: (Number(formQuantity) || 1) * (Number(formPrice) || 0),
+      total: qty * (Number(formPrice) || 0),
       invoice: formInvoice.trim(),
       status: formStatus,
       'time-in': formTimeIn ? new Date(formTimeIn).toISOString() : null,
@@ -623,6 +638,8 @@ export const EmployEquip: React.FC = () => {
                     <th style={{ padding: '12px 14px' }}>Tên vật tư</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Đơn vị</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Số lượng</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Số lượng xuất</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center' }}>Số lượng còn lại</th>
                     <th style={{ padding: '12px 14px', textAlign: 'right' }}>Đơn giá</th>
                     <th style={{ padding: '12px 14px', textAlign: 'right' }}>Thành tiền</th>
                     <th style={{ padding: '12px 14px' }}>Số chứng từ</th>
@@ -635,13 +652,13 @@ export const EmployEquip: React.FC = () => {
                 <tbody>
                   {loading && items.length === 0 ? (
                     <tr>
-                      <td colSpan={12} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan={14} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
                         Đang tải danh sách vật tư...
                       </td>
                     </tr>
                   ) : filteredItems.length === 0 ? (
                     <tr>
-                      <td colSpan={12} style={{ padding: '48px 20px', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan={14} style={{ padding: '48px 20px', textAlign: 'center', color: '#64748b' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                           <AlertCircle size={32} color="#94a3b8" />
                           <div style={{ fontWeight: 600 }}>Không tìm thấy vật tư nào</div>
@@ -677,6 +694,20 @@ export const EmployEquip: React.FC = () => {
                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                           <span style={{ fontWeight: 700, color: '#0f172a', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#f1f5f9' }}>
                             {item.quantity}
+                          </span>
+                        </td>
+                        {/* Số lượng xuất (lấy từ cột quantity-out) */}
+                        <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                          <span style={{ fontWeight: 700, color: '#dc2626', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#fef2f2' }}>
+                            {item['quantity-out'] !== undefined ? item['quantity-out'] : (item.quantity_out ?? 0)}
+                          </span>
+                        </td>
+                        {/* Số lượng còn lại (lấy từ cột quantity-remain) */}
+                        <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                          <span style={{ fontWeight: 700, color: '#059669', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#ecfdf5' }}>
+                            {item['quantity-remain'] !== undefined
+                              ? item['quantity-remain']
+                              : (item.quantity_remain ?? Math.max(0, (Number(item.quantity) || 0) - (Number(item['quantity-out'] || item.quantity_out) || 0)))}
                           </span>
                         </td>
                         <td style={{ padding: '12px 14px', textAlign: 'right', color: '#475569' }}>
@@ -1043,24 +1074,66 @@ export const EmployEquip: React.FC = () => {
                 </div>
 
                 {editingItem && (
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                      Thời gian xuất kho<span style={{ color: '#ef4444' }}>*</span>
-                    </label>
-                    <input
-                      type="datetime-local"
-                      value={formTimeOut}
-                      onChange={(e) => setFormTimeOut(e.target.value)}
-                      style={{
-                        width: '100%',
-                        padding: '9px 12px',
-                        fontSize: '0.85rem',
-                        border: '1px solid #cbd5e1',
-                        borderRadius: '8px',
-                        outline: 'none'
-                      }}
-                    />
-                  </div>
+                  <>
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                        Thời gian xuất kho
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={formTimeOut}
+                        onChange={(e) => setFormTimeOut(e.target.value)}
+                        style={{
+                          width: '100%',
+                          padding: '9px 12px',
+                          fontSize: '0.85rem',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '8px',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                        Số lượng xuất
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max={formQuantity}
+                        value={formQuantityOut}
+                        onChange={(e) => setFormQuantityOut(Number(e.target.value))}
+                        style={{
+                          width: '100%',
+                          padding: '9px 12px',
+                          fontSize: '0.85rem',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '8px',
+                          outline: 'none'
+                        }}
+                      />
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                        Số lượng còn lại (Tự động tính)
+                      </label>
+                      <div
+                        style={{
+                          padding: '9px 12px',
+                          fontSize: '0.9rem',
+                          fontWeight: 700,
+                          color: '#059669',
+                          backgroundColor: '#ecfdf5',
+                          border: '1px solid #a7f3d0',
+                          borderRadius: '8px'
+                        }}
+                      >
+                        {Math.max(0, (Number(formQuantity) || 0) - (Number(formQuantityOut) || 0))}
+                      </div>
+                    </div>
+                  </>
                 )}
               </div>
 
