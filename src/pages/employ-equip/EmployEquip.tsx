@@ -1023,7 +1023,7 @@ export const EmployEquip: React.FC = () => {
                   </select>
                 </div>
 
-                <div style={{ gridColumn: editingItem ? 'span 2' : 'span 1' }}>
+                <div style={{ gridColumn: !editingItem ? 'span 2' : 'span 1' }}>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                     Thời gian nhập kho<span style={{ color: '#ef4444' }}>*</span>
                   </label>
@@ -1042,7 +1042,7 @@ export const EmployEquip: React.FC = () => {
                   />
                 </div>
 
-                {!editingItem && (
+                {editingItem && (
                   <div>
                     <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                       Thời gian xuất kho<span style={{ color: '#ef4444' }}>*</span>
