@@ -349,7 +349,12 @@ export const EmployCusto: React.FC = () => {
     setNewStatus('installing');
     setNewDevices([]);
 
-    triggerToast(`Đã lưu dự án "${payload.projectName}" vào cơ sở dữ liệu!`);
+    const hasEmail = payload.email && payload.email.includes('@') && payload.email !== 'Chưa cập nhật';
+    if (hasEmail) {
+      triggerToast(`Đã lưu dự án "${payload.projectName}" và gửi tài khoản đến ${payload.email} (Mật khẩu: 3AH@me)!`);
+    } else {
+      triggerToast(`Đã lưu dự án "${payload.projectName}" vào cơ sở dữ liệu!`);
+    }
   };
 
   // Mở modal sửa dự án

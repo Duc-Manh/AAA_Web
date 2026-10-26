@@ -1,6 +1,7 @@
 import react from '@vitejs/plugin-react'
 import bcrypt from 'bcryptjs'
 import mysql from 'mysql2/promise'
+import nodemailer from 'nodemailer'
 import type { Plugin } from 'vite'
 import { defineConfig } from 'vite'
 import fs from 'fs'
@@ -1511,6 +1512,53 @@ function mysqlSimuPlugin(): Plugin {
                         VALUES (?, ?, ?, ?, ?, ?)
                         ON DUPLICATE KEY UPDATE device_name = VALUES(device_name), slave_address = VALUES(slave_address), floor = VALUES(floor)
                       `, [gatewayId, dev.device_code.toUpperCase(), dev.device_name, dev.device_type || 'sensor', Number(dev.slave_address) || 1, dev.location_name || dev.floor || 'Khu vực chính'])
+                    }
+                  }
+
+                  // Gửi email thông tin tài khoản đăng nhập cho khách hàng
+                  if (email && typeof email === 'string' && email.includes('@') && email !== 'Chưa cập nhật') {
+                    try {
+                      const transporter = nodemailer.createTransport({
+                        host: 'smtp.gmail.com',
+                        port: 465,
+                        secure: true,
+                        auth: {
+                          user: '3ahomeadmin@gmail.com',
+                          pass: 'mtvngkqxvzyvjjhl'
+                        }
+                      })
+                      await transporter.sendMail({
+                        from: '"3AHOME Vietnam" <3ahomeadmin@gmail.com>',
+                        to: email.trim(),
+                        subject: `[3AHOME] Thông tin tài khoản truy cập dự án: ${projectName || 'Hệ thống Smart IoT'}`,
+                        html: `
+                          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
+                            <div style="background: #1D58BB; padding: 22px 20px; color: #ffffff; text-align: center;">
+                              <h2 style="margin: 0; font-size: 20px;">3AHOME VIỆT NAM</h2>
+                              <p style="margin: 4px 0 0 0; font-size: 13px; opacity: 0.9;">Hệ thống BMS &amp; Giải pháp Điều khiển Thông minh Smart IoT</p>
+                            </div>
+                            <div style="padding: 24px; color: #1e293b;">
+                              <h3 style="color: #1D58BB; margin-top: 0; font-size: 17px;">Thông tin tài khoản đăng nhập</h3>
+                              <p style="font-size: 14.5px; line-height: 1.6;">Hệ thống 3AHOME vừa khởi tạo thành công thông tin dự án <strong>${projectName || ''}</strong>. Dưới đây là thông tin tài khoản đăng nhập của Quý khách:</p>
+                              <div style="background: #f1f5f9; padding: 16px; border-radius: 8px; margin: 16px 0; border: 1px solid #e2e8f0;">
+                                <p style="margin: 8px 0; font-size: 14.5px;"><strong>Tài khoản đăng nhập:</strong> <span style="color: #1D58BB; font-weight: bold;">${email.trim()}</span></p>
+                                <p style="margin: 8px 0; font-size: 14.5px;"><strong>Mật khẩu mặc định:</strong> <span style="color: #ea580c; font-weight: bold; font-family: monospace; font-size: 16px; letter-spacing: 1px;">3AH@me</span></p>
+                              </div>
+                              <p style="font-size: 13px; color: #64748b; line-height: 1.5;">* Quý khách có thể sử dụng tài khoản này để đăng nhập vào Web Portal hoặc Ứng dụng di động 3AHOME.<br/>* Sau khi đăng nhập lần đầu, Quý khách nên tiến hành đổi mật khẩu để bảo đảm an toàn.</p>
+                              <div style="text-align: center; margin-top: 22px;">
+                                <a href="https://3ahome.vn" style="background: #1D58BB; color: #ffffff; text-decoration: none; padding: 11px 24px; border-radius: 8px; font-weight: 600; font-size: 13.5px; display: inline-block;">Đăng nhập vào Hệ thống 3AHOME</a>
+                              </div>
+                            </div>
+                            <div style="background-color: #f1f5f9; padding: 16px 20px; text-align: center; font-size: 12px; color: #64748b; border-top: 1px solid #e2e8f0;">
+                              Email này được gửi tự động từ hệ thống quản trị 3AHOME Vietnam.<br/>
+                              Hỗ trợ kỹ thuật: 3ahomeadmin@gmail.com | Website: https://3ahome.vn
+                            </div>
+                          </div>
+                        `
+                      })
+                      console.log('✅ [Vite Dev] Đã gửi email tài khoản tới:', email.trim())
+                    } catch (mErr) {
+                      console.warn('⚠️ [Vite Dev] Lỗi khi gửi email qua Gmail SMTP:', mErr)
                     }
                   }
 
