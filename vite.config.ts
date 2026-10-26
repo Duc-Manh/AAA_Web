@@ -1681,6 +1681,128 @@ function mysqlSimuPlugin(): Plugin {
           return
         }
 
+        // API Quản lý Vật tư Kho: /api/storage
+        if (url.pathname === '/api/storage' || url.pathname.startsWith('/api/storage/')) {
+          let connection: any
+          try {
+            connection = await mysql.createConnection(mysqlConfig)
+            await connection.execute(`
+              CREATE TABLE IF NOT EXISTS storage (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                device_code VARCHAR(100) NOT NULL,
+                name VARCHAR(255) NOT NULL,
+                unit VARCHAR(50) DEFAULT 'Cái',
+                quantity INT NOT NULL DEFAULT 1,
+                price DECIMAL(15, 2) DEFAULT 0,
+                total DECIMAL(15, 2) DEFAULT 0,
+                invoice VARCHAR(100) DEFAULT '',
+                time DATETIME DEFAULT CURRENT_TIMESTAMP,
+                status VARCHAR(50) DEFAULT 'Tồn kho'
+              ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+            `)
+
+            // 1. GET /api/storage
+            if (url.pathname === '/api/storage' && req.method === 'GET') {
+              const [rows] = await connection.execute('SELECT * FROM storage ORDER BY id DESC')
+              res.setHeader('Content-Type', 'application/json; charset=utf-8')
+              res.end(JSON.stringify({ success: true, data: rows }))
+              await connection.end()
+              return
+            }
+
+            // 2. POST /api/storage
+            if (url.pathname === '/api/storage' && req.method === 'POST') {
+              let body = ''
+              req.on('data', (chunk: any) => { body += chunk })
+              req.on('end', async () => {
+                try {
+                  const { device_code, name, unit, quantity, price, total, invoice, time, status } = JSON.parse(body || '{}')
+                  const qty = Number(quantity) || 1
+                  const prc = Number(price) || 0
+                  const tot = total !== undefined && total !== null ? Number(total) : qty * prc
+                  const itemTime = time ? new Date(time) : new Date()
+
+                  const [result]: any = await connection.execute(`
+                    INSERT INTO storage (device_code, name, unit, quantity, price, total, invoice, time, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                  `, [
+                    (device_code || '').trim().toUpperCase(),
+                    (name || '').trim(),
+                    (unit || 'Cái').trim(),
+                    qty,
+                    prc,
+                    tot,
+                    (invoice || '').trim(),
+                    itemTime,
+                    (status || 'Tồn kho').trim()
+                  ])
+
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: true, message: 'Đã thêm vật tư thành công', id: result.insertId }))
+                } catch (err: any) {
+                  res.statusCode = 500
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: false, message: err.message }))
+                } finally {
+                  await connection.end()
+                }
+              })
+              return
+            }
+
+            // 3. PUT /api/storage/:id
+            if (url.pathname.startsWith('/api/storage/') && req.method === 'PUT') {
+              const id = url.pathname.split('/')[3]
+              let body = ''
+              req.on('data', (chunk: any) => { body += chunk })
+              req.on('end', async () => {
+                try {
+                  const { device_code, name, unit, quantity, price, total, invoice, time, status } = JSON.parse(body || '{}')
+                  const qty = Number(quantity) || 1
+                  const prc = Number(price) || 0
+                  const tot = total !== undefined && total !== null ? Number(total) : qty * prc
+
+                  if (time) {
+                    await connection.execute(`
+                      UPDATE storage SET device_code = ?, name = ?, unit = ?, quantity = ?, price = ?, total = ?, invoice = ?, status = ?, time = ? WHERE id = ?
+                    `, [(device_code || '').trim().toUpperCase(), (name || '').trim(), (unit || 'Cái').trim(), qty, prc, tot, (invoice || '').trim(), (status || 'Tồn kho').trim(), new Date(time), id])
+                  } else {
+                    await connection.execute(`
+                      UPDATE storage SET device_code = ?, name = ?, unit = ?, quantity = ?, price = ?, total = ?, invoice = ?, status = ? WHERE id = ?
+                    `, [(device_code || '').trim().toUpperCase(), (name || '').trim(), (unit || 'Cái').trim(), qty, prc, tot, (invoice || '').trim(), (status || 'Tồn kho').trim(), id])
+                  }
+
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: true, message: 'Đã cập nhật thông tin vật tư thành công' }))
+                } catch (err: any) {
+                  res.statusCode = 500
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(JSON.stringify({ success: false, message: err.message }))
+                } finally {
+                  await connection.end()
+                }
+              })
+              return
+            }
+
+            // 4. DELETE /api/storage/:id
+            if (url.pathname.startsWith('/api/storage/') && req.method === 'DELETE') {
+              const id = url.pathname.split('/')[3]
+              await connection.execute('DELETE FROM storage WHERE id = ?', [id])
+              res.setHeader('Content-Type', 'application/json; charset=utf-8')
+              res.end(JSON.stringify({ success: true, message: 'Đã xóa vật tư khỏi cơ sở dữ liệu' }))
+              await connection.end()
+              return
+            }
+          } catch (err: any) {
+            if (connection) await connection.end()
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.end(JSON.stringify({ success: false, message: err.message || 'Lỗi server storage' }))
+            return
+          }
+        }
+
         next()
       })
     },
