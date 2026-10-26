@@ -33,7 +33,11 @@ export interface StorageItem {
   price: number | string;
   total: number | string;
   invoice: string;
-  time: string;
+  time?: string;
+  'time-in'?: string;
+  'time-out'?: string;
+  time_in?: string;
+  time_out?: string;
   status: string;
 }
 
@@ -68,7 +72,8 @@ export const EmployEquip: React.FC = () => {
   const [formPrice, setFormPrice] = useState<number>(0);
   const [formInvoice, setFormInvoice] = useState('');
   const [formStatus, setFormStatus] = useState('Tồn kho');
-  const [formTime, setFormTime] = useState('');
+  const [formTimeIn, setFormTimeIn] = useState('');
+  const [formTimeOut, setFormTimeOut] = useState('');
 
   // Lấy danh sách từ API
   const fetchStorageData = async () => {
@@ -123,7 +128,8 @@ export const EmployEquip: React.FC = () => {
     setFormStatus('Tồn kho');
     const now = new Date();
     const localIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-    setFormTime(localIso);
+    setFormTimeIn(localIso);
+    setFormTimeOut('');
     setIsModalOpen(true);
   };
 
@@ -137,13 +143,25 @@ export const EmployEquip: React.FC = () => {
     setFormPrice(Number(item.price) || 0);
     setFormInvoice(item.invoice || '');
     setFormStatus(item.status || 'Tồn kho');
-    if (item.time) {
-      const d = new Date(item.time);
+
+    const rawIn = item['time-in'] || item.time_in || item.time;
+    if (rawIn) {
+      const d = new Date(rawIn);
       const localIso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
-      setFormTime(localIso);
+      setFormTimeIn(localIso);
     } else {
-      setFormTime('');
+      setFormTimeIn('');
     }
+
+    const rawOut = item['time-out'] || item.time_out;
+    if (rawOut) {
+      const d = new Date(rawOut);
+      const localIso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      setFormTimeOut(localIso);
+    } else {
+      setFormTimeOut('');
+    }
+
     setIsModalOpen(true);
   };
 
@@ -168,7 +186,11 @@ export const EmployEquip: React.FC = () => {
       total: (Number(formQuantity) || 1) * (Number(formPrice) || 0),
       invoice: formInvoice.trim(),
       status: formStatus,
-      time: formTime ? new Date(formTime).toISOString() : new Date().toISOString()
+      'time-in': formTimeIn ? new Date(formTimeIn).toISOString() : null,
+      'time-out': formTimeOut ? new Date(formTimeOut).toISOString() : null,
+      time_in: formTimeIn ? new Date(formTimeIn).toISOString() : null,
+      time_out: formTimeOut ? new Date(formTimeOut).toISOString() : null,
+      time: formTimeIn ? new Date(formTimeIn).toISOString() : new Date().toISOString()
     };
 
     try {
@@ -238,7 +260,7 @@ export const EmployEquip: React.FC = () => {
   };
 
   // Format ngày giờ
-  const formatDateTime = (dateStr: string) => {
+  const formatDateTime = (dateStr?: string) => {
     if (!dateStr) return '---';
     try {
       const d = new Date(dateStr);
@@ -596,7 +618,7 @@ export const EmployEquip: React.FC = () => {
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem', textAlign: 'left' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
-                    <th style={{ padding: '12px 14px', width: '50px', textAlign: 'center' }}>STT</th>
+                    <th style={{ padding: '12px 14px', width: '45px', textAlign: 'center' }}>STT</th>
                     <th style={{ padding: '12px 14px' }}>Mã thiết bị</th>
                     <th style={{ padding: '12px 14px' }}>Tên vật tư</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Đơn vị</th>
@@ -604,21 +626,22 @@ export const EmployEquip: React.FC = () => {
                     <th style={{ padding: '12px 14px', textAlign: 'right' }}>Đơn giá</th>
                     <th style={{ padding: '12px 14px', textAlign: 'right' }}>Thành tiền</th>
                     <th style={{ padding: '12px 14px' }}>Số chứng từ</th>
-                    <th style={{ padding: '12px 14px' }}>Thời gian nhập</th>
+                    <th style={{ padding: '12px 14px' }}>Thời gian nhập kho</th>
+                    <th style={{ padding: '12px 14px' }}>Thời gian xuất kho</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Tình trạng</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'center', width: '100px' }}>Thao tác</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center', width: '90px' }}>Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
                   {loading && items.length === 0 ? (
                     <tr>
-                      <td colSpan={11} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan={12} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
                         Đang tải danh sách vật tư...
                       </td>
                     </tr>
                   ) : filteredItems.length === 0 ? (
                     <tr>
-                      <td colSpan={11} style={{ padding: '48px 20px', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan={12} style={{ padding: '48px 20px', textAlign: 'center', color: '#64748b' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                           <AlertCircle size={32} color="#94a3b8" />
                           <div style={{ fontWeight: 600 }}>Không tìm thấy vật tư nào</div>
@@ -672,8 +695,19 @@ export const EmployEquip: React.FC = () => {
                             <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>---</span>
                           )}
                         </td>
-                        <td style={{ padding: '12px 14px', color: '#64748b', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                          {formatDateTime(item.time)}
+                        {/* Thời gian nhập kho (lấy từ cột time-in) */}
+                        <td style={{ padding: '12px 14px', color: '#1e293b', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                          {formatDateTime(item['time-in'] || item.time_in || item.time)}
+                        </td>
+                        {/* Thời gian xuất kho (lấy từ cột time-out) */}
+                        <td style={{ padding: '12px 14px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                          {(item['time-out'] || item.time_out) ? (
+                            <span style={{ color: '#059669', fontWeight: 600 }}>
+                              {formatDateTime(item['time-out'] || item.time_out)}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Chưa xuất kho</span>
+                          )}
                         </td>
                         <td style={{ padding: '12px 14px', textAlign: 'center' }}>
                           {renderStatusBadge(item.status)}
@@ -739,7 +773,7 @@ export const EmployEquip: React.FC = () => {
               }}
             >
               <span>Hiển thị <strong>{filteredItems.length}</strong> / <strong>{items.length}</strong> vật tư</span>
-              <span>Cập nhật đồng bộ với bảng <code>storage</code> trong database 3ahome</span>
+              <span>Cập nhật đồng bộ với các cột <code>time-in</code> &amp; <code>time-out</code> bảng <code>storage</code></span>
             </div>
           </div>
         </div>
@@ -995,14 +1029,33 @@ export const EmployEquip: React.FC = () => {
                   </select>
                 </div>
 
-                <div style={{ gridColumn: 'span 2' }}>
+                <div>
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Thời gian nhập (time)
+                    Thời gian nhập kho (time-in)
                   </label>
                   <input
                     type="datetime-local"
-                    value={formTime}
-                    onChange={(e) => setFormTime(e.target.value)}
+                    value={formTimeIn}
+                    onChange={(e) => setFormTimeIn(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      fontSize: '0.85rem',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Thời gian xuất kho (time-out)
+                  </label>
+                  <input
+                    type="datetime-local"
+                    value={formTimeOut}
+                    onChange={(e) => setFormTimeOut(e.target.value)}
                     style={{
                       width: '100%',
                       padding: '9px 12px',

@@ -1703,7 +1703,7 @@ function mysqlSimuPlugin(): Plugin {
 
             // 1. GET /api/storage
             if (url.pathname === '/api/storage' && req.method === 'GET') {
-              const [rows] = await connection.execute('SELECT * FROM storage ORDER BY id DESC')
+              const [rows] = await connection.execute('SELECT *, `time-in` AS time_in, `time-out` AS time_out FROM storage ORDER BY id DESC')
               res.setHeader('Content-Type', 'application/json; charset=utf-8')
               res.end(JSON.stringify({ success: true, data: rows }))
               await connection.end()
@@ -1716,15 +1716,19 @@ function mysqlSimuPlugin(): Plugin {
               req.on('data', (chunk: any) => { body += chunk })
               req.on('end', async () => {
                 try {
-                  const { device_code, name, unit, quantity, price, total, invoice, time, status } = JSON.parse(body || '{}')
+                  const reqBody = JSON.parse(body || '{}')
+                  const { device_code, name, unit, quantity, price, total, invoice, time, status } = reqBody
                   const qty = Number(quantity) || 1
                   const prc = Number(price) || 0
                   const tot = total !== undefined && total !== null ? Number(total) : qty * prc
-                  const itemTime = time ? new Date(time) : new Date()
+                  const rawTimeIn = reqBody['time-in'] || reqBody.time_in || time || null
+                  const rawTimeOut = reqBody['time-out'] || reqBody.time_out || null
+                  const parsedTimeIn = rawTimeIn ? new Date(rawTimeIn) : new Date()
+                  const parsedTimeOut = rawTimeOut ? new Date(rawTimeOut) : null
 
                   const [result]: any = await connection.execute(`
-                    INSERT INTO storage (device_code, name, unit, quantity, price, total, invoice, time, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO storage (device_code, name, unit, quantity, price, total, invoice, time, \`time-in\`, \`time-out\`, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                   `, [
                     (device_code || '').trim().toUpperCase(),
                     (name || '').trim(),
@@ -1733,7 +1737,9 @@ function mysqlSimuPlugin(): Plugin {
                     prc,
                     tot,
                     (invoice || '').trim(),
-                    itemTime,
+                    parsedTimeIn,
+                    parsedTimeIn,
+                    parsedTimeOut,
                     (status || 'Tồn kho').trim()
                   ])
 
@@ -1757,20 +1763,43 @@ function mysqlSimuPlugin(): Plugin {
               req.on('data', (chunk: any) => { body += chunk })
               req.on('end', async () => {
                 try {
-                  const { device_code, name, unit, quantity, price, total, invoice, time, status } = JSON.parse(body || '{}')
+                  const reqBody = JSON.parse(body || '{}')
+                  const { device_code, name, unit, quantity, price, total, invoice, status } = reqBody
                   const qty = Number(quantity) || 1
                   const prc = Number(price) || 0
                   const tot = total !== undefined && total !== null ? Number(total) : qty * prc
 
-                  if (time) {
-                    await connection.execute(`
-                      UPDATE storage SET device_code = ?, name = ?, unit = ?, quantity = ?, price = ?, total = ?, invoice = ?, status = ?, time = ? WHERE id = ?
-                    `, [(device_code || '').trim().toUpperCase(), (name || '').trim(), (unit || 'Cái').trim(), qty, prc, tot, (invoice || '').trim(), (status || 'Tồn kho').trim(), new Date(time), id])
-                  } else {
-                    await connection.execute(`
-                      UPDATE storage SET device_code = ?, name = ?, unit = ?, quantity = ?, price = ?, total = ?, invoice = ?, status = ? WHERE id = ?
-                    `, [(device_code || '').trim().toUpperCase(), (name || '').trim(), (unit || 'Cái').trim(), qty, prc, tot, (invoice || '').trim(), (status || 'Tồn kho').trim(), id])
-                  }
+                  const rawTimeIn = reqBody['time-in'] !== undefined ? reqBody['time-in'] : reqBody.time_in
+                  const rawTimeOut = reqBody['time-out'] !== undefined ? reqBody['time-out'] : reqBody.time_out
+                  const parsedTimeIn = rawTimeIn ? new Date(rawTimeIn) : null
+                  const parsedTimeOut = rawTimeOut ? new Date(rawTimeOut) : null
+
+                  await connection.execute(`
+                    UPDATE storage SET
+                      device_code = ?,
+                      name = ?,
+                      unit = ?,
+                      quantity = ?,
+                      price = ?,
+                      total = ?,
+                      invoice = ?,
+                      status = ?,
+                      \`time-in\` = ?,
+                      \`time-out\` = ?
+                    WHERE id = ?
+                  `, [
+                    (device_code || '').trim().toUpperCase(),
+                    (name || '').trim(),
+                    (unit || 'Cái').trim(),
+                    qty,
+                    prc,
+                    tot,
+                    (invoice || '').trim(),
+                    (status || 'Tồn kho').trim(),
+                    parsedTimeIn,
+                    parsedTimeOut,
+                    id
+                  ])
 
                   res.setHeader('Content-Type', 'application/json; charset=utf-8')
                   res.end(JSON.stringify({ success: true, message: 'Đã cập nhật thông tin vật tư thành công' }))
