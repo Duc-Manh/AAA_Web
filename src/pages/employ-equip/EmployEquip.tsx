@@ -629,13 +629,28 @@ export const EmployEquip: React.FC = () => {
             </div>
 
             {/* BẢNG DỮ LIỆU VẬT TƯ */}
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem', textAlign: 'left' }}>
+            <div
+              className="dash-table-wrap"
+              style={{
+                width: '100%',
+                overflowX: 'auto',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              <table
+                style={{
+                  width: '100%',
+                  minWidth: '1380px',
+                  borderCollapse: 'collapse',
+                  fontSize: '0.84rem',
+                  textAlign: 'left'
+                }}
+              >
                 <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569' }}>
+                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#475569', whiteSpace: 'nowrap' }}>
                     <th style={{ padding: '12px 14px', width: '45px', textAlign: 'center' }}>STT</th>
                     <th style={{ padding: '12px 14px' }}>Mã thiết bị</th>
-                    <th style={{ padding: '12px 14px' }}>Tên vật tư</th>
+                    <th style={{ padding: '12px 14px', minWidth: '220px' }}>Tên vật tư</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Đơn vị</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Số lượng</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Số lượng xuất</th>
@@ -677,46 +692,46 @@ export const EmployEquip: React.FC = () => {
                         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
                       >
-                        <td style={{ padding: '12px 14px', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>
+                        <td style={{ padding: '12px 14px', textAlign: 'center', color: '#64748b', fontWeight: 600, whiteSpace: 'nowrap' }}>
                           {index + 1}
                         </td>
-                        <td style={{ padding: '12px 14px' }}>
+                        <td style={{ padding: '12px 14px', whiteSpace: 'nowrap' }}>
                           <span style={{ fontFamily: 'monospace', fontWeight: 700, color: '#1D58BB', backgroundColor: '#eff6ff', padding: '3px 8px', borderRadius: '6px' }}>
                             {item.device_code}
                           </span>
                         </td>
-                        <td style={{ padding: '12px 14px', fontWeight: 600, color: '#0f172a' }}>
+                        <td style={{ padding: '12px 14px', fontWeight: 600, color: '#0f172a', minWidth: '220px' }}>
                           {item.name}
                         </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'center', color: '#475569' }}>
+                        <td style={{ padding: '12px 14px', textAlign: 'center', color: '#475569', whiteSpace: 'nowrap' }}>
                           {item.unit || 'Cái'}
                         </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                        <td style={{ padding: '12px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
                           <span style={{ fontWeight: 700, color: '#0f172a', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#f1f5f9' }}>
                             {item.quantity}
                           </span>
                         </td>
                         {/* Số lượng xuất (lấy từ cột quantity-out) */}
-                        <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                        <td style={{ padding: '12px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
                           <span style={{ fontWeight: 700, color: '#dc2626', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#fef2f2' }}>
                             {item['quantity-out'] !== undefined ? item['quantity-out'] : (item.quantity_out ?? 0)}
                           </span>
                         </td>
                         {/* Số lượng còn lại (lấy từ cột quantity-remain) */}
-                        <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                        <td style={{ padding: '12px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
                           <span style={{ fontWeight: 700, color: '#059669', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#ecfdf5' }}>
                             {item['quantity-remain'] !== undefined
                               ? item['quantity-remain']
                               : (item.quantity_remain ?? Math.max(0, (Number(item.quantity) || 0) - (Number(item['quantity-out'] || item.quantity_out) || 0)))}
                           </span>
                         </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right', color: '#475569' }}>
+                        <td style={{ padding: '12px 14px', textAlign: 'right', color: '#475569', whiteSpace: 'nowrap' }}>
                           {formatVND(item.price)}
                         </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 700, color: '#ea580c' }}>
+                        <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 700, color: '#ea580c', whiteSpace: 'nowrap' }}>
                           {formatVND(item.total)}
                         </td>
-                        <td style={{ padding: '12px 14px', color: '#334155' }}>
+                        <td style={{ padding: '12px 14px', color: '#334155', whiteSpace: 'nowrap' }}>
                           {item.invoice ? (
                             <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem' }}>
                               <FileText size={13} color="#64748b" />
@@ -740,10 +755,10 @@ export const EmployEquip: React.FC = () => {
                             <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Chưa xuất kho</span>
                           )}
                         </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                        <td style={{ padding: '12px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
                           {renderStatusBadge(item.status)}
                         </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'center' }}>
+                        <td style={{ padding: '12px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
                           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                             <button
                               type="button"
