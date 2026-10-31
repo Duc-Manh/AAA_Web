@@ -10,7 +10,8 @@ import {
   Menu,
   Wallet,
   ClipboardList,
-  Activity
+  Activity,
+  History
 } from 'lucide-react';
 
 export interface DashAsideProps {
@@ -32,6 +33,13 @@ export const DashAside: React.FC<DashAsideProps> = ({
   setIsMobileOpen,
   triggerToast
 }) => {
+  // Kiểm tra mục nào đang active dựa trên prop activeTab hoặc URL hash
+  const currentHash = typeof window !== 'undefined' ? (window.location.hash || window.location.pathname) : '';
+  const isTabActive = (tabKey: string, patterns: string[]) => {
+    if (activeTab === tabKey) return true;
+    return patterns.some(p => currentHash === p || (p !== '#dash' && p !== '/dash' && currentHash.startsWith(p)));
+  };
+
   return (
     <aside
       className={`dash-sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''
@@ -56,7 +64,7 @@ export const DashAside: React.FC<DashAsideProps> = ({
 
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'overview' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('overview', ['#dash', '/dash']) && !currentHash.includes('-') ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             if (setActiveTab) {
@@ -71,7 +79,7 @@ export const DashAside: React.FC<DashAsideProps> = ({
 
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'projects' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('projects', ['#dash-project', '/dash-project']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             window.location.hash = '#dash-project';
@@ -83,7 +91,7 @@ export const DashAside: React.FC<DashAsideProps> = ({
 
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'news' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('news', ['#dash-new', '/dash-new']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             window.location.hash = '#dash-new';
@@ -95,7 +103,7 @@ export const DashAside: React.FC<DashAsideProps> = ({
 
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'supplies' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('supplies', ['#dash-equip', '/dash-equip']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             window.location.hash = '#dash-equip';
@@ -107,7 +115,7 @@ export const DashAside: React.FC<DashAsideProps> = ({
 
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'customers' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('customers', ['#dash-custo', '/dash-custo']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             window.location.hash = '#dash-custo';
@@ -118,7 +126,7 @@ export const DashAside: React.FC<DashAsideProps> = ({
         </button>
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'operate' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('operate', ['#dash-operate', '/dash-operate']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             window.location.hash = '#dash-operate';
@@ -129,7 +137,18 @@ export const DashAside: React.FC<DashAsideProps> = ({
         </button>
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'finance' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('history', ['#dash-history', '/dash-history']) ? 'active' : ''}`}
+          onClick={() => {
+            setIsMobileOpen(false);
+            window.location.hash = '#dash-history';
+          }}
+        >
+          <History size={19} className="dash-menu-icon" />
+          {!isCollapsed && <span>Lịch sử vận hành</span>}
+        </button>
+        <button
+          type="button"
+          className={`dash-menu-item ${isTabActive('finance', ['#dash-finan', '/dash-finan']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             window.location.hash = '#dash-finan';
@@ -141,7 +160,7 @@ export const DashAside: React.FC<DashAsideProps> = ({
 
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'tasks' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('tasks', ['#dash-job', '/dash-job']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             window.location.hash = '#dash-job';

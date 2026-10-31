@@ -12,7 +12,6 @@ import {
   RefreshCw,
   Boxes,
   DollarSign,
-  FileText,
   X,
   CheckCircle,
   AlertCircle
@@ -35,9 +34,9 @@ export interface StorageItem {
   'quantity-remain'?: number;
   quantity_out?: number;
   quantity_remain?: number;
-  price: number | string;
-  total: number | string;
-  invoice: string;
+  price?: number | string;
+  total?: number | string;
+  invoice?: string;
   time?: string;
   'time-in'?: string;
   'time-out'?: string;
@@ -75,8 +74,6 @@ export const DashEquip: React.FC = () => {
   const [formUnit, setFormUnit] = useState('Cái');
   const [formQuantity, setFormQuantity] = useState<number>(1);
   const [formQuantityOut, setFormQuantityOut] = useState<number>(0);
-  const [formPrice, setFormPrice] = useState<number>(0);
-  const [formInvoice, setFormInvoice] = useState('');
   const [formStatus, setFormStatus] = useState('Tồn kho');
   const [formTimeIn, setFormTimeIn] = useState('');
   const [formTimeOut, setFormTimeOut] = useState('');
@@ -130,8 +127,6 @@ export const DashEquip: React.FC = () => {
     setFormUnit('Cái');
     setFormQuantity(1);
     setFormQuantityOut(0);
-    setFormPrice(0);
-    setFormInvoice('');
     setFormStatus('Tồn kho');
     const now = new Date();
     const localIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -148,8 +143,6 @@ export const DashEquip: React.FC = () => {
     setFormUnit(item.unit || 'Cái');
     setFormQuantity(Number(item.quantity) || 1);
     setFormQuantityOut(Number(item['quantity-out'] !== undefined ? item['quantity-out'] : (item.quantity_out ?? 0)));
-    setFormPrice(Number(item.price) || 0);
-    setFormInvoice(item.invoice || '');
     setFormStatus(item.status || 'Tồn kho');
 
     const rawIn = item['time-in'] || item.time_in || item.time;
@@ -198,9 +191,6 @@ export const DashEquip: React.FC = () => {
       'quantity-remain': qtyRemain,
       quantity_out: qtyOut,
       quantity_remain: qtyRemain,
-      price: Number(formPrice) || 0,
-      total: qty * (Number(formPrice) || 0),
-      invoice: formInvoice.trim(),
       status: formStatus,
       'time-in': formTimeIn ? new Date(formTimeIn).toISOString() : null,
       'time-out': formTimeOut ? new Date(formTimeOut).toISOString() : null,
@@ -647,7 +637,7 @@ export const DashEquip: React.FC = () => {
               <table
                 style={{
                   width: '100%',
-                  minWidth: '1380px',
+                  minWidth: '1080px',
                   borderCollapse: 'collapse',
                   fontSize: '0.84rem',
                   textAlign: 'left'
@@ -662,9 +652,6 @@ export const DashEquip: React.FC = () => {
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Số lượng</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Số lượng xuất</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Số lượng còn lại</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Đơn giá</th>
-                    <th style={{ padding: '12px 14px', textAlign: 'right' }}>Thành tiền</th>
-                    <th style={{ padding: '12px 14px' }}>Số chứng từ</th>
                     <th style={{ padding: '12px 14px' }}>Nhập kho</th>
                     <th style={{ padding: '12px 14px' }}>Xuất kho</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Tình trạng</th>
@@ -674,13 +661,13 @@ export const DashEquip: React.FC = () => {
                 <tbody>
                   {loading && items.length === 0 ? (
                     <tr>
-                      <td colSpan={14} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan={11} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
                         Đang tải danh sách vật tư...
                       </td>
                     </tr>
                   ) : filteredItems.length === 0 ? (
                     <tr>
-                      <td colSpan={14} style={{ padding: '48px 20px', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan={11} style={{ padding: '48px 20px', textAlign: 'center', color: '#64748b' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                           <AlertCircle size={32} color="#94a3b8" />
                           <div style={{ fontWeight: 600 }}>Không tìm thấy vật tư nào</div>
@@ -731,22 +718,6 @@ export const DashEquip: React.FC = () => {
                               ? item['quantity-remain']
                               : (item.quantity_remain ?? Math.max(0, (Number(item.quantity) || 0) - (Number(item['quantity-out'] || item.quantity_out) || 0)))}
                           </span>
-                        </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right', color: '#475569', whiteSpace: 'nowrap' }}>
-                          {formatVND(item.price)}
-                        </td>
-                        <td style={{ padding: '12px 14px', textAlign: 'right', fontWeight: 700, color: '#ea580c', whiteSpace: 'nowrap' }}>
-                          {formatVND(item.total)}
-                        </td>
-                        <td style={{ padding: '12px 14px', color: '#334155', whiteSpace: 'nowrap' }}>
-                          {item.invoice ? (
-                            <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', fontSize: '0.8rem' }}>
-                              <FileText size={13} color="#64748b" />
-                              {item.invoice}
-                            </span>
-                          ) : (
-                            <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>---</span>
-                          )}
                         </td>
                         {/* Thời gian nhập kho (lấy từ cột time-in) */}
                         <td style={{ padding: '12px 14px', color: '#1e293b', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
@@ -983,66 +954,6 @@ export const DashEquip: React.FC = () => {
                     min="1"
                     value={formQuantity}
                     onChange={(e) => setFormQuantity(Number(e.target.value))}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      fontSize: '0.85rem',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      outline: 'none'
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Đơn giá (VNĐ)<span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1000"
-                    value={formPrice}
-                    onChange={(e) => setFormPrice(Number(e.target.value))}
-                    style={{
-                      width: '100%',
-                      padding: '9px 12px',
-                      fontSize: '0.85rem',
-                      border: '1px solid #cbd5e1',
-                      borderRadius: '8px',
-                      outline: 'none'
-                    }}
-                  />
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Thành tiền (Tự động tính)
-                  </label>
-                  <div
-                    style={{
-                      padding: '9px 12px',
-                      fontSize: '0.9rem',
-                      fontWeight: 700,
-                      color: '#ea580c',
-                      backgroundColor: '#fff7ed',
-                      border: '1px solid #fed7aa',
-                      borderRadius: '8px'
-                    }}
-                  >
-                    {formatVND((Number(formQuantity) || 0) * (Number(formPrice) || 0))}
-                  </div>
-                </div>
-
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
-                    Số chứng từ<span style={{ color: '#ef4444' }}>*</span>
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Ví dụ: HD-2026-009"
-                    value={formInvoice}
-                    onChange={(e) => setFormInvoice(e.target.value)}
                     style={{
                       width: '100%',
                       padding: '9px 12px',

@@ -179,6 +179,23 @@ export const DashCusto: React.FC = () => {
     }
   };
 
+  const [storageOptions, setStorageOptions] = useState<Array<{ id: number; device_code: string; name: string }>>([]);
+
+  // Lấy danh sách mã thiết bị từ bảng storage database 3ahome
+  const fetchStorageOptions = async () => {
+    try {
+      const res = await fetch('/api/storage');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setStorageOptions(json.data);
+        }
+      }
+    } catch (err) {
+      console.warn('Không thể tải danh sách storage:', err);
+    }
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
     const authData = localStorage.getItem('aaa_admin_auth');
@@ -190,6 +207,7 @@ export const DashCusto: React.FC = () => {
       }
     }
     fetchProjects();
+    fetchStorageOptions();
   }, []);
 
   // Tự động lưu vào localStorage dự phòng
@@ -1485,14 +1503,36 @@ export const DashCusto: React.FC = () => {
                 >
                   <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.6fr 1.2fr 0.8fr 1.2fr auto', gap: '8px', alignItems: 'flex-end' }}>
                     <div>
-                      <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '2px' }}>Mã device_code</label>
-                      <input
-                        type="text"
-                        placeholder="TEMP_T1_01"
+                      <label style={{ fontSize: '0.74rem', color: '#1D58BB', fontWeight: 600, display: 'block', marginBottom: '2px' }}>Mã device_code (Kho storage)</label>
+                      <select
                         value={tempDevCode}
-                        onChange={(e) => setTempDevCode(e.target.value)}
-                        style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem', border: '1px solid #cbd5e1', borderRadius: '6px', fontFamily: 'monospace' }}
-                      />
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setTempDevCode(val);
+                          const matched = storageOptions.find((s) => s.device_code === val);
+                          if (matched && !tempDevName) {
+                            setTempDevName(matched.name);
+                          }
+                        }}
+                        style={{
+                          width: '100%',
+                          padding: '6px 8px',
+                          fontSize: '0.8rem',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '6px',
+                          fontFamily: 'monospace',
+                          backgroundColor: '#ffffff',
+                          outline: 'none',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <option value="">--Chọn  ({storageOptions.length}) --</option>
+                        {storageOptions.map((st) => (
+                          <option key={st.id} value={st.device_code}>
+                            {st.device_code} {st.name ? `- ${st.name}` : ''}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '2px' }}>Tên thiết bị</label>

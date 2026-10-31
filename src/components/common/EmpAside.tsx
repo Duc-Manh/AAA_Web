@@ -9,6 +9,7 @@ import {
   Wallet,
   ClipboardList,
   Activity,
+  History,
   Settings,
   Menu
 } from 'lucide-react';
@@ -32,6 +33,13 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
   setIsMobileOpen,
   triggerToast
 }) => {
+  // Kiểm tra mục nào đang active dựa trên prop activeTab hoặc URL hash
+  const currentHash = typeof window !== 'undefined' ? (window.location.hash || window.location.pathname) : '';
+  const isTabActive = (tabKey: string, patterns: string[]) => {
+    if (activeTab === tabKey) return true;
+    return patterns.some(p => currentHash === p || (p !== '#employ' && p !== '/employ' && currentHash.startsWith(p)));
+  };
+
   return (
     <aside
       className={`dash-sidebar ${isCollapsed ? 'collapsed' : ''} ${isMobileOpen ? 'mobile-open' : ''
@@ -57,7 +65,7 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
         {/* 1. Tổng Quan */}
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'overview' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('overview', ['#employ', '/employ']) && !currentHash.includes('-') ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             if (setActiveTab) {
@@ -73,7 +81,7 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
         {/* 2. Dự án triển khai -> EmployProj.tsx (#employ-proj) */}
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'projects' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('projects', ['#employ-proj', '/employ-proj']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             if (setActiveTab) {
@@ -89,7 +97,7 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
         {/* 3. Tin tức truyền thông -> EmployNews.tsx (#employ-news) */}
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'news' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('news', ['#employ-news', '/employ-news']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             if (setActiveTab) {
@@ -105,7 +113,7 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
         {/* 4. Vật tư thiết bị -> EmployEquip.tsx (#employ-equip) */}
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'supplies' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('supplies', ['#employ-equip', '/employ-equip']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             if (setActiveTab) {
@@ -121,7 +129,7 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
         {/* 5. Khách hàng -> EmployCusto.tsx (#employ-custo) */}
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'customers' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('customers', ['#employ-custo', '/employ-custo']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             if (setActiveTab) {
@@ -136,7 +144,7 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
         {/* 8. Quản lý vận hành -> EmployOperate.tsx (#employ-operate) */}
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'operate' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('operate', ['#employ-operate', '/employ-operate']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             if (setActiveTab) {
@@ -148,10 +156,26 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
           <Activity size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Quản lý vận hành</span>}
         </button>
+
+        {/* 9. Lịch sử viễn trắc -> EmployHistory.tsx (#employ-history) */}
+        <button
+          type="button"
+          className={`dash-menu-item ${isTabActive('history', ['#employ-history', '/employ-history']) ? 'active' : ''}`}
+          onClick={() => {
+            setIsMobileOpen(false);
+            if (setActiveTab) {
+              setActiveTab('history');
+            }
+            window.location.hash = '#employ-history';
+          }}
+        >
+          <History size={19} className="dash-menu-icon" />
+          {!isCollapsed && <span>Lịch sử vận hành</span>}
+        </button>
         {/* 6. Tài chính kế toán -> EmployFinan.tsx (#employ-finan) */}
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'finance' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('finance', ['#employ-finan', '/employ-finan']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             if (setActiveTab) {
@@ -167,7 +191,7 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
         {/* 7. Quản lý công việc -> EmployJob.tsx (#employ-job) */}
         <button
           type="button"
-          className={`dash-menu-item ${activeTab === 'tasks' ? 'active' : ''}`}
+          className={`dash-menu-item ${isTabActive('tasks', ['#employ-job', '/employ-job']) ? 'active' : ''}`}
           onClick={() => {
             setIsMobileOpen(false);
             if (setActiveTab) {

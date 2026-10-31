@@ -1695,9 +1695,6 @@ function mysqlSimuPlugin(): Plugin {
                 quantity INT NOT NULL DEFAULT 1,
                 \`quantity-out\` INT DEFAULT 0,
                 \`quantity-remain\` INT DEFAULT 0,
-                price DECIMAL(15, 2) DEFAULT 0,
-                total DECIMAL(15, 2) DEFAULT 0,
-                invoice VARCHAR(100) DEFAULT '',
                 time DATETIME DEFAULT CURRENT_TIMESTAMP,
                 \`time-in\` DATETIME NULL,
                 \`time-out\` DATETIME NULL,
@@ -1719,6 +1716,15 @@ function mysqlSimuPlugin(): Plugin {
               if (!colNames.includes('quantity-remain')) {
                 await connection.execute('ALTER TABLE storage ADD COLUMN `quantity-remain` INT DEFAULT 0')
               }
+              if (colNames.includes('price')) {
+                await connection.execute('ALTER TABLE storage DROP COLUMN `price`')
+              }
+              if (colNames.includes('total')) {
+                await connection.execute('ALTER TABLE storage DROP COLUMN `total`')
+              }
+              if (colNames.includes('invoice')) {
+                await connection.execute('ALTER TABLE storage DROP COLUMN `invoice`')
+              }
             } catch (migrErr: any) {
               // Ignore
             }
@@ -1739,22 +1745,20 @@ function mysqlSimuPlugin(): Plugin {
               req.on('end', async () => {
                 try {
                   const reqBody = JSON.parse(body || '{}')
-                  const { device_code, name, unit, quantity, price, total, invoice, time, status } = reqBody
+                  const { device_code, name, unit, quantity, time, status } = reqBody
                   const qty = Number(quantity) || 1
                   const qtyOut = Number(reqBody['quantity-out'] !== undefined ? reqBody['quantity-out'] : (reqBody.quantity_out ?? 0)) || 0
                   const qtyRemain = reqBody['quantity-remain'] !== undefined
                     ? Number(reqBody['quantity-remain'])
                     : (reqBody.quantity_remain !== undefined ? Number(reqBody.quantity_remain) : Math.max(0, qty - qtyOut))
-                  const prc = Number(price) || 0
-                  const tot = total !== undefined && total !== null ? Number(total) : qty * prc
                   const rawTimeIn = reqBody['time-in'] || reqBody.time_in || time || null
                   const rawTimeOut = reqBody['time-out'] || reqBody.time_out || null
                   const parsedTimeIn = rawTimeIn ? new Date(rawTimeIn) : new Date()
                   const parsedTimeOut = rawTimeOut ? new Date(rawTimeOut) : null
 
                   const [result]: any = await connection.execute(`
-                    INSERT INTO storage (device_code, name, unit, quantity, \`quantity-out\`, \`quantity-remain\`, price, total, invoice, time, \`time-in\`, \`time-out\`, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO storage (device_code, name, unit, quantity, \`quantity-out\`, \`quantity-remain\`, time, \`time-in\`, \`time-out\`, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                   `, [
                     (device_code || '').trim().toUpperCase(),
                     (name || '').trim(),
@@ -1762,9 +1766,6 @@ function mysqlSimuPlugin(): Plugin {
                     qty,
                     qtyOut,
                     qtyRemain,
-                    prc,
-                    tot,
-                    (invoice || '').trim(),
                     parsedTimeIn,
                     parsedTimeIn,
                     parsedTimeOut,
@@ -1792,14 +1793,12 @@ function mysqlSimuPlugin(): Plugin {
               req.on('end', async () => {
                 try {
                   const reqBody = JSON.parse(body || '{}')
-                  const { device_code, name, unit, quantity, price, total, invoice, status } = reqBody
+                  const { device_code, name, unit, quantity, status } = reqBody
                   const qty = Number(quantity) || 1
                   const rawQtyOut = reqBody['quantity-out'] !== undefined ? reqBody['quantity-out'] : reqBody.quantity_out
                   const rawQtyRemain = reqBody['quantity-remain'] !== undefined ? reqBody['quantity-remain'] : reqBody.quantity_remain
                   const qtyOut = rawQtyOut !== undefined ? (Number(rawQtyOut) || 0) : 0
                   const qtyRemain = rawQtyRemain !== undefined ? Number(rawQtyRemain) : Math.max(0, qty - qtyOut)
-                  const prc = Number(price) || 0
-                  const tot = total !== undefined && total !== null ? Number(total) : qty * prc
 
                   const rawTimeIn = reqBody['time-in'] !== undefined ? reqBody['time-in'] : reqBody.time_in
                   const rawTimeOut = reqBody['time-out'] !== undefined ? reqBody['time-out'] : reqBody.time_out
@@ -1814,9 +1813,6 @@ function mysqlSimuPlugin(): Plugin {
                       quantity = ?,
                       \`quantity-out\` = ?,
                       \`quantity-remain\` = ?,
-                      price = ?,
-                      total = ?,
-                      invoice = ?,
                       status = ?,
                       \`time-in\` = ?,
                       \`time-out\` = ?
@@ -1828,9 +1824,6 @@ function mysqlSimuPlugin(): Plugin {
                     qty,
                     qtyOut,
                     qtyRemain,
-                    prc,
-                    tot,
-                    (invoice || '').trim(),
                     (status || 'Tồn kho').trim(),
                     parsedTimeIn,
                     parsedTimeOut,

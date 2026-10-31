@@ -144,7 +144,7 @@ export const EmployOperate: React.FC = () => {
       try {
         const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
-        const wsUrl = isLocal 
+        const wsUrl = isLocal
           ? `ws://${window.location.hostname}:5000/ws`
           : `${wsProtocol}//${window.location.host}/ws`;
         ws = new WebSocket(wsUrl);
@@ -297,7 +297,7 @@ export const EmployOperate: React.FC = () => {
         {/* TOP NAVBAR */}
         <EmpHeader
           title="Quản Lý Vận Hành Và Giám Sát IoT"
-          subtitle="Giám sát trực tiếp dữ liệu viễn trắc (Telemetry) từ Gateway 3ONEDATA & Cảm biến đa dự án"
+          subtitle="Giám sát trực tiếp dữ liệu vận hành"
           isMobileOpen={isMobileOpen}
           setIsMobileOpen={setIsMobileOpen}
           currentFullName={currentFullName}

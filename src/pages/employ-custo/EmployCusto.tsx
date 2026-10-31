@@ -105,7 +105,6 @@ export const EmployCusto: React.FC = () => {
   const [tempDevType, setTempDevType] = useState<'sensor' | 'motor' | 'light' | 'ac'>('sensor');
   const [tempSlaveAddr, setTempSlaveAddr] = useState<number>(1);
   const [tempLocation, setTempLocation] = useState('');
-  const [showDevCodeTip, setShowDevCodeTip] = useState(false);
 
   // Modal 2: Sửa dự án
   const [editingItem, setEditingItem] = useState<ProjectCustomerItem | null>(null);
@@ -178,6 +177,23 @@ export const EmployCusto: React.FC = () => {
     }
   };
 
+  const [storageOptions, setStorageOptions] = useState<Array<{ id: number; device_code: string; name: string }>>([]);
+
+  // Lấy danh sách mã thiết bị từ bảng storage database 3ahome
+  const fetchStorageOptions = async () => {
+    try {
+      const res = await fetch('/api/storage');
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && Array.isArray(json.data)) {
+          setStorageOptions(json.data);
+        }
+      }
+    } catch (err) {
+      console.warn('Không thể tải danh sách storage:', err);
+    }
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
     const authData = localStorage.getItem('aaa_admin_auth');
@@ -189,6 +205,7 @@ export const EmployCusto: React.FC = () => {
       }
     }
     fetchProjects();
+    fetchStorageOptions();
   }, []);
 
   // Tự động lưu vào localStorage dự phòng
@@ -594,7 +611,7 @@ export const EmployCusto: React.FC = () => {
         {/* TOP NAVBAR */}
         <EmpHeader
           title="Quản Lý Khách Hàng"
-          subtitle="Khởi tạo thông tin dự án, kết nối Gateway 3ONEDATA và cấu hình danh mục thiết bị đo đạc"
+          subtitle="Khởi tạo thông tin dự án, kết nối IoT Gateway và cấu hình danh mục thiết bị đo đạc"
           isMobileOpen={isMobileOpen}
           setIsMobileOpen={setIsMobileOpen}
           currentFullName={currentFullName}
@@ -1442,62 +1459,39 @@ export const EmployCusto: React.FC = () => {
                   }}
                 >
                   <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.6fr 1.2fr 0.8fr 1.2fr auto', gap: '8px', alignItems: 'flex-end' }}>
-                    <div style={{ position: 'relative' }}>
-                      {showDevCodeTip && (
-                        <div
-                          style={{
-                            position: 'absolute',
-                            bottom: 'calc(100% + 5px)',
-                            left: '0',
-                            backgroundColor: '#ea580c',
-                            color: '#ffffff',
-                            padding: '4px 8px',
-                            borderRadius: '6px',
-                            fontSize: '0.72rem',
-                            fontWeight: 600,
-                            whiteSpace: 'nowrap',
-                            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.15)',
-                            zIndex: 30,
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: '4px'
-                          }}
-                        >
-                          <span>Đây là mã kết nối chính</span>
-                          <div
-                            style={{
-                              position: 'absolute',
-                              top: '100%',
-                              left: '12px',
-                              width: 0,
-                              height: 0,
-                              borderLeft: '5px solid transparent',
-                              borderRight: '5px solid transparent',
-                              borderTop: '5px solid #ea580c'
-                            }}
-                          />
-                        </div>
-                      )}
-                      <label style={{ fontSize: '0.74rem', color: '#ea580c', fontWeight: 600, display: 'block', marginBottom: '2px' }}>
-                        Mã device_code
+                    <div>
+                      <label style={{ fontSize: '0.74rem', color: '#1D58BB', fontWeight: 600, display: 'block', marginBottom: '2px' }}>
+                        Mã device_code (Kho storage)
                       </label>
-                      <input
-                        type="text"
-                        placeholder="TEMP_T1_01"
+                      <select
                         value={tempDevCode}
-                        onFocus={() => setShowDevCodeTip(true)}
-                        onBlur={() => setShowDevCodeTip(false)}
-                        onChange={(e) => setTempDevCode(e.target.value)}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setTempDevCode(val);
+                          const matched = storageOptions.find((s) => s.device_code === val);
+                          if (matched && !tempDevName) {
+                            setTempDevName(matched.name);
+                          }
+                        }}
                         style={{
                           width: '100%',
                           padding: '6px 8px',
                           fontSize: '0.8rem',
-                          border: showDevCodeTip ? '1px solid #ea580c' : '1px solid #cbd5e1',
+                          border: '1px solid #cbd5e1',
                           borderRadius: '6px',
                           fontFamily: 'monospace',
-                          outline: 'none'
+                          backgroundColor: '#ffffff',
+                          outline: 'none',
+                          cursor: 'pointer'
                         }}
-                      />
+                      >
+                        <option value="">--Chọn ({storageOptions.length}) --</option>
+                        {storageOptions.map((st) => (
+                          <option key={st.id} value={st.device_code}>
+                            {st.device_code} {st.name ? `- ${st.name}` : ''}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '2px' }}>Tên thiết bị</label>

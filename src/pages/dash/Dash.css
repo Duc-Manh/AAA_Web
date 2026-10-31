@@ -6,7 +6,7 @@
   --dash-bg: #f1f5f9;
   --dash-sidebar-bg: #ffffff;
   --dash-sidebar-hover: #f1f5f9;
-  --dash-sidebar-active: #2563eb;
+  --dash-sidebar-active: #16a34a; /* Xanh lục chuẩn */
   --dash-card-bg: #ffffff;
   --dash-border: #e2e8f0;
   --dash-text-main: #0f172a;
@@ -199,10 +199,14 @@
 }
 
 .dash-menu-item.active {
-  background: var(--dash-sidebar-active);
+  background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
   color: #ffffff;
   font-weight: 600;
-  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 4px 14px rgba(22, 163, 74, 0.35);
+}
+
+.dash-menu-item.active .dash-menu-icon {
+  color: #ffffff;
 }
 
 .dash-menu-icon {
