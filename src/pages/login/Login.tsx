@@ -187,15 +187,19 @@ export const Login: React.FC = () => {
         setFailedAttempts(0);
         setLockoutRemaining(0);
 
-        // Lưu thông tin người dùng vào localStorage
+        // Lưu thông tin người dùng và JWT Token bảo mật vào localStorage
+        const jwtToken = data.token || ('auth_' + Date.now());
         localStorage.setItem(
           'aaa_admin_auth',
           JSON.stringify({
             ...data.user,
             username: data.user.full_name || data.user.gmail,
-            token: 'auth_' + Date.now(),
+            token: jwtToken,
           })
         );
+        localStorage.setItem('aaa_jwt_token', jwtToken);
+        // Lưu cookie bảo mật session
+        document.cookie = `token=${jwtToken}; path=/; max-age=2592000; SameSite=Lax`;
 
         setTimeout(() => {
           // Phân quyền theo cột authen: 1 -> Dash.tsx, 2 -> Employ.tsx

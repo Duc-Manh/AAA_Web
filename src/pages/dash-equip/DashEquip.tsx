@@ -16,6 +16,7 @@ import {
   CheckCircle,
   AlertCircle
 } from 'lucide-react';
+import { getAuthHeaders } from '../../utils/authHeaders';
 
 interface CurrentUserData {
   id?: number;
@@ -82,7 +83,7 @@ export const DashEquip: React.FC = () => {
   const fetchStorageData = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/storage');
+      const res = await fetch('/api/storage', { headers: getAuthHeaders() });
       const data = await res.json();
       if (data && data.success && Array.isArray(data.data)) {
         setItems(data.data);
@@ -204,7 +205,7 @@ export const DashEquip: React.FC = () => {
         // Cập nhật
         const res = await fetch(`/api/storage/${editingItem.id}`, {
           method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -219,7 +220,7 @@ export const DashEquip: React.FC = () => {
         // Thêm mới
         const res = await fetch('/api/storage', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
         const data = await res.json();
@@ -244,7 +245,8 @@ export const DashEquip: React.FC = () => {
     }
     try {
       const res = await fetch(`/api/storage/${item.id}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        headers: getAuthHeaders()
       });
       const data = await res.json();
       if (data.success) {
