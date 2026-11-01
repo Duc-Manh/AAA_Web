@@ -151,12 +151,14 @@ export const Login: React.FC = () => {
     }
     window.dispatchEvent(new Event('popstate'));
     window.dispatchEvent(new Event('hashchange'));
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 
-    // 2. Chuyển hướng chắc chắn (hard reload sang URL đích) để nạp phiên mới
+    // 2. Dự phòng: nếu sau 400ms URL chưa khớp thì gán lại URL
     setTimeout(() => {
-      window.location.replace('/' + targetHash);
-      window.location.reload();
-    }, 300);
+      if (window.location.hash !== targetHash) {
+        window.location.href = '/' + targetHash;
+      }
+    }, 400);
   };
 
   const handleLogin = async (e: React.FormEvent) => {
