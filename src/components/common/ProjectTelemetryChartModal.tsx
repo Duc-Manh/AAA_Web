@@ -10,8 +10,7 @@ import {
   Zap,
   Cpu,
   Activity,
-  Maximize2,
-  Table as TableIcon
+  Maximize2
 } from 'lucide-react';
 
 export interface TelemetryHistoryRecord {
@@ -126,9 +125,6 @@ export const ProjectTelemetryChartModal: React.FC<ProjectTelemetryChartModalProp
 
   // Giới hạn số lượng bản ghi tải về
   const [limit, setLimit] = useState<number>(100);
-
-  // Hiển thị bảng chi tiết
-  const [showTable, setShowTable] = useState<boolean>(false);
 
   // Tooltip hover
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null);
@@ -646,7 +642,7 @@ export const ProjectTelemetryChartModal: React.FC<ProjectTelemetryChartModalProp
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <h3 style={{ margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#0f172a' }}>
-                  Biểu Đồ Lịch Sử Viễn Trắc ({project.project_name})
+                  Biểu Đồ Lịch Sử Vận Hành: {project.project_name}
                 </h3>
               </div>
               <div
@@ -714,28 +710,6 @@ export const ProjectTelemetryChartModal: React.FC<ProjectTelemetryChartModalProp
             >
               <RefreshCw size={14} className={loading ? 'spin' : ''} />
               <span>Làm mới</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setShowTable(!showTable)}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '6px',
-                padding: '6px 12px',
-                borderRadius: '8px',
-                border: showTable ? '1px solid #1D58BB' : '1px solid #cbd5e1',
-                backgroundColor: showTable ? '#eff6ff' : '#ffffff',
-                color: showTable ? '#1D58BB' : '#334155',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                cursor: 'pointer'
-              }}
-              title="Bật/tắt xem dạng bảng dữ liệu"
-            >
-              <TableIcon size={14} />
-              <span>{showTable ? 'Ẩn Bảng' : 'Xem Bảng'}</span>
             </button>
 
             <button
@@ -1167,88 +1141,6 @@ export const ProjectTelemetryChartModal: React.FC<ProjectTelemetryChartModalProp
             })()
           )}
 
-          {/* BẢNG DỮ LIỆU LỊCH SỬ VIỄN TRẮC (TOGGLE) */}
-          {showTable && filteredRecords.length > 0 && (
-            <div
-              style={{
-                marginTop: '20px',
-                backgroundColor: '#ffffff',
-                borderRadius: '12px',
-                border: '1px solid #e2e8f0',
-                padding: '16px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
-              }}
-            >
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  marginBottom: '12px'
-                }}
-              >
-                <h4 style={{ margin: 0, fontSize: '0.92rem', fontWeight: 700, color: '#0f172a' }}>
-                  Bảng Dữ Liệu telemetry_history ({filteredRecords.length} dòng)
-                </h4>
-                <div style={{ fontSize: '0.76rem', color: '#64748b' }}>
-                  Sắp xếp theo thời gian tăng dần
-                </div>
-              </div>
-
-              <div style={{ overflowX: 'auto', maxHeight: '280px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8rem' }}>
-                  <thead>
-                    <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Thời gian</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Thiết bị</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'left', color: '#475569', fontWeight: 600 }}>Mã thiết bị</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right', color: '#f59e0b', fontWeight: 600 }}>Điện áp (V)</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right', color: '#06b6d4', fontWeight: 600 }}>Dòng điện (A)</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right', color: '#8b5cf6', fontWeight: 600 }}>Công suất (W)</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right', color: '#ef4444', fontWeight: 600 }}>Nhiệt độ (°C)</th>
-                      <th style={{ padding: '8px 12px', textAlign: 'right', color: '#3b82f6', fontWeight: 600 }}>Độ ẩm (%)</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredRecords.map((r, idx) => (
-                      <tr
-                        key={r.id || idx}
-                        style={{
-                          borderBottom: '1px solid #f1f5f9',
-                          backgroundColor: idx % 2 === 0 ? '#ffffff' : '#fcfcfd'
-                        }}
-                      >
-                        <td style={{ padding: '8px 12px', fontFamily: 'monospace', color: '#334155' }}>
-                          {r.recorded_at}
-                        </td>
-                        <td style={{ padding: '8px 12px', fontWeight: 600, color: '#0f172a' }}>
-                          {r.device_name || 'Thiết bị'}
-                        </td>
-                        <td style={{ padding: '8px 12px', color: '#64748b', fontFamily: 'monospace' }}>
-                          {r.device_code}
-                        </td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#f59e0b' }}>
-                          {r.voltage !== null && r.voltage !== undefined ? r.voltage : '-'}
-                        </td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#06b6d4' }}>
-                          {r.current !== null && r.current !== undefined ? r.current : '-'}
-                        </td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#8b5cf6' }}>
-                          {r.power !== null && r.power !== undefined ? r.power : '-'}
-                        </td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#ef4444' }}>
-                          {r.temperature !== null && r.temperature !== undefined ? `${r.temperature}°C` : '-'}
-                        </td>
-                        <td style={{ padding: '8px 12px', textAlign: 'right', fontWeight: 600, color: '#3b82f6' }}>
-                          {r.humidity !== null && r.humidity !== undefined ? `${r.humidity}%` : '-'}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          )}
         </div>
 
         {/* FOOTER MODAL */}
