@@ -221,6 +221,68 @@ export const Login: React.FC = () => {
     }
   };
 
+  // Xử lý Đăng nhập qua Google Identity Services
+  const handleGoogleSignIn = () => {
+    if (lockoutRemaining > 0) return;
+    const google = (window as unknown as { google?: { accounts?: { oauth2?: { initTokenClient: Function } } } })?.google;
+    if (!google?.accounts?.oauth2) {
+      alert('Đang tải mô-đun Google Sign-In, vui lòng thử lại sau vài giây.');
+      return;
+    }
+    const tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: '419045063222-qktampgor6nhdfdo3mv7duscselg30nv.apps.googleusercontent.com',
+      scope: 'email profile openid',
+      callback: async (tokenResponse: { access_token?: string }) => {
+        if (tokenResponse?.access_token) {
+          setIsLoading(true);
+          setErrorMessage('');
+          setSuccessMessage('');
+          try {
+            const res = await fetch('/api/auth/google', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ accessToken: tokenResponse.access_token })
+            });
+            const data = await res.json();
+            setIsLoading(false);
+            if (data.success) {
+              setSuccessMessage('Đăng nhập Google thành công! Đang chuyển hướng...');
+              const jwtToken = data.token || ('auth_' + Date.now());
+              localStorage.setItem(
+                'aaa_admin_auth',
+                JSON.stringify({
+                  ...data.user,
+                  username: data.user.full_name || data.user.gmail,
+                  token: jwtToken,
+                })
+              );
+              localStorage.setItem('aaa_jwt_token', jwtToken);
+              document.cookie = `token=${jwtToken}; path=/; max-age=2592000; SameSite=Lax`;
+
+              setTimeout(() => {
+                if (data.role === 'customer') {
+                  window.location.hash = '#dash-custo';
+                } else if (Number(data.user.authen) === 1) {
+                  window.location.hash = '#dash';
+                } else if (Number(data.user.authen) === 2) {
+                  window.location.hash = '#employ';
+                } else {
+                  window.location.hash = '#dash';
+                }
+              }, 1000);
+            } else {
+              handleLoginFailure(data.message || 'Đăng nhập Google thất bại.');
+            }
+          } catch {
+            setIsLoading(false);
+            setErrorMessage('Không thể kết nối đến máy chủ xác thực Google.');
+          }
+        }
+      }
+    });
+    tokenClient.requestAccessToken({ prompt: 'select_account' });
+  };
+
   return (
     <div className="landing-page-root login-page-root">
       {/* 1. Header điều hướng toàn trang */}
@@ -423,9 +485,7 @@ export const Login: React.FC = () => {
 
                   <button
                     type="button"
-                    onClick={() => {
-                      alert('Tính năng Đăng nhập bằng Google đang kết nối máy chủ xác thực.');
-                    }}
+                    onClick={handleGoogleSignIn}
                     className="login-google-btn"
                     title="Đăng nhập bằng tài khoản Google"
                   >
