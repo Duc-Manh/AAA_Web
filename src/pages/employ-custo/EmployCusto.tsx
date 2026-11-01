@@ -1852,7 +1852,7 @@ export const EmployCusto: React.FC = () => {
                       <th style={{ padding: '10px 12px', textAlign: 'center', width: '50px' }}>STT</th>
                       <th style={{ padding: '10px 12px', textAlign: 'left' }}>Mã Thiết Bị (device_code)</th>
                       <th style={{ padding: '10px 12px', textAlign: 'left' }}>Tên Thiết Bị</th>
-                      <th style={{ padding: '10px 12px', textAlign: 'center' }}>Loại (device_type)</th>
+                      <th style={{ padding: '10px 12px', textAlign: 'center' }}>Loại</th>
                       <th style={{ padding: '10px 12px', textAlign: 'center' }}>Slave Address</th>
                       <th style={{ padding: '10px 12px', textAlign: 'left' }}>Khu vực / Tầng</th>
                       <th style={{ padding: '10px 12px', textAlign: 'center', width: '60px' }}>Xóa</th>

@@ -29,6 +29,7 @@ export interface StorageItem {
   id: number;
   device_code: string;
   name: string;
+  type?: string;
   unit: string;
   quantity: number;
   'quantity-out'?: number;
@@ -72,6 +73,7 @@ export const DashEquip: React.FC = () => {
   // Form states
   const [formDeviceCode, setFormDeviceCode] = useState('');
   const [formName, setFormName] = useState('');
+  const [formType, setFormType] = useState('sensor');
   const [formUnit, setFormUnit] = useState('Cái');
   const [formQuantity, setFormQuantity] = useState<number>(1);
   const [formQuantityOut, setFormQuantityOut] = useState<number>(0);
@@ -125,6 +127,7 @@ export const DashEquip: React.FC = () => {
     setEditingItem(null);
     setFormDeviceCode('');
     setFormName('');
+    setFormType('sensor');
     setFormUnit('Cái');
     setFormQuantity(1);
     setFormQuantityOut(0);
@@ -141,6 +144,7 @@ export const DashEquip: React.FC = () => {
     setEditingItem(item);
     setFormDeviceCode(item.device_code);
     setFormName(item.name);
+    setFormType(item.type || 'sensor');
     setFormUnit(item.unit || 'Cái');
     setFormQuantity(Number(item.quantity) || 1);
     setFormQuantityOut(Number(item['quantity-out'] !== undefined ? item['quantity-out'] : (item.quantity_out ?? 0)));
@@ -186,6 +190,7 @@ export const DashEquip: React.FC = () => {
     const payload = {
       device_code: formDeviceCode.trim().toUpperCase(),
       name: formName.trim(),
+      type: formType,
       unit: formUnit.trim() || 'Cái',
       quantity: qty,
       'quantity-out': qtyOut,
@@ -297,6 +302,51 @@ export const DashEquip: React.FC = () => {
   // Tính thống kê
   const totalQuantity = items.reduce((sum, item) => sum + (Number(item.quantity) || 0), 0);
   const totalValue = items.reduce((sum, item) => sum + (Number(item.total) || 0), 0);
+
+  // Hiển thị badge Loại thiết bị
+  const renderDeviceTypeBadge = (type?: string) => {
+    const val = (type || '').toLowerCase();
+    if (val === 'sensor' || val.includes('cảm biến')) {
+      return (
+        <span style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '3px 8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.78rem' }}>
+          Cảm biến (sensor)
+        </span>
+      );
+    }
+    if (val === 'motor' || val.includes('động cơ')) {
+      return (
+        <span style={{ backgroundColor: '#fef3c7', color: '#b45309', padding: '3px 8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.78rem' }}>
+          Động cơ (motor)
+        </span>
+      );
+    }
+    if (val === 'valve' || val.includes('van')) {
+      return (
+        <span style={{ backgroundColor: '#f3e8ff', color: '#7e22ce', padding: '3px 8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.78rem' }}>
+          Van (valve)
+        </span>
+      );
+    }
+    if (val === 'gateway' || val.includes('gateway') || val.includes('iot')) {
+      return (
+        <span style={{ backgroundColor: '#ecfdf5', color: '#047857', padding: '3px 8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.78rem' }}>
+          IoTGateway (gateway)
+        </span>
+      );
+    }
+    if (val === 'hmi' || val.includes('hmi') || val.includes('màn hình')) {
+      return (
+        <span style={{ backgroundColor: '#fdf2f8', color: '#be185d', padding: '3px 8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.78rem' }}>
+          Màn hình HMI (hmi)
+        </span>
+      );
+    }
+    return (
+      <span style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '3px 8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.78rem' }}>
+        {type || 'Cảm biến (sensor)'}
+      </span>
+    );
+  };
 
   // Badge màu theo tình trạng
   const renderStatusBadge = (status: string) => {
@@ -650,6 +700,7 @@ export const DashEquip: React.FC = () => {
                     <th style={{ padding: '12px 14px', width: '45px', textAlign: 'center' }}>STT</th>
                     <th style={{ padding: '12px 14px' }}>Mã thiết bị</th>
                     <th style={{ padding: '12px 14px', minWidth: '220px' }}>Tên vật tư</th>
+                    <th style={{ padding: '12px 14px', textAlign: 'center', minWidth: '150px' }}>Loại thiết bị</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Đơn vị</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Số lượng</th>
                     <th style={{ padding: '12px 14px', textAlign: 'center' }}>Số lượng xuất</th>
@@ -663,13 +714,13 @@ export const DashEquip: React.FC = () => {
                 <tbody>
                   {loading && items.length === 0 ? (
                     <tr>
-                      <td colSpan={11} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan={12} style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>
                         Đang tải danh sách vật tư...
                       </td>
                     </tr>
                   ) : filteredItems.length === 0 ? (
                     <tr>
-                      <td colSpan={11} style={{ padding: '48px 20px', textAlign: 'center', color: '#64748b' }}>
+                      <td colSpan={12} style={{ padding: '48px 20px', textAlign: 'center', color: '#64748b' }}>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                           <AlertCircle size={32} color="#94a3b8" />
                           <div style={{ fontWeight: 600 }}>Không tìm thấy vật tư nào</div>
@@ -698,6 +749,9 @@ export const DashEquip: React.FC = () => {
                         </td>
                         <td style={{ padding: '12px 14px', fontWeight: 600, color: '#0f172a', minWidth: '220px' }}>
                           {item.name}
+                        </td>
+                        <td style={{ padding: '12px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                          {renderDeviceTypeBadge(item.type)}
                         </td>
                         <td style={{ padding: '12px 14px', textAlign: 'center', color: '#475569', whiteSpace: 'nowrap' }}>
                           {item.unit || 'Cái'}
@@ -925,6 +979,31 @@ export const DashEquip: React.FC = () => {
                       outline: 'none'
                     }}
                   />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                    Loại thiết bị <span style={{ color: '#ef4444' }}>*</span>
+                  </label>
+                  <select
+                    value={formType}
+                    onChange={(e) => setFormType(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '9px 12px',
+                      fontSize: '0.85rem',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '8px',
+                      outline: 'none',
+                      backgroundColor: '#ffffff'
+                    }}
+                  >
+                    <option value="sensor">Cảm biến (sensor)</option>
+                    <option value="motor">Động cơ (motor)</option>
+                    <option value="valve">Van (valve)</option>
+                    <option value="gateway">IoTGateway (gateway)</option>
+                    <option value="hmi">Màn hình HMI (hmi)</option>
+                  </select>
                 </div>
 
                 <div>
