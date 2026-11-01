@@ -499,9 +499,10 @@ export const EmployHistory: React.FC = () => {
 
   const currentFullName = currentUser?.full_name || 'Nhân viên 3A';
 
-  // Xuất CSV
-  const handleExportCSV = () => {
-    if (filteredList.length === 0) return;
+  // Xuất CSV theo từng dự án hoặc toàn bộ
+  const handleExportCSV = (recordsToExport?: TelemetryHistoryRecord[], projectName?: string) => {
+    const list = recordsToExport || filteredList;
+    if (list.length === 0) return;
     const headers = [
       'ID',
       'Thời gian',
@@ -517,7 +518,7 @@ export const EmployHistory: React.FC = () => {
       'Dòng điện (A)'
     ];
 
-    const rows = filteredList.map((r) => [
+    const rows = list.map((r) => [
       r.id,
       r.recorded_at,
       `"${r.project_name || ''}"`,
@@ -539,7 +540,8 @@ export const EmployHistory: React.FC = () => {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `lich_su_vien_trac_${new Date().toISOString().slice(0, 10)}.csv`);
+    const safeProj = projectName ? projectName.replace(/[^a-zA-Z0-9_\u00C0-\u024F\u1EA0-\u1EF9]/g, '_') : 'toan_bo';
+    link.setAttribute('download', `lich_su_van_hanh_${safeProj}_${new Date().toISOString().slice(0, 10)}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -950,31 +952,6 @@ export const EmployHistory: React.FC = () => {
                   <Sparkles size={15} color={isMockData ? '#d97706' : '#64748b'} />
                   <span>{isMockData ? 'Dữ liệu mẫu (Active)' : 'Dữ liệu mẫu (Test UI)'}</span>
                 </button>
-
-                {/* Xuất file Excel / CSV */}
-                <button
-                  type="button"
-                  onClick={handleExportCSV}
-                  disabled={filteredList.length === 0}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px',
-                    padding: '9px 14px',
-                    borderRadius: '10px',
-                    backgroundColor: '#059669',
-                    color: '#ffffff',
-                    fontSize: '0.88rem',
-                    fontWeight: 600,
-                    border: 'none',
-                    cursor: filteredList.length === 0 ? 'not-allowed' : 'pointer',
-                    opacity: filteredList.length === 0 ? 0.6 : 1
-                  }}
-                  title="Tải toàn bộ kết quả lọc ra file CSV Excel"
-                >
-                  <Download size={15} />
-                  <span>Xuất CSV</span>
-                </button>
               </div>
             </div>
           </div>
@@ -1216,6 +1193,34 @@ export const EmployHistory: React.FC = () => {
                           >
                             <LineChart size={15} />
                             <span>Biểu đồ</span>
+                          </button>
+
+                          {/* Nút Xuất CSV cho riêng dự án này */}
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleExportCSV(group.records, group.project_name);
+                            }}
+                            disabled={group.records.length === 0}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              backgroundColor: '#ecfdf5',
+                              border: '1px solid #a7f3d0',
+                              color: '#059669',
+                              fontSize: '0.82rem',
+                              fontWeight: 600,
+                              cursor: group.records.length === 0 ? 'not-allowed' : 'pointer',
+                              opacity: group.records.length === 0 ? 0.6 : 1
+                            }}
+                            title={`Tải toàn bộ lịch sử vận hành của dự án ${group.project_name} ra file CSV Excel`}
+                          >
+                            <Download size={14} />
+                            <span>Xuất CSV</span>
                           </button>
 
                           <div
