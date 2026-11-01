@@ -10,7 +10,6 @@ import {
   Activity,
   Search,
   Building2,
-  Calendar,
   Clock,
   ArrowUpDown,
   Download,
@@ -20,8 +19,10 @@ import {
   X,
   Play,
   Pause,
-  ChevronLeft,
-  ChevronRight,
+  ChevronDown,
+  ChevronUp,
+  Layers,
+  LineChart,
   Database
 } from 'lucide-react';
 import { ProjectTelemetryChartModal } from '../../components/common/ProjectTelemetryChartModal';
@@ -76,10 +77,7 @@ export const DashHistory: React.FC = () => {
   const [filterDeviceType, setFilterDeviceType] = useState<string>('all');
   const [sortOrder, setSortOrder] = useState<'DESC' | 'ASC'>('DESC');
   const [limitCount, setLimitCount] = useState<number>(200);
-
-  // Phân trang
-  const [currentPage, setCurrentPage] = useState<number>(1);
-  const itemsPerPage = 25;
+  const [, setCurrentPage] = useState<number>(1);
 
   // Modal xem Raw JSON
   const [selectedRawData, setSelectedRawData] = useState<{
@@ -90,7 +88,7 @@ export const DashHistory: React.FC = () => {
     data: any;
   } | null>(null);
 
-  // Modal xem Biểu đồ viễn trắc
+  // Modal xem Biểu đồ vận hành
   const [selectedChartProject, setSelectedChartProject] = useState<ProjectGroup | null>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -254,12 +252,115 @@ export const DashHistory: React.FC = () => {
     });
   }, [historyList, searchQuery, filterDeviceType]);
 
-  // Phân trang
-  const totalPages = Math.ceil(filteredList.length / itemsPerPage) || 1;
-  const paginatedData = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredList.slice(start, start + itemsPerPage);
-  }, [filteredList, currentPage]);
+  // Quản lý mở rộng / thu gọn từng dự án và giới hạn bản ghi hiển thị
+  const [expandedProjects, setExpandedProjects] = useState<Record<string, boolean>>({});
+  const [projectLimits, setProjectLimits] = useState<Record<string, number>>({});
+
+  // Gom nhóm dữ liệu lịch sử vận hành theo từng dự án
+  const projectGroups = useMemo(() => {
+    const map = new Map<string, {
+      project_name: string;
+      project_address?: string;
+      location_id?: number;
+      gateway_sn?: string;
+      gateway_ip?: string;
+      gateway_status?: 'online' | 'offline';
+      latest_recorded_at?: string;
+      deviceMap: Map<string, {
+        device_id: number;
+        device_code: string;
+        device_name: string;
+        device_type?: string;
+        floor?: string;
+      }>;
+      records: TelemetryHistoryRecord[];
+    }>();
+
+    filteredList.forEach((row) => {
+      const pName = row.project_name || 'Dự án nội bộ';
+      if (!map.has(pName)) {
+        map.set(pName, {
+          project_name: pName,
+          project_address: row.project_address,
+          location_id: row.location_id,
+          gateway_sn: row.gateway_sn,
+          gateway_ip: row.gateway_ip,
+          gateway_status: 'online',
+          latest_recorded_at: row.recorded_at,
+          deviceMap: new Map(),
+          records: []
+        });
+      }
+
+      const grp = map.get(pName)!;
+      grp.records.push(row);
+
+      if (row.device_code && !grp.deviceMap.has(row.device_code)) {
+        grp.deviceMap.set(row.device_code, {
+          device_id: row.device_id,
+          device_code: row.device_code,
+          device_name: row.device_name || row.device_code,
+          device_type: row.device_type,
+          floor: row.floor
+        });
+      }
+
+      if (row.recorded_at && (!grp.latest_recorded_at || row.recorded_at > grp.latest_recorded_at)) {
+        grp.latest_recorded_at = row.recorded_at;
+      }
+    });
+
+    return Array.from(map.values()).map((g) => ({
+      project_name: g.project_name,
+      project_address: g.project_address,
+      location_id: g.location_id,
+      gateway_sn: g.gateway_sn,
+      gateway_ip: g.gateway_ip,
+      gateway_status: g.gateway_status,
+      latest_recorded_at: g.latest_recorded_at,
+      deviceCount: g.deviceMap.size,
+      devices: Array.from(g.deviceMap.values()),
+      records: g.records
+    }));
+  }, [filteredList]);
+
+  // Tự động mở rộng các dự án khi có dữ liệu
+  useEffect(() => {
+    if (projectGroups.length > 0) {
+      setExpandedProjects((prev) => {
+        const next = { ...prev };
+        projectGroups.forEach((g) => {
+          if (next[g.project_name] === undefined) {
+            next[g.project_name] = true;
+          }
+        });
+        return next;
+      });
+    }
+  }, [projectGroups]);
+
+  const toggleProject = (projectName: string) => {
+    setExpandedProjects((prev) => ({
+      ...prev,
+      [projectName]: !prev[projectName]
+    }));
+  };
+
+  const expandAll = () => {
+    const next: Record<string, boolean> = {};
+    projectGroups.forEach((g) => {
+      next[g.project_name] = true;
+    });
+    setExpandedProjects(next);
+  };
+
+  const collapseAll = () => {
+    const next: Record<string, boolean> = {};
+    projectGroups.forEach((g) => {
+      next[g.project_name] = false;
+    });
+    setExpandedProjects(next);
+  };
 
   const currentFullName = currentUser?.full_name || 'Quản Trị Viên';
 
@@ -307,7 +408,7 @@ export const DashHistory: React.FC = () => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    triggerToast('Đã xuất file CSV lịch sử viễn trắc thành công!');
+    triggerToast('Đã xuất file CSV lịch sử vận hành thành công!');
   };
 
   return (
@@ -352,7 +453,7 @@ export const DashHistory: React.FC = () => {
       <div className="dash-main">
         {/* TOP NAVBAR */}
         <DashHeader
-          title="Lịch Sử Viễn Trắc & Dữ Liệu IoT"
+          title="Lịch Sử Vận Hành và Dữ Liệu IoT"
           subtitle="Kho lưu trữ toàn bộ chu kỳ đo đạc từ bảng telemetry_history trong Database 3ahome"
           isMobileOpen={isMobileOpen}
           setIsMobileOpen={setIsMobileOpen}
@@ -361,7 +462,7 @@ export const DashHistory: React.FC = () => {
           refreshTitle="Làm mới lịch sử"
           onRefresh={() => {
             fetchHistoryData(true);
-            triggerToast('Đã làm mới danh sách lịch sử viễn trắc');
+            triggerToast('Đã làm mới danh sách lịch sử vận hành');
           }}
         />
 
@@ -447,7 +548,7 @@ export const DashHistory: React.FC = () => {
                   {uniqueDevices.length} thiết bị
                 </div>
                 <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '4px' }}>
-                  Đang ghi chu kỳ viễn trắc
+                  Đang ghi chu kỳ vận hành
                 </div>
               </div>
             </div>
@@ -752,337 +853,548 @@ export const DashHistory: React.FC = () => {
             </div>
           </div>
 
-          {/* BẢNG DỮ LIỆU LỊCH SỬ VIỄN TRẮC */}
-          <div
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: '16px',
-              boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
-              border: '1px solid #e2e8f0',
-              overflow: 'hidden',
-              marginBottom: '24px'
-            }}
-          >
+          {/* BẢNG DỮ LIỆU LỊCH SỬ VẬN HÀNH GOM THEO DỰ ÁN */}
+          <div style={{ marginBottom: '24px' }}>
+            {/* Thanh tiêu đề và điều khiển mở rộng / thu gọn */}
             <div
               style={{
-                padding: '16px 24px',
-                borderBottom: '1px solid #f1f5f9',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                backgroundColor: '#f8fafc'
+                flexWrap: 'wrap',
+                gap: '12px',
+                marginBottom: '16px',
+                padding: '12px 18px',
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)'
               }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <Calendar size={18} color="#1d58bb" />
-                <span style={{ fontWeight: 700, fontSize: '0.98rem', color: '#1e293b' }}>
-                  Kho Dữ Liệu Lịch Sử Viễn Trắc ({filteredList.length} kết quả)
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Layers size={20} color="#1d58bb" />
+                <span style={{ fontWeight: 700, fontSize: '1rem', color: '#1e293b' }}>
+                  Kho Dữ Liệu Lịch Sử Vận Hành Theo Dự Án
+                </span>
+                <span
+                  style={{
+                    backgroundColor: '#eff6ff',
+                    color: '#1d58bb',
+                    padding: '3px 10px',
+                    borderRadius: '999px',
+                    fontSize: '0.8rem',
+                    fontWeight: 700
+                  }}
+                >
+                  {projectGroups.length} dự án • {filteredList.length} bản ghi
                 </span>
               </div>
-              <div style={{ fontSize: '0.82rem', color: '#64748b' }}>
-                Hiển thị trang {currentPage} / {totalPages}
-              </div>
+
+              {projectGroups.length > 0 && (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={expandAll}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      backgroundColor: '#ffffff',
+                      color: '#334155',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Mở rộng tất cả
+                  </button>
+                  <button
+                    type="button"
+                    onClick={collapseAll}
+                    style={{
+                      padding: '6px 12px',
+                      borderRadius: '8px',
+                      border: '1px solid #cbd5e1',
+                      backgroundColor: '#ffffff',
+                      color: '#334155',
+                      fontSize: '0.82rem',
+                      fontWeight: 600,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Thu gọn tất cả
+                  </button>
+                </div>
+              )}
             </div>
 
-            <div style={{ overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, width: '70px' }}>STT/ID</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '150px' }}>Thời Gian Đo</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '160px' }}>Dự Án</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '180px' }}>Thiết Bị</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '120px' }}>Nhiệt Độ (°C)</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '120px' }}>Độ Ẩm (%)</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '130px' }}>Công Suất (W)</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '140px' }}>Điện Áp / Dòng</th>
-                    <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'center', width: '100px' }}>Gói Tin</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loading && historyList.length === 0 ? (
-                    <tr>
-                      <td colSpan={9} style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
-                        <RefreshCw size={24} className="animate-spin" style={{ margin: '0 auto 8px', color: '#1d58bb' }} />
-                        <div>Đang tải dữ liệu lịch sử viễn trắc từ Database 3ahome...</div>
-                      </td>
-                    </tr>
-                  ) : paginatedData.length === 0 ? (
-                    <tr>
-                      <td colSpan={9} style={{ padding: '48px', textAlign: 'center', color: '#64748b' }}>
-                        <AlertCircle size={28} style={{ margin: '0 auto 8px', color: '#94a3b8' }} />
-                        <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#334155' }}>
-                          Chưa có bản ghi lịch sử viễn trắc nào phù hợp
-                        </div>
-                        <div style={{ fontSize: '0.82rem', marginTop: '4px' }}>
-                          Dữ liệu sẽ tự động tích lũy khi Gateway hoặc MQTTBox gửi gói tin viễn trắc!
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedData.map((row, idx) => {
-                      const displayIndex = (currentPage - 1) * itemsPerPage + idx + 1;
-                      const hasTemp = row.temperature !== null && row.temperature !== undefined;
-                      const hasHumi = row.humidity !== null && row.humidity !== undefined;
-                      const hasPower = row.power !== null && row.power !== undefined;
-                      const hasVolt = row.voltage !== null && row.voltage !== undefined;
-                      const hasCurr = row.current !== null && row.current !== undefined;
-
-                      return (
-                        <tr
-                          key={row.id}
-                          style={{
-                            borderBottom: '1px solid #f1f5f9',
-                            transition: 'background-color 0.15s'
-                          }}
-                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
-                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
-                        >
-                          {/* STT & ID */}
-                          <td style={{ padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>
-                            <div>#{row.id}</div>
-                            <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>[{displayIndex}]</div>
-                          </td>
-
-                          {/* Thời gian */}
-                          <td style={{ padding: '12px 16px' }}>
-                            <div style={{ fontWeight: 600, color: '#1e293b' }}>
-                              {row.recorded_at}
-                            </div>
-                            <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
-                              <Clock size={11} /> {row.time_label || 'Vừa xong'}
-                            </div>
-                          </td>
-
-                          {/* Dự án */}
-                          <td style={{ padding: '12px 16px' }}>
-                            <div style={{ fontWeight: 700, color: '#1d58bb' }}>
-                              {row.project_name || 'Dự án nội bộ'}
-                            </div>
-                            {row.project_address && (
-                              <div style={{ fontSize: '0.75rem', color: '#64748b', maxWidth: '180px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {row.project_address}
-                              </div>
-                            )}
-                          </td>
-
-                          {/* Thiết bị */}
-                          <td style={{ padding: '12px 16px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                              <span style={{ fontWeight: 600, color: '#0f172a' }}>
-                                {row.device_name || row.device_code}
-                              </span>
-                              <span
-                                style={{
-                                  backgroundColor: '#eff6ff',
-                                  color: '#1d58bb',
-                                  padding: '2px 6px',
-                                  borderRadius: '6px',
-                                  fontSize: '0.72rem',
-                                  fontWeight: 700
-                                }}
-                              >
-                                {row.device_code}
-                              </span>
-                            </div>
-                            <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
-                              {row.floor || 'Khu vực chính'} • {row.device_type || 'sensor'}
-                            </div>
-                          </td>
-
-                          {/* Nhiệt độ */}
-                          <td style={{ padding: '12px 16px' }}>
-                            {hasTemp ? (
-                              <div
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  fontWeight: 700,
-                                  color: (row.temperature ?? 0) > 35 ? '#dc2626' : '#ea580c',
-                                  backgroundColor: '#fff7ed',
-                                  padding: '4px 8px',
-                                  borderRadius: '8px'
-                                }}
-                              >
-                                <Thermometer size={14} />
-                                <span>{row.temperature}°C</span>
-                              </div>
-                            ) : (
-                              <span style={{ color: '#cbd5e1' }}>--</span>
-                            )}
-                          </td>
-
-                          {/* Độ ẩm */}
-                          <td style={{ padding: '12px 16px' }}>
-                            {hasHumi ? (
-                              <div
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  fontWeight: 700,
-                                  color: '#0284c7',
-                                  backgroundColor: '#f0f9ff',
-                                  padding: '4px 8px',
-                                  borderRadius: '8px'
-                                }}
-                              >
-                                <Droplets size={14} />
-                                <span>{row.humidity}%</span>
-                              </div>
-                            ) : (
-                              <span style={{ color: '#cbd5e1' }}>--</span>
-                            )}
-                          </td>
-
-                          {/* Công suất */}
-                          <td style={{ padding: '12px 16px' }}>
-                            {hasPower ? (
-                              <div
-                                style={{
-                                  display: 'inline-flex',
-                                  alignItems: 'center',
-                                  gap: '4px',
-                                  fontWeight: 700,
-                                  color: '#d97706',
-                                  backgroundColor: '#fffbeb',
-                                  padding: '4px 8px',
-                                  borderRadius: '8px'
-                                }}
-                              >
-                                <Zap size={14} />
-                                <span>{row.power} W</span>
-                              </div>
-                            ) : (
-                              <span style={{ color: '#cbd5e1' }}>--</span>
-                            )}
-                          </td>
-
-                          {/* Điện áp / Dòng */}
-                          <td style={{ padding: '12px 16px' }}>
-                            {hasVolt || hasCurr ? (
-                              <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-                                <div>{hasVolt ? `${row.voltage} V` : ''}</div>
-                                <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                                  {hasCurr ? `${row.current} A` : ''}
-                                </div>
-                              </div>
-                            ) : (
-                              <span style={{ color: '#cbd5e1' }}>--</span>
-                            )}
-                          </td>
-
-                          {/* Nút Xem Gói Tin JSON */}
-                          <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setSelectedRawData({
-                                  id: row.id,
-                                  device_code: row.device_code,
-                                  device_name: row.device_name,
-                                  recorded_at: row.recorded_at,
-                                  data: row.raw_data || {
-                                    temperature: row.temperature,
-                                    humidity: row.humidity,
-                                    power: row.power,
-                                    voltage: row.voltage,
-                                    current: row.current
-                                  }
-                                });
-                              }}
-                              style={{
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                padding: '6px 10px',
-                                borderRadius: '8px',
-                                backgroundColor: '#f1f5f9',
-                                border: '1px solid #cbd5e1',
-                                color: '#1e293b',
-                                cursor: 'pointer',
-                                fontSize: '0.75rem',
-                                fontWeight: 600,
-                                gap: '4px'
-                              }}
-                              title="Xem gói tin JSON chi tiết"
-                            >
-                              <Eye size={13} color="#1d58bb" />
-                              <span>JSON</span>
-                            </button>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
-            </div>
-
-            {/* PHÂN TRANG */}
-            {totalPages > 1 && (
+            {/* Trạng thái Loading hoặc Trống */}
+            {loading && historyList.length === 0 ? (
               <div
                 style={{
-                  padding: '14px 24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  borderTop: '1px solid #f1f5f9',
-                  backgroundColor: '#ffffff'
+                  backgroundColor: '#ffffff',
+                  borderRadius: '16px',
+                  padding: '48px',
+                  textAlign: 'center',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)'
                 }}
               >
-                <div style={{ fontSize: '0.82rem', color: '#64748b' }}>
-                  Hiển thị {(currentPage - 1) * itemsPerPage + 1} -{' '}
-                  {Math.min(currentPage * itemsPerPage, filteredList.length)} trong tổng số{' '}
-                  {filteredList.length} bản ghi
+                <RefreshCw size={28} className="animate-spin" style={{ margin: '0 auto 12px', color: '#1d58bb' }} />
+                <div style={{ fontWeight: 600, color: '#334155', fontSize: '0.95rem' }}>
+                  Đang tải dữ liệu lịch sử vận hành từ Database 3ahome...
                 </div>
-
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <button
-                    type="button"
-                    disabled={currentPage === 1}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: '6px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      backgroundColor: '#ffffff',
-                      color: currentPage === 1 ? '#cbd5e1' : '#334155',
-                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
-                      fontSize: '0.82rem'
-                    }}
-                  >
-                    <ChevronLeft size={14} /> Trước
-                  </button>
-
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600, padding: '0 8px', color: '#1e293b' }}>
-                    {currentPage} / {totalPages}
-                  </span>
-
-                  <button
-                    type="button"
-                    disabled={currentPage === totalPages}
-                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '4px',
-                      padding: '6px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      backgroundColor: '#ffffff',
-                      color: currentPage === totalPages ? '#cbd5e1' : '#334155',
-                      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
-                      fontSize: '0.82rem'
-                    }}
-                  >
-                    Sau <ChevronRight size={14} />
-                  </button>
+              </div>
+            ) : projectGroups.length === 0 ? (
+              <div
+                style={{
+                  backgroundColor: '#ffffff',
+                  borderRadius: '16px',
+                  padding: '48px',
+                  textAlign: 'center',
+                  border: '1px solid #e2e8f0',
+                  boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)'
+                }}
+              >
+                <AlertCircle size={32} style={{ margin: '0 auto 10px', color: '#94a3b8' }} />
+                <div style={{ fontWeight: 700, fontSize: '1rem', color: '#334155' }}>
+                  Chưa có bản ghi lịch sử vận hành nào phù hợp
                 </div>
+                <div style={{ fontSize: '0.85rem', color: '#64748b', marginTop: '6px' }}>
+                  Dữ liệu sẽ tự động tích lũy khi Gateway hoặc MQTTBox gửi gói tin vận hành!
+                </div>
+              </div>
+            ) : (
+              /* Danh sách Accordion Dự Án */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                {projectGroups.map((group) => {
+                  const isExpanded = expandedProjects[group.project_name] !== false;
+                  const currentLimit = projectLimits[group.project_name] || 15;
+                  const displayRecords = group.records.slice(0, currentLimit);
+
+                  return (
+                    <div
+                      key={group.project_name}
+                      style={{
+                        backgroundColor: '#ffffff',
+                        borderRadius: '16px',
+                        border: '1px solid #e2e8f0',
+                        boxShadow: '0 4px 16px rgba(0, 0, 0, 0.04)',
+                        overflow: 'hidden',
+                        transition: 'box-shadow 0.2s'
+                      }}
+                    >
+                      {/* Tiêu đề Dự Án (Click để đóng/mở) */}
+                      <div
+                        onClick={() => toggleProject(group.project_name)}
+                        style={{
+                          padding: '16px 20px',
+                          backgroundColor: isExpanded ? '#f8fafc' : '#ffffff',
+                          borderBottom: isExpanded ? '1px solid #e2e8f0' : 'none',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          cursor: 'pointer',
+                          userSelect: 'none',
+                          gap: '12px'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                          <div
+                            style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '10px',
+                              backgroundColor: '#eff6ff',
+                              color: '#1d58bb',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 800,
+                              fontSize: '1rem'
+                            }}
+                          >
+                            <Building2 size={18} />
+                          </div>
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                              <span style={{ fontWeight: 700, fontSize: '1rem', color: '#1e293b' }}>
+                                {group.project_name}
+                              </span>
+                              {group.project_address && (
+                                <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                                  ({group.project_address})
+                                </span>
+                              )}
+                            </div>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginTop: '3px', fontSize: '0.78rem', color: '#64748b' }}>
+                              <span>
+                                <strong>{group.records.length}</strong> bản ghi
+                              </span>
+                              <span>•</span>
+                              <span>
+                                <strong>{group.deviceCount}</strong> thiết bị
+                              </span>
+                              {group.latest_recorded_at && (
+                                <>
+                                  <span>•</span>
+                                  <span>Gần nhất: {group.latest_recorded_at}</span>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <button
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedChartProject(group as unknown as ProjectGroup);
+                            }}
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              padding: '6px 12px',
+                              borderRadius: '8px',
+                              backgroundColor: '#eff6ff',
+                              border: '1px solid #bfdbfe',
+                              color: '#1d58bb',
+                              fontSize: '0.82rem',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                            title="Xem biểu đồ vận hành của dự án này"
+                          >
+                            <LineChart size={15} />
+                            <span>Biểu đồ</span>
+                          </button>
+
+                          <div
+                            style={{
+                              width: '32px',
+                              height: '32px',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              borderRadius: '8px',
+                              backgroundColor: '#f1f5f9',
+                              color: '#475569'
+                            }}
+                          >
+                            {isExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Bảng Dữ Liệu Lịch Sử Của Dự Án */}
+                      {isExpanded && (
+                        <div>
+                          <div style={{ overflowX: 'auto' }}>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.88rem' }}>
+                              <thead>
+                                <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0', color: '#64748b' }}>
+                                  <th style={{ padding: '12px 16px', fontWeight: 600, width: '70px' }}>STT/ID</th>
+                                  <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '150px' }}>Thời Gian Đo</th>
+                                  <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '180px' }}>Thiết Bị</th>
+                                  <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '130px' }}>Khu Vực/Tầng</th>
+                                  <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '120px' }}>Nhiệt Độ (°C)</th>
+                                  <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '120px' }}>Độ Ẩm (%)</th>
+                                  <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '130px' }}>Công Suất (W)</th>
+                                  <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '140px' }}>Điện Áp / Dòng</th>
+                                  <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'center', width: '90px' }}>Gói Tin</th>
+                                </tr>
+                              </thead>
+                              <tbody>
+                                {displayRecords.map((row, idx) => {
+                                  const hasTemp = row.temperature !== null && row.temperature !== undefined;
+                                  const hasHumi = row.humidity !== null && row.humidity !== undefined;
+                                  const hasPower = row.power !== null && row.power !== undefined;
+                                  const hasVolt = row.voltage !== null && row.voltage !== undefined;
+                                  const hasCurr = row.current !== null && row.current !== undefined;
+
+                                  return (
+                                    <tr
+                                      key={row.id}
+                                      style={{
+                                        borderBottom: '1px solid #f1f5f9',
+                                        transition: 'background-color 0.15s'
+                                      }}
+                                      onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#f8fafc')}
+                                      onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#ffffff')}
+                                    >
+                                      {/* STT/ID */}
+                                      <td style={{ padding: '12px 16px', color: '#64748b', fontWeight: 600 }}>
+                                        <div>#{row.id}</div>
+                                        <div style={{ fontSize: '0.72rem', color: '#94a3b8' }}>[{idx + 1}]</div>
+                                      </td>
+
+                                      {/* Thời gian */}
+                                      <td style={{ padding: '12px 16px' }}>
+                                        <div style={{ fontWeight: 600, color: '#1e293b' }}>
+                                          {row.recorded_at}
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                          <Clock size={11} /> {row.time_label || 'Vừa xong'}
+                                        </div>
+                                      </td>
+
+                                      {/* Thiết bị */}
+                                      <td style={{ padding: '12px 16px' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                          <span style={{ fontWeight: 600, color: '#0f172a' }}>
+                                            {row.device_name || row.device_code}
+                                          </span>
+                                          <span
+                                            style={{
+                                              backgroundColor: '#eff6ff',
+                                              color: '#1d58bb',
+                                              padding: '2px 6px',
+                                              borderRadius: '6px',
+                                              fontSize: '0.72rem',
+                                              fontWeight: 700
+                                            }}
+                                          >
+                                            {row.device_code}
+                                          </span>
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: '2px' }}>
+                                          Loại: {row.device_type || 'sensor'}
+                                        </div>
+                                      </td>
+
+                                      {/* Khu vực/Tầng */}
+                                      <td style={{ padding: '12px 16px', color: '#475569' }}>
+                                        {row.floor || 'Khu vực chính'}
+                                      </td>
+
+                                      {/* Nhiệt độ */}
+                                      <td style={{ padding: '12px 16px' }}>
+                                        {hasTemp ? (
+                                          <div
+                                            style={{
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              gap: '4px',
+                                              fontWeight: 700,
+                                              color: (row.temperature ?? 0) > 35 ? '#dc2626' : '#ea580c',
+                                              backgroundColor: '#fff7ed',
+                                              padding: '4px 8px',
+                                              borderRadius: '8px'
+                                            }}
+                                          >
+                                            <Thermometer size={14} />
+                                            <span>{row.temperature}°C</span>
+                                          </div>
+                                        ) : (
+                                          <span style={{ color: '#cbd5e1' }}>--</span>
+                                        )}
+                                      </td>
+
+                                      {/* Độ ẩm */}
+                                      <td style={{ padding: '12px 16px' }}>
+                                        {hasHumi ? (
+                                          <div
+                                            style={{
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              gap: '4px',
+                                              fontWeight: 700,
+                                              color: '#0284c7',
+                                              backgroundColor: '#f0f9ff',
+                                              padding: '4px 8px',
+                                              borderRadius: '8px'
+                                            }}
+                                          >
+                                            <Droplets size={14} />
+                                            <span>{row.humidity}%</span>
+                                          </div>
+                                        ) : (
+                                          <span style={{ color: '#cbd5e1' }}>--</span>
+                                        )}
+                                      </td>
+
+                                      {/* Công suất */}
+                                      <td style={{ padding: '12px 16px' }}>
+                                        {hasPower ? (
+                                          <div
+                                            style={{
+                                              display: 'inline-flex',
+                                              alignItems: 'center',
+                                              gap: '4px',
+                                              fontWeight: 700,
+                                              color: '#d97706',
+                                              backgroundColor: '#fffbeb',
+                                              padding: '4px 8px',
+                                              borderRadius: '8px'
+                                            }}
+                                          >
+                                            <Zap size={14} />
+                                            <span>{row.power} W</span>
+                                          </div>
+                                        ) : (
+                                          <span style={{ color: '#cbd5e1' }}>--</span>
+                                        )}
+                                      </td>
+
+                                      {/* Điện áp / Dòng */}
+                                      <td style={{ padding: '12px 16px' }}>
+                                        {hasVolt || hasCurr ? (
+                                          <div style={{ fontSize: '0.82rem', color: '#334155' }}>
+                                            <div>{hasVolt ? `${row.voltage} V` : ''}</div>
+                                            <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
+                                              {hasCurr ? `${row.current} A` : ''}
+                                            </div>
+                                          </div>
+                                        ) : (
+                                          <span style={{ color: '#cbd5e1' }}>--</span>
+                                        )}
+                                      </td>
+
+                                      {/* Nút Xem Gói Tin JSON */}
+                                      <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setSelectedRawData({
+                                              id: row.id,
+                                              device_code: row.device_code,
+                                              device_name: row.device_name,
+                                              recorded_at: row.recorded_at,
+                                              data: row.raw_data || {
+                                                temperature: row.temperature,
+                                                humidity: row.humidity,
+                                                power: row.power,
+                                                voltage: row.voltage,
+                                                current: row.current
+                                              }
+                                            });
+                                          }}
+                                          style={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            padding: '6px 10px',
+                                            borderRadius: '8px',
+                                            backgroundColor: '#f1f5f9',
+                                            border: '1px solid #cbd5e1',
+                                            color: '#1e293b',
+                                            cursor: 'pointer',
+                                            fontSize: '0.75rem',
+                                            fontWeight: 600,
+                                            gap: '4px'
+                                          }}
+                                          title="Xem gói tin JSON chi tiết"
+                                        >
+                                          <Eye size={13} color="#1d58bb" />
+                                          <span>JSON</span>
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  );
+                                })}
+                              </tbody>
+                            </table>
+                          </div>
+
+                          {/* Footer của bảng Dự Án: Điều khiển số lượng bản ghi hiển thị */}
+                          {group.records.length > 15 && (
+                            <div
+                              style={{
+                                padding: '12px 20px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'space-between',
+                                borderTop: '1px solid #f1f5f9',
+                                backgroundColor: '#fafafa',
+                                flexWrap: 'wrap',
+                                gap: '10px'
+                              }}
+                            >
+                              <div style={{ fontSize: '0.82rem', color: '#64748b' }}>
+                                Đang hiển thị <strong>{displayRecords.length}</strong> / <strong>{group.records.length}</strong> bản ghi của dự án
+                              </div>
+
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                {displayRecords.length < group.records.length && (
+                                  <>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setProjectLimits((prev) => ({
+                                          ...prev,
+                                          [group.project_name]: (prev[group.project_name] || 15) + 20
+                                        }));
+                                      }}
+                                      style={{
+                                        padding: '5px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #cbd5e1',
+                                        backgroundColor: '#ffffff',
+                                        color: '#1d58bb',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                      }}
+                                    >
+                                      + Xem thêm 20 bản ghi
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => {
+                                        setProjectLimits((prev) => ({
+                                          ...prev,
+                                          [group.project_name]: group.records.length
+                                        }));
+                                      }}
+                                      style={{
+                                        padding: '5px 12px',
+                                        borderRadius: '8px',
+                                        border: '1px solid #bfdbfe',
+                                        backgroundColor: '#eff6ff',
+                                        color: '#1d58bb',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 600,
+                                        cursor: 'pointer'
+                                      }}
+                                    >
+                                      Xem tất cả ({group.records.length})
+                                    </button>
+                                  </>
+                                )}
+
+                                {currentLimit > 15 && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setProjectLimits((prev) => ({
+                                        ...prev,
+                                        [group.project_name]: 15
+                                      }));
+                                    }}
+                                    style={{
+                                      padding: '5px 12px',
+                                      borderRadius: '8px',
+                                      border: '1px solid #e2e8f0',
+                                      backgroundColor: '#ffffff',
+                                      color: '#64748b',
+                                      fontSize: '0.8rem',
+                                      fontWeight: 500,
+                                      cursor: 'pointer'
+                                    }}
+                                  >
+                                    Thu gọn về 15
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -1129,7 +1441,7 @@ export const DashHistory: React.FC = () => {
             >
               <div>
                 <h3 style={{ margin: 0, fontSize: '1.05rem', fontWeight: 700, color: '#0f172a' }}>
-                  Gói Tin Viễn Trắc #{selectedRawData.id}
+                  Gói Tin Vận Hành #{selectedRawData.id}
                 </h3>
                 <div style={{ fontSize: '0.8rem', color: '#64748b', marginTop: '2px' }}>
                   Thiết bị: <strong>{selectedRawData.device_code}</strong> ({selectedRawData.device_name}) •{' '}
