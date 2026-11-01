@@ -131,6 +131,34 @@ export const Login: React.FC = () => {
     setCaptchaInput('');
   };
 
+  // Điều hướng chuyển trang chắc chắn 100% sau khi đăng nhập
+  const navigateAfterLogin = (role?: string, authen?: number) => {
+    let targetHash = '#dash';
+    if (role === 'customer') {
+      targetHash = '#dash-custo';
+    } else if (Number(authen) === 2) {
+      targetHash = '#employ';
+    } else {
+      targetHash = '#dash';
+    }
+
+    // 1. Cập nhật hash và dispatch sự kiện để App.tsx đổi view tức thì
+    window.location.hash = targetHash;
+    try {
+      window.history.pushState(null, '', '/' + targetHash);
+    } catch {
+      // ignore
+    }
+    window.dispatchEvent(new Event('popstate'));
+    window.dispatchEvent(new Event('hashchange'));
+
+    // 2. Chuyển hướng chắc chắn (hard reload sang URL đích) để nạp phiên mới
+    setTimeout(() => {
+      window.location.replace('/' + targetHash);
+      window.location.reload();
+    }, 300);
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
@@ -202,15 +230,8 @@ export const Login: React.FC = () => {
         document.cookie = `token=${jwtToken}; path=/; max-age=2592000; SameSite=Lax`;
 
         setTimeout(() => {
-          // Phân quyền theo cột authen: 1 -> Dash.tsx, 2 -> Employ.tsx
-          if (Number(data.user.authen) === 1) {
-            window.location.href = '/#dash';
-          } else if (Number(data.user.authen) === 2) {
-            window.location.href = '/#employ';
-          } else {
-            window.location.href = '/#dash';
-          }
-        }, 600);
+          navigateAfterLogin(data.role, data.user?.authen);
+        }, 500);
       } else {
         handleLoginFailure(data.message || 'Gmail hoặc Mật khẩu không chính xác.');
       }
@@ -257,7 +278,7 @@ export const Login: React.FC = () => {
                 'aaa_admin_auth',
                 JSON.stringify({
                   ...data.user,
-                  username: data.user.full_name || data.user.gmail,
+                  username: data?.user?.full_name || data?.user?.gmail || data?.user?.projectName,
                   token: jwtToken,
                 })
               );
@@ -265,16 +286,8 @@ export const Login: React.FC = () => {
               document.cookie = `token=${jwtToken}; path=/; max-age=2592000; SameSite=Lax`;
 
               setTimeout(() => {
-                if (data.role === 'customer') {
-                  window.location.href = '/#dash-custo';
-                } else if (Number(data.user.authen) === 1) {
-                  window.location.href = '/#dash';
-                } else if (Number(data.user.authen) === 2) {
-                  window.location.href = '/#employ';
-                } else {
-                  window.location.href = '/#dash';
-                }
-              }, 600);
+                navigateAfterLogin(data.role, data?.user?.authen);
+              }, 500);
             } else {
               handleLoginFailure(data.message || 'Đăng nhập Google thất bại.');
             }
