@@ -220,22 +220,6 @@ export const EmployCusto: React.FC = () => {
     }
   };
 
-  // Danh sách các loại thiết bị tương ứng với các lựa chọn trong tempDevCode
-  const relevantDeviceTypes = useMemo(() => {
-    if (tempDevCode) {
-      const matched = availableStorageOptions.find((s) => s.device_code === tempDevCode) || storageOptions.find((s) => s.device_code === tempDevCode);
-      if (matched && matched.type) {
-        return [matched.type.toLowerCase().trim()];
-      }
-    }
-    // Khi chưa chọn thiết bị cụ thể, hiển thị danh sách các loại của tất cả các thiết bị đang có trong availableStorageOptions
-    const set = new Set<string>();
-    availableStorageOptions.forEach((st) => {
-      if (st.type) set.add(st.type.toLowerCase().trim());
-    });
-    const list = Array.from(set);
-    return list.length > 0 ? list : ['sensor', 'motor', 'valve', 'gateway', 'hmi'];
-  }, [tempDevCode, availableStorageOptions, storageOptions]);
 
   // Lấy danh sách mã thiết bị từ bảng storage database 3ahome
   const fetchStorageOptions = async () => {
@@ -1568,17 +1552,26 @@ export const EmployCusto: React.FC = () => {
                     </div>
                     <div>
                       <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '2px' }}>Loại (device_type)</label>
-                      <select
-                        value={tempDevType}
-                        onChange={(e) => setTempDevType(e.target.value)}
-                        style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem', border: '1px solid #cbd5e1', borderRadius: '6px', backgroundColor: '#ffffff' }}
+                      <div
+                        style={{
+                          width: '100%',
+                          padding: '6px 8px',
+                          fontSize: '0.8rem',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '6px',
+                          backgroundColor: '#f8fafc',
+                          color: '#334155',
+                          height: '31px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          cursor: 'default',
+                          userSelect: 'none',
+                          boxSizing: 'border-box'
+                        }}
+                        title="Loại thiết bị tự động lấy từ kho storage"
                       >
-                        {relevantDeviceTypes.map((typeKey) => (
-                          <option key={typeKey} value={typeKey}>
-                            {getDeviceTypeLabel(typeKey)}
-                          </option>
-                        ))}
-                      </select>
+                        {getDeviceTypeLabel(tempDevType)}
+                      </div>
                     </div>
                     <div>
                       <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '2px' }}>Slave ID</label>
@@ -1643,8 +1636,8 @@ export const EmployCusto: React.FC = () => {
                             <td style={{ padding: '6px 10px', fontFamily: 'monospace', fontWeight: 600, color: '#1D58BB' }}>{dev.device_code}</td>
                             <td style={{ padding: '6px 10px' }}>{dev.device_name}</td>
                             <td style={{ padding: '6px 10px', textAlign: 'center' }}>
-                              <span style={{ padding: '2px 6px', borderRadius: '4px', backgroundColor: '#f1f5f9', fontSize: '0.72rem' }}>
-                                {dev.device_type}
+                              <span style={{ padding: '2px 6px', borderRadius: '4px', backgroundColor: '#f1f5f9', fontSize: '0.72rem', color: '#334155', userSelect: 'none', cursor: 'default' }}>
+                                {getDeviceTypeLabel(dev.device_type)}
                               </span>
                             </td>
                             <td style={{ padding: '6px 10px', textAlign: 'center', fontWeight: 600 }}>{dev.slave_address}</td>
