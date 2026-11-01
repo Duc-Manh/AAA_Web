@@ -4,7 +4,7 @@ import { GuideLightbox } from './GuideLightbox';
 
 export interface EmpGuideItem {
   category: string;
-  image: string;
+  image: string | string[];
   title: string;
   content: string;
   tags?: string[];
@@ -20,21 +20,62 @@ export interface EmpGuideProps {
 
 export const employeeGuideData: EmpGuideItem[] = [
   {
-    category: 'Dự án triển khai',
-    image: '/uploads/guide/projpost.png',
-    title: 'Đăng bài dự án để phê duyệt',
+    category: 'Trang chủ',
+    image: '/uploads/guide/1-Home.png',
+    title: 'Giao diện trang chủ ',
     content:
-      'Nhập các ô thông tin, đăng hình ảnh và nhấn nút Trình duyệt',
-    tags: ['Công việc', 'Tiến độ', 'Dự án']
+      'Người dùng đọc giới thiệu, hồ sơ năng lực, tin tức, xem thông tin dự án, thiết bị, lịch sử, mô phỏng, nhận tư vấn, liên hệ  ',
+    tags: ['Giới thiệu', 'Hồ sơ năng lực', 'Tin tức', 'Dự án', 'Sản phẩm', 'Lịch sử', 'Mô phỏng', 'Tư vấn', 'Liên hệ']
   },
   {
-    category: 'Tin tức và sự kiện',
-    image: '/uploads/guide/newspost.png',
-    title: 'Đăng bài tin tức để phê duyệt',
+    category: 'Mô phỏng',
+    image: '/uploads/guide/2-Simu.png',
+    title: 'Giao diện mô phỏng',
     content:
-      'Nhập các ô thông tin, đăng hình ảnh và nhấn nút Trình duyệt',
-    tags: ['Công việc', 'Tin tức', 'Sự kiện']
+      'Người dùng nhập thông tin tại mục mô phỏng để vào trang mô phỏng',
+    tags: ['Mô phỏng']
   },
+  {
+    category: 'Tư vấn',
+    image: '/uploads/guide/3-Complain.png',
+    title: 'Giao diện tư vấn',
+    content:
+      'Người dùng nhập thông tin tư vấn và gửi yêu cầu',
+    tags: ['Tư vấn']
+  },
+  {
+    category: 'Đăng nhập',
+    image: '/uploads/guide/4-Login.png',
+    title: 'Giao diện Đăng nhập',
+    content:
+      'Người dùng nhập thông tin đăng nhập để đăng nhập vào trang hệ thống, chú ý nhập sai quá 3 lần sẽ bị khoá tài khoản',
+    tags: ['Đăng nhập']
+  },
+  {
+    category: 'Thông tin dự án',
+    image: '/uploads/guide/5-Project.png',
+    title: 'Giao diện dự án đăng bài',
+    content:
+      'Tại mục Dự án đăng bài, người dùng nhập thông tin dự án để đăng bài dự án, nội dung sẽ hiển thị trên trang chủ',
+    tags: ['Dự án']
+  },
+  {
+    category: 'Tin tức đăng bài',
+    image: '/uploads/guide/6-News.png',
+    title: 'Giao diện tin tức đăng bài',
+    content:
+      'Tại mục Tin tức đăng bài, người dùng nhập thông tin tin tức để đăng bài dự án, nội dung sẽ hiển thị trên trang chủ, chú ý thể loại bài đăng',
+    tags: ['Tin tức']
+  }
+  ,
+  {
+    category: 'Vật tư tồn kho',
+    image: ['/uploads/guide/7-Equip.png', '/uploads/guide/7-Equip1.png'],
+    title: 'Giao diện nhập kho vật tư',
+    content:
+      'Tại mục Vật tư tồn kho, người dùng nhập thông tin vật tư tồn kho để nhập kho, chú ý Mục Mã thiết bị (device_code) nên lấy số Serial Number của thiết bị, nếu không có thì tự đặt theo quy luật TB-1, TB-2, TB-3....(quy định ban hành sau) để kiểm soát, nội dung mục này sẽ nhập trùng trong IoT Gateway',
+    tags: ['Vật tư tồn kho']
+  }
 ];
 
 export const EmpGuide: React.FC<EmpGuideProps> = ({
@@ -89,17 +130,27 @@ export const EmpGuide: React.FC<EmpGuideProps> = ({
                     <span className="dash-guide-category-badge">{item.category}</span>
                   </td>
                   <td className="td-img" style={{ width: '40%' }}>
-                    <div
-                      className="dash-guide-img-card"
-                      onClick={() => setPreviewImage({ src: item.image, title: item.title })}
-                      title="Nhấp để xem ảnh lớn"
-                    >
-                      <img src={item.image} alt={item.title} loading="lazy" />
-                      <div className="dash-guide-img-overlay">
-                        <ZoomIn size={14} />
-                        <span>Xem ảnh</span>
-                      </div>
-                    </div>
+                    {(() => {
+                      const imgList = Array.isArray(item.image) ? item.image : [item.image];
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+                          {imgList.map((imgSrc, imgIdx) => (
+                            <div
+                              key={imgIdx}
+                              className="dash-guide-img-card"
+                              onClick={() => setPreviewImage({ src: imgSrc, title: imgList.length > 1 ? `${item.title} (Ảnh ${imgIdx + 1})` : item.title })}
+                              title="Nhấp để xem ảnh lớn"
+                            >
+                              <img src={imgSrc} alt={`${item.title} ${imgIdx + 1}`} loading="lazy" />
+                              <div className="dash-guide-img-overlay">
+                                <ZoomIn size={14} />
+                                <span>{imgList.length > 1 ? `Xem ảnh ${imgIdx + 1}` : 'Xem ảnh'}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="td-content" style={{ width: '40%' }}>
                     <h4 className="dash-guide-row-title">{item.title}</h4>

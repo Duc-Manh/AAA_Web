@@ -4,7 +4,7 @@ import { GuideLightbox } from './GuideLightbox';
 
 export interface DashGuideItem {
   category: string;
-  image: string;
+  image: string | string[];
   title: string;
   content: string;
   tags?: string[];
@@ -232,17 +232,27 @@ export const DashGuide: React.FC<DashGuideProps> = ({
                     <span className="dash-guide-category-badge">{item.category}</span>
                   </td>
                   <td className="td-img" style={{ width: '40%' }}>
-                    <div
-                      className="dash-guide-img-card"
-                      onClick={() => setPreviewImage({ src: item.image, title: item.title })}
-                      title="Nhấp để xem ảnh lớn"
-                    >
-                      <img src={item.image} alt={item.title} loading="lazy" />
-                      <div className="dash-guide-img-overlay">
-                        <ZoomIn size={14} />
-                        <span>Xem ảnh</span>
-                      </div>
-                    </div>
+                    {(() => {
+                      const imgList = Array.isArray(item.image) ? item.image : [item.image];
+                      return (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'center' }}>
+                          {imgList.map((imgSrc, imgIdx) => (
+                            <div
+                              key={imgIdx}
+                              className="dash-guide-img-card"
+                              onClick={() => setPreviewImage({ src: imgSrc, title: imgList.length > 1 ? `${item.title} (Ảnh ${imgIdx + 1})` : item.title })}
+                              title="Nhấp để xem ảnh lớn"
+                            >
+                              <img src={imgSrc} alt={`${item.title} ${imgIdx + 1}`} loading="lazy" />
+                              <div className="dash-guide-img-overlay">
+                                <ZoomIn size={14} />
+                                <span>{imgList.length > 1 ? `Xem ảnh ${imgIdx + 1}` : 'Xem ảnh'}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })()}
                   </td>
                   <td className="td-content" style={{ width: '40%' }}>
                     <h4 className="dash-guide-row-title">{item.title}</h4>

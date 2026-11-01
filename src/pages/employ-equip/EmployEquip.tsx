@@ -1084,7 +1084,7 @@ export const EmployEquip: React.FC = () => {
                     }}
                   >
                     <option value="1">Tại kho</option>
-                    <option value="2">Tại dự án</option>
+                    {/* <option value="2">Tại dự án</option> */}
                   </select>
                 </div>
 
