@@ -288,6 +288,140 @@ function mysqlSimuPlugin(): Plugin {
           return
         }
 
+        // API xác thực Google OAuth 2.0 (Google Identity Services)
+        if (url.pathname === '/api/auth/google' && req.method === 'POST') {
+          let body = ''
+          req.on('data', (chunk) => {
+            body += chunk
+          })
+          req.on('end', async () => {
+            try {
+              const { accessToken } = JSON.parse(body || '{}')
+              if (!accessToken) {
+                res.statusCode = 400
+                res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                res.end(JSON.stringify({ success: false, message: 'Thiếu mã xác thực Google.' }))
+                return
+              }
+
+              // 1. Lấy thông tin user từ Google UserInfo API
+              const googleRes = await fetch(`https://www.googleapis.com/oauth2/v3/userinfo?access_token=${accessToken}`)
+              if (!googleRes.ok) {
+                res.statusCode = 401
+                res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                res.end(JSON.stringify({ success: false, message: 'Mã xác thực Google không hợp lệ hoặc đã hết hạn.' }))
+                return
+              }
+              const googleUser: any = await googleRes.json()
+              const email = (googleUser.email || '').trim().toLowerCase()
+
+              if (!email) {
+                res.statusCode = 400
+                res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                res.end(JSON.stringify({ success: false, message: 'Không thể lấy email từ tài khoản Google.' }))
+                return
+              }
+
+              const connection = await mysql.createConnection(mysqlConfig)
+              try {
+                // 2. Tra cứu trong bảng login (nhân viên / admin)
+                const [staffRows] = await connection.execute(
+                  'SELECT id, time, full_name, room, position, gmail, phone, authen, state FROM login WHERE LOWER(gmail) = ? LIMIT 1',
+                  [email]
+                )
+                const staffList = staffRows as any[]
+                if (staffList.length > 0) {
+                  const user = staffList[0]
+                  if (user.state && user.state.toLowerCase() === 'inactive') {
+                    res.statusCode = 403
+                    res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                    res.end(JSON.stringify({ success: false, message: 'Tài khoản của bạn đang bị khóa.' }))
+                    return
+                  }
+
+                  try {
+                    await connection.execute('UPDATE login SET last_online = NOW() WHERE id = ?', [user.id])
+                  } catch {}
+
+                  const token = 'auth_g_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10)
+                  res.setHeader('Set-Cookie', `token=${token}; Path=/; Max-Age=2592000; SameSite=Lax`)
+                  res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                  res.end(
+                    JSON.stringify({
+                      success: true,
+                      message: 'Đăng nhập Google thành công',
+                      role: 'staff',
+                      token: token,
+                      user: {
+                        id: user.id,
+                        full_name: user.full_name || googleUser.name,
+                        room: user.room,
+                        position: user.position,
+                        gmail: user.gmail,
+                        phone: user.phone,
+                        authen: Number(user.authen),
+                        state: user.state,
+                      },
+                    })
+                  )
+                  return
+                }
+
+                // 3. Tra cứu trong bảng locations (khách hàng)
+                try {
+                  const [locRows] = await connection.execute(
+                    'SELECT location_id, location_name, address, customer_name, customer_phone, customer_email, status FROM locations WHERE LOWER(customer_email) = ? LIMIT 1',
+                    [email]
+                  )
+                  const locList = locRows as any[]
+                  if (locList.length > 0) {
+                    const loc = locList[0]
+                    const token = 'auth_g_' + Date.now() + '_' + Math.random().toString(36).substring(2, 10)
+                    res.setHeader('Set-Cookie', `token=${token}; Path=/; Max-Age=2592000; SameSite=Lax`)
+                    res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                    res.end(
+                      JSON.stringify({
+                        success: true,
+                        message: 'Đăng nhập Google thành công',
+                        role: 'customer',
+                        token: token,
+                        user: {
+                          id: loc.location_id,
+                          full_name: loc.customer_name || googleUser.name,
+                          gmail: loc.customer_email,
+                          phone: loc.customer_phone,
+                          address: loc.address,
+                          authen: 0,
+                          state: loc.status || 'active',
+                        },
+                      })
+                    )
+                    return
+                  }
+                } catch {}
+
+                // 4. Nếu email chưa có trong hệ thống
+                res.statusCode = 403
+                res.setHeader('Content-Type', 'application/json; charset=utf-8')
+                res.end(
+                  JSON.stringify({
+                    success: false,
+                    message: `Tài khoản Google (${email}) chưa được đăng ký trong hệ thống. Vui lòng liên hệ Quản trị viên để được cấp quyền truy cập.`,
+                  })
+                )
+              } finally {
+                await connection.end()
+              }
+            } catch (err: any) {
+              console.error('[MySQL Google Auth Error]:', err)
+              res.statusCode = 500
+              res.setHeader('Content-Type', 'application/json; charset=utf-8')
+              res.end(JSON.stringify({ success: false, message: err.message || 'Lỗi xác thực Google trên máy chủ' }))
+            }
+          })
+          return
+        }
+
         // API ghi nhận hoạt động (ping & truy cập danh mục)
         if (url.pathname === '/api/track-activity' && req.method === 'POST') {
           let body = ''

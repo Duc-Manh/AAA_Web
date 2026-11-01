@@ -243,7 +243,12 @@ export const Login: React.FC = () => {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ accessToken: tokenResponse.access_token })
             });
-            const data = await res.json();
+            let data: any = {};
+            try {
+              data = await res.json();
+            } catch {
+              data = { success: false, message: `Máy chủ phản hồi mã lỗi HTTP ${res.status}` };
+            }
             setIsLoading(false);
             if (data.success) {
               setSuccessMessage('Đăng nhập Google thành công! Đang chuyển hướng...');
@@ -273,9 +278,9 @@ export const Login: React.FC = () => {
             } else {
               handleLoginFailure(data.message || 'Đăng nhập Google thất bại.');
             }
-          } catch {
+          } catch (err: any) {
             setIsLoading(false);
-            setErrorMessage('Không thể kết nối đến máy chủ xác thực Google.');
+            setErrorMessage(err?.message || 'Không thể kết nối đến máy chủ xác thực.');
           }
         }
       }
