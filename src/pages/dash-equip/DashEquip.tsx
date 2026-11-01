@@ -307,45 +307,47 @@ export const DashEquip: React.FC = () => {
 
   // Hiển thị badge Loại thiết bị
   const renderDeviceTypeBadge = (type?: string) => {
-    const val = (type || '').toLowerCase();
-    if (val === 'sensor' || val.includes('cảm biến')) {
+    const rawVal = (type || '').trim();
+    const val = rawVal.toLowerCase();
+
+    const typeMap: Record<string, { label: string; bg: string; color: string }> = {
+      sensor: { label: 'Cảm biến (sensor)', bg: '#eff6ff', color: '#1d4ed8' },
+      motor: { label: 'Động cơ (motor)', bg: '#fef3c7', color: '#b45309' },
+      valve: { label: 'Van (valve)', bg: '#f3e8ff', color: '#7e22ce' },
+      gateway: { label: 'IoTGateway (gateway)', bg: '#ecfdf5', color: '#047857' },
+      hmi: { label: 'Màn hình HMI (hmi)', bg: '#fdf2f8', color: '#be185d' },
+      switch: { label: 'Công tắc (switch)', bg: '#e0f2fe', color: '#0369a1' },
+      socket: { label: 'Ổ cắm (socket)', bg: '#e0e7ff', color: '#4338ca' },
+      controller: { label: 'Bộ điều khiển (controller)', bg: '#ede9fe', color: '#6d28d9' },
+      light: { label: 'Chiếu sáng (light)', bg: '#fef9c3', color: '#a16207' },
+      meter: { label: 'Đo lường (meter)', bg: '#fae8ff', color: '#86198f' },
+      line: { label: 'Dây điện (line)', bg: '#fee2e2', color: '#b91c1c' },
+      cable: { label: 'Cáp mạng (cable)', bg: '#ccfbf1', color: '#0f766e' },
+      signal: { label: 'Dây tín hiệu (signal)', bg: '#ffedd5', color: '#c2410c' },
+      distribute: { label: 'Tủ điện (distribute)', bg: '#f1f5f9', color: '#334155' },
+      cb: { label: 'Aptomat (cb)', bg: '#ffe4e6', color: '#be123c' },
+      cc: { label: 'Cầu chì (cc)', bg: '#fef3c7', color: '#92400e' },
+      crim: { label: 'Kìm bấm mạng (crim)', bg: '#f3f4f6', color: '#374151' },
+      cut: { label: 'Kìm cắt (cut)', bg: '#f3f4f6', color: '#374151' },
+      screw: { label: 'Tuốc nơ vít 4 chấu (screw)', bg: '#f3f4f6', color: '#374151' },
+      flat: { label: 'Tuốc nơ vít dẹp (flat)', bg: '#f3f4f6', color: '#374151' },
+      multi: { label: 'Đồng hồ vạn năng (multi)', bg: '#e0e7ff', color: '#3730a3' },
+      trunk: { label: 'Máng nhựa (trunk)', bg: '#f1f5f9', color: '#475569' },
+      lug: { label: 'Đầu cốt (lug)', bg: '#fef3c7', color: '#78350f' },
+    };
+
+    if (typeMap[val]) {
+      const item = typeMap[val];
       return (
-        <span style={{ backgroundColor: '#eff6ff', color: '#1d4ed8', padding: '3px 8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.78rem' }}>
-          Cảm biến (sensor)
+        <span style={{ backgroundColor: item.bg, color: item.color, padding: '3px 8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.78rem' }}>
+          {item.label}
         </span>
       );
     }
-    if (val === 'motor' || val.includes('động cơ')) {
-      return (
-        <span style={{ backgroundColor: '#fef3c7', color: '#b45309', padding: '3px 8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.78rem' }}>
-          Động cơ (motor)
-        </span>
-      );
-    }
-    if (val === 'valve' || val.includes('van')) {
-      return (
-        <span style={{ backgroundColor: '#f3e8ff', color: '#7e22ce', padding: '3px 8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.78rem' }}>
-          Van (valve)
-        </span>
-      );
-    }
-    if (val === 'gateway' || val.includes('gateway') || val.includes('iot')) {
-      return (
-        <span style={{ backgroundColor: '#ecfdf5', color: '#047857', padding: '3px 8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.78rem' }}>
-          IoTGateway (gateway)
-        </span>
-      );
-    }
-    if (val === 'hmi' || val.includes('hmi') || val.includes('màn hình')) {
-      return (
-        <span style={{ backgroundColor: '#fdf2f8', color: '#be185d', padding: '3px 8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.78rem' }}>
-          Màn hình HMI (hmi)
-        </span>
-      );
-    }
+
     return (
       <span style={{ backgroundColor: '#f1f5f9', color: '#475569', padding: '3px 8px', borderRadius: '6px', fontWeight: 600, fontSize: '0.78rem' }}>
-        {type || 'Cảm biến (sensor)'}
+        {rawVal || 'Cảm biến (sensor)'}
       </span>
     );
   };
@@ -996,6 +998,24 @@ export const DashEquip: React.FC = () => {
                     <option value="valve">Van (valve)</option>
                     <option value="gateway">IoTGateway (gateway)</option>
                     <option value="hmi">Màn hình HMI (hmi)</option>
+                    <option value="switch">Công tắc (switch)</option>
+                    <option value="socket">Ổ cắm (socket)</option>
+                    <option value="controller">Bộ điều khiển (controller)</option>
+                    <option value="light">Chiếu sáng (light)</option>
+                    <option value="meter">Đo lường (meter)</option>
+                    <option value="line">Dây điện (line)</option>
+                    <option value="cable">Cáp mạng (cable)</option>
+                    <option value="signal">Dây tín hiệu (signal)</option>
+                    <option value="distribute">Tủ điện (distribute)</option>
+                    <option value="cb">Aptomat (cb)</option>
+                    <option value="cc">Cầu chì (cc)</option>
+                    <option value="crim">Kìm bấm mạng (crim)</option>
+                    <option value="cut">Kìm cắt (cut)</option>
+                    <option value="screw">Tuốc nơ vít 4 chấu (screw)</option>
+                    <option value="flat">Tuốc nơ vít dẹp (flat)</option>
+                    <option value="multi">Đồng hồ vạn năng (multi)</option>
+                    <option value="trunk">Máng nhựa (trunk)</option>
+                    <option value="lug">Đầu cốt (lug)</option>
                   </select>
                 </div>
 
