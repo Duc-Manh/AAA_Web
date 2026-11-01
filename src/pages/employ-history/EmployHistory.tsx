@@ -21,7 +21,8 @@ import {
   ChevronDown,
   ChevronUp,
   Layers,
-  LineChart
+  LineChart,
+  Sparkles
 } from 'lucide-react';
 import { ProjectTelemetryChartModal } from '../../components/common/ProjectTelemetryChartModal';
 import type { ProjectGroup } from '../employ-operate/EmployOperate';
@@ -103,6 +104,127 @@ export const EmployHistory: React.FC = () => {
     }
   }, []);
 
+  const [isMockData, setIsMockData] = useState<boolean>(false);
+
+  // Hàm sinh dữ liệu giả lập để test giao diện phân nhóm theo dự án
+  const generateMockTelemetryHistory = (): TelemetryHistoryRecord[] => {
+    const now = Date.now();
+    const formatTime = (ts: number) => {
+      const d = new Date(ts);
+      const pad = (n: number) => String(n).padStart(2, '0');
+      return `${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+    };
+
+    const projectTemplates = [
+      {
+        projectName: 'Tòa nhà Keangnam Landmark 72',
+        address: 'Phạm Hùng, Mễ Trì, Nam Từ Liêm, Hà Nội',
+        locationId: 101,
+        gatewaySn: 'GW-KEANGNAM-01',
+        gatewayIp: '192.168.1.100',
+        devices: [
+          { code: 'DEV-TMP-01', name: 'Cảm biến nhiệt ẩm Server Tầng 12', type: 'sensor', floor: 'Tầng 12' },
+          { code: 'DEV-PWR-01', name: 'Công tơ điện tổng HVAC', type: 'meter', floor: 'Tầng Kỹ Thuật' },
+          { code: 'DEV-AIR-01', name: 'Giám sát điều hòa trung tâm', type: 'hvac', floor: 'Tầng 15' },
+          { code: 'DEV-TEMP-HIGH', name: 'Cảm biến phòng trạm biến áp', type: 'sensor', floor: 'Tầng Hầm B1' }
+        ]
+      },
+      {
+        projectName: 'Vinhomes Central Park - Landmark 81',
+        address: '720A Điện Biên Phủ, Phường 22, Bình Thạnh, TP.HCM',
+        locationId: 102,
+        gatewaySn: 'GW-VN-81',
+        gatewayIp: '192.168.2.200',
+        devices: [
+          { code: 'DEV-L81-TMP', name: 'Cảm biến nhiệt độ Sảnh đón khách', type: 'sensor', floor: 'Tầng Trệt' },
+          { code: 'DEV-L81-PWR', name: 'Đồng hồ điện năng 3 pha Tháp B', type: 'meter', floor: 'Tầng 25' },
+          { code: 'DEV-L81-HUM', name: 'Cảm biến độ ẩm kho kỹ thuật', type: 'sensor', floor: 'Tầng Hầm B2' }
+        ]
+      },
+      {
+        projectName: 'Biệt Thự Vườn Ciputra',
+        address: 'Khu đô thị Nam Thăng Long, Tây Hồ, Hà Nội',
+        locationId: 103,
+        gatewaySn: 'GW-CIPUTRA-03',
+        gatewayIp: '192.168.3.15',
+        devices: [
+          { code: 'DEV-CIP-SMART', name: 'Bộ điều khiển giám sát điện thông minh', type: 'meter', floor: 'Tầng 1' },
+          { code: 'DEV-CIP-TH01', name: 'Cảm biến nhiệt ẩm phòng khách', type: 'sensor', floor: 'Tầng 2' }
+        ]
+      }
+    ];
+
+    const records: TelemetryHistoryRecord[] = [];
+    let recordId = 1000;
+
+    projectTemplates.forEach((p, pIdx) => {
+      p.devices.forEach((d, dIdx) => {
+        for (let i = 0; i < 5; i++) {
+          recordId++;
+          const recordTime = now - (pIdx * 20 + dIdx * 6 + i * 3) * 60 * 1000;
+
+          let temp: number | null = null;
+          let humi: number | null = null;
+          let power: number | null = null;
+          let volt: number | null = 220;
+          let curr: number | null = 1.8;
+
+          if (d.type === 'sensor' || d.type === 'hvac') {
+            temp = d.code === 'DEV-TEMP-HIGH' ? +(36.8 + i * 0.3).toFixed(1) : +(25.2 + ((dIdx + i) * 1.2) % 7).toFixed(1);
+            humi = +(55 + ((dIdx * 4 + i * 5) % 25)).toFixed(1);
+          }
+
+          if (d.type === 'meter' || d.type === 'hvac') {
+            power = Math.round(450 + dIdx * 850 + i * 140 + (d.code.includes('L81') ? 2500 : 0));
+            volt = +(220 + ((i % 3) - 1) * 3).toFixed(1);
+            curr = +(power / (volt * 0.95)).toFixed(2);
+          }
+
+          const timeDiffMinutes = Math.floor((now - recordTime) / (60 * 1000));
+          const timeLabel = timeDiffMinutes <= 1 ? 'Vừa xong' : `${timeDiffMinutes} phút trước`;
+
+          const rawData = {
+            device_code: d.code,
+            timestamp: new Date(recordTime).toISOString(),
+            values: {
+              temperature: temp,
+              humidity: humi,
+              power: power,
+              voltage: volt,
+              current: curr
+            },
+            status: 'OK',
+            gateway: p.gatewaySn
+          };
+
+          records.push({
+            id: recordId,
+            device_id: pIdx * 10 + dIdx + 1,
+            device_code: d.code,
+            device_name: d.name,
+            device_type: d.type,
+            floor: d.floor,
+            project_name: p.projectName,
+            project_address: p.address,
+            location_id: p.locationId,
+            gateway_sn: p.gatewaySn,
+            gateway_ip: p.gatewayIp,
+            temperature: temp,
+            humidity: humi,
+            power: power,
+            voltage: volt,
+            current: curr,
+            raw_data: rawData,
+            recorded_at: formatTime(recordTime),
+            time_label: timeLabel
+          });
+        }
+      });
+    });
+
+    return records.sort((a, b) => b.id - a.id);
+  };
+
   // Tải danh sách telemetry_history từ Backend
   const fetchHistoryData = async (showLoading = false) => {
     if (showLoading) setLoading(true);
@@ -120,14 +242,28 @@ export const EmployHistory: React.FC = () => {
       const res = await fetch(`${backendUrl}/api/telemetry-history?${params.toString()}`);
       if (res.ok) {
         const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
+        if (json.success && Array.isArray(json.data) && json.data.length > 0) {
           setHistoryList(json.data);
+          setIsMockData(false);
           const now = new Date();
           setLastFetched(now.toLocaleTimeString('vi-VN'));
+          return;
         }
       }
+
+      // Nếu Backend chưa có bản ghi, nạp dữ liệu giả lập đa dạng để kiểm thử giao diện
+      const mock = generateMockTelemetryHistory();
+      setHistoryList(mock);
+      setIsMockData(true);
+      const now = new Date();
+      setLastFetched(now.toLocaleTimeString('vi-VN'));
     } catch (err) {
-      console.warn('Lỗi khi tải dữ liệu telemetry_history:', err);
+      console.warn('Lỗi khi tải dữ liệu telemetry_history, sử dụng dữ liệu mẫu:', err);
+      const mock = generateMockTelemetryHistory();
+      setHistoryList(mock);
+      setIsMockData(true);
+      const now = new Date();
+      setLastFetched(now.toLocaleTimeString('vi-VN'));
     } finally {
       if (showLoading) setLoading(false);
     }
@@ -788,6 +924,33 @@ export const EmployHistory: React.FC = () => {
                   <span>{loading ? 'Đang tải...' : 'Làm mới'}</span>
                 </button>
 
+                {/* Nút Giả lập dữ liệu mẫu để test UI */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const mock = generateMockTelemetryHistory();
+                    setHistoryList(mock);
+                    setIsMockData(true);
+                  }}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    padding: '9px 14px',
+                    borderRadius: '10px',
+                    backgroundColor: isMockData ? '#fef3c7' : '#ffffff',
+                    border: `1px solid ${isMockData ? '#f59e0b' : '#cbd5e1'}`,
+                    color: isMockData ? '#b45309' : '#334155',
+                    fontSize: '0.88rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                  title="Nạp dữ liệu giả lập nhiều dự án để test giao diện"
+                >
+                  <Sparkles size={15} color={isMockData ? '#d97706' : '#64748b'} />
+                  <span>{isMockData ? 'Dữ liệu mẫu (Active)' : 'Dữ liệu mẫu (Test UI)'}</span>
+                </button>
+
                 {/* Xuất file Excel / CSV */}
                 <button
                   type="button"
@@ -851,6 +1014,27 @@ export const EmployHistory: React.FC = () => {
                 >
                   {projectGroups.length} dự án • {filteredList.length} bản ghi
                 </span>
+
+                {isMockData && (
+                  <span
+                    style={{
+                      backgroundColor: '#fef3c7',
+                      color: '#b45309',
+                      padding: '3px 10px',
+                      borderRadius: '999px',
+                      fontSize: '0.78rem',
+                      fontWeight: 700,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '4px',
+                      border: '1px solid #fde68a'
+                    }}
+                    title="Đang hiển thị dữ liệu giả lập để kiểm thử giao diện"
+                  >
+                    <Sparkles size={12} />
+                    <span>Dữ liệu mẫu test giao diện</span>
+                  </span>
+                )}
               </div>
 
               {projectGroups.length > 0 && (
