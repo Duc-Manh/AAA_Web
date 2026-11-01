@@ -50,6 +50,21 @@ export const adminGuideData: DashGuideItem[] = [
     content:
       'Người dùng nhập thông tin đăng nhập để đăng nhập vào trang hệ thống, chú ý nhập sai quá 3 lần sẽ bị khoá tài khoản',
     tags: ['Đăng nhập']
+  }, {
+    category: 'Yêu cầu trình duyệt',
+    image: '/uploads/guide/11-Require.png',
+    title: 'Giao diện trình duyệt',
+    content:
+      'Sau khi đăng nhập thành công, nếu có thông tin dự án đăng bài hoặc tin tức cần duyệt để đăng lên trang chủ cho mọi người đọc thì sẽ có hiển thị',
+    tags: ['Duyệt dự án đăng bài', 'Duyệt tin tức']
+  }
+  , {
+    category: 'Tổng quan',
+    image: ['/uploads/guide/12-Total.png', '/uploads/guide/12-Total1.png'],
+    title: 'Giao diện tổng quan',
+    content:
+      'Tại mục Tổng quan, người dùng xem thông tin tài khoản, truy vết hành trình sử dụng của tài khoản. Thêm, bớt, sửa, xoá tài khoản nhân sự.',
+    tags: ['Tổng quan']
   },
   {
     category: 'Thông tin dự án',

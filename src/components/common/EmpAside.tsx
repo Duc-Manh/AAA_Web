@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import iconImg from '../../assets/images/icon.png';
 import {
   LayoutDashboard,
@@ -11,7 +11,9 @@ import {
   Activity,
   History,
   Settings,
-  Menu
+  Menu,
+  Wrench,
+  X
 } from 'lucide-react';
 
 export interface EmpAsideProps {
@@ -30,8 +32,7 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
   isCollapsed,
   setIsCollapsed,
   isMobileOpen,
-  setIsMobileOpen,
-  triggerToast
+  setIsMobileOpen
 }) => {
   // Kiểm tra mục nào đang active dựa trên prop activeTab hoặc URL hash
   const currentHash = typeof window !== 'undefined' ? (window.location.hash || window.location.pathname) : '';
@@ -39,6 +40,35 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
     if (activeTab === tabKey) return true;
     return patterns.some(p => currentHash === p || (p !== '#employ' && p !== '/employ' && currentHash.startsWith(p)));
   };
+
+  // Trạng thái bảng thông báo bên cạnh cho Cài Đặt Hệ Thống
+  const settingsBtnRef = useRef<HTMLButtonElement | null>(null);
+  const noticeBoxRef = useRef<HTMLDivElement | null>(null);
+  const [showSettingsNotice, setShowSettingsNotice] = useState(false);
+  const [noticePos, setNoticePos] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (!showSettingsNotice) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        noticeBoxRef.current &&
+        !noticeBoxRef.current.contains(e.target as Node) &&
+        settingsBtnRef.current &&
+        !settingsBtnRef.current.contains(e.target as Node)
+      ) {
+        setShowSettingsNotice(false);
+      }
+    };
+    const handleClose = () => setShowSettingsNotice(false);
+    window.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('scroll', handleClose, true);
+    window.addEventListener('resize', handleClose);
+    return () => {
+      window.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('scroll', handleClose, true);
+      window.removeEventListener('resize', handleClose);
+    };
+  }, [showSettingsNotice]);
 
   return (
     <aside
@@ -212,21 +242,104 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
 
         {/* 8. Cài Đặt Hệ Thống */}
         <button
+          ref={settingsBtnRef}
           type="button"
-          className={`dash-menu-item ${activeTab === 'settings' ? 'active' : ''}`}
-          onClick={() => {
+          className={`dash-menu-item ${activeTab === 'settings' || showSettingsNotice ? 'active' : ''}`}
+          onClick={(e) => {
+            e.stopPropagation();
             setIsMobileOpen(false);
-            if (setActiveTab) {
-              setActiveTab('settings');
-            } else {
-              triggerToast?.('Tính năng Cài đặt hệ thống đang được cập nhật!');
+            if (settingsBtnRef.current) {
+              const rect = settingsBtnRef.current.getBoundingClientRect();
+              setNoticePos({
+                top: Math.max(10, rect.top - 8),
+                left: rect.right + 12
+              });
             }
+            setShowSettingsNotice((prev) => !prev);
           }}
         >
           <Settings size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Cài Đặt Hệ Thống</span>}
         </button>
       </nav>
+
+      {/* Bảng thông báo bên cạnh nút Cài Đặt Hệ Thống */}
+      {showSettingsNotice && (
+        <div
+          ref={noticeBoxRef}
+          style={{
+            position: 'fixed',
+            top: `${noticePos.top}px`,
+            left: `${noticePos.left}px`,
+            zIndex: 99999,
+            backgroundColor: '#ffffff',
+            borderRadius: '12px',
+            padding: '14px 16px',
+            boxShadow: '0 12px 28px -4px rgba(0, 0, 0, 0.16), 0 8px 12px -6px rgba(0, 0, 0, 0.08)',
+            border: '1px solid #e2e8f0',
+            minWidth: '250px',
+            maxWidth: '300px',
+            animation: 'fadeIn 0.2s ease-out'
+          }}
+        >
+          {/* Mũi tên trỏ sang bên trái */}
+          <div
+            style={{
+              position: 'absolute',
+              left: '-6px',
+              top: '18px',
+              width: '12px',
+              height: '12px',
+              transform: 'rotate(45deg)',
+              backgroundColor: '#ffffff',
+              borderLeft: '1px solid #e2e8f0',
+              borderBottom: '1px solid #e2e8f0'
+            }}
+          />
+
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div
+                style={{
+                  width: '28px',
+                  height: '28px',
+                  borderRadius: '8px',
+                  backgroundColor: '#eff6ff',
+                  color: '#1D58BB',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0
+                }}
+              >
+                <Wrench size={15} />
+              </div>
+              <span style={{ fontWeight: 700, fontSize: '0.86rem', color: '#0f172a' }}>
+                Cài Đặt Hệ Thống
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowSettingsNotice(false)}
+              style={{
+                border: 'none',
+                background: 'none',
+                cursor: 'pointer',
+                padding: '2px',
+                color: '#94a3b8',
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              <X size={14} />
+            </button>
+          </div>
+
+          <div style={{ marginTop: '9px', fontSize: '0.83rem', color: '#475569', lineHeight: 1.5, fontWeight: 500 }}>
+            Chức năng này đang hoàn thiện
+          </div>
+        </div>
+      )}
     </aside>
   );
 };
