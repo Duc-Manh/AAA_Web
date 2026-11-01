@@ -977,7 +977,7 @@ export const Home: React.FC = () => {
          =================================================================== */}
       <section id="project" className="projects-showcase-section">
         <div className="section-header-centered">
-          <h2 className="gradient-flow-title">Dự án đã tham gia</h2>
+          <h2 className="brand-name-blue" style={{ color: '#105ca8' }}>Dự án đã tham gia</h2>
           <p>3AHOME tự hào đồng hành cùng các công trình biểu tượng, toà nhà văn phòng và khu công nghiệp trên toàn quốc.</p>
         </div>
 
@@ -1034,7 +1034,7 @@ export const Home: React.FC = () => {
       <section id="news" className="news-showcase-section">
         <div className="news-showcase-container">
           <div className="section-header-centered">
-            <h2 className="gradient-flow-title">Tin tức và Sự kiện</h2>
+            <h2 className="brand-name-blue" style={{ color: '#105ca8' }}>Tin tức và Sự kiện</h2>
             <TypewriterText text="Cập nhật xu hướng công nghệ và các hoạt động nổi bật từ 3AHOME." />
           </div>
 
