@@ -73,7 +73,7 @@ export const EmployEquip: React.FC = () => {
   const [formDeviceCode, setFormDeviceCode] = useState('');
   const [formName, setFormName] = useState('');
   const [formType, setFormType] = useState('sensor');
-  const [formUnit, setFormUnit] = useState('Cái');
+  const [formUnit, setFormUnit] = useState('cái');
   const [formQuantity, setFormQuantity] = useState<number>(1);
   const [formQuantityOut, setFormQuantityOut] = useState<number>(0);
   const [formStatus, setFormStatus] = useState('1');
@@ -127,7 +127,7 @@ export const EmployEquip: React.FC = () => {
     setFormDeviceCode('');
     setFormName('');
     setFormType('sensor');
-    setFormUnit('Cái');
+    setFormUnit('cái');
     setFormQuantity(1);
     setFormQuantityOut(0);
     setFormStatus('1');
@@ -144,7 +144,7 @@ export const EmployEquip: React.FC = () => {
     setFormDeviceCode(item.device_code);
     setFormName(item.name);
     setFormType(item.type || 'sensor');
-    setFormUnit(item.unit || 'Cái');
+    setFormUnit(item.unit || 'cái');
     setFormQuantity(Number(item.quantity) || 1);
     setFormQuantityOut(Number(item.quantity_out !== undefined ? item.quantity_out : (item['quantity-out'] ?? 0)));
     const s = String(item.status || '1').trim();
@@ -192,7 +192,7 @@ export const EmployEquip: React.FC = () => {
       device_code: formDeviceCode.trim().toUpperCase(),
       name: formName.trim(),
       type: formType,
-      unit: formUnit.trim() || 'Cái',
+      unit: formUnit.trim() || 'cái',
       quantity: qty,
       quantity_out: qtyOut,
       quantity_remain: qtyRemain,
@@ -1016,10 +1016,8 @@ export const EmployEquip: React.FC = () => {
                   <label style={{ display: 'block', fontSize: '0.8rem', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                     Đơn vị tính <span style={{ color: '#ef4444' }}>*</span>
                   </label>
-                  <input
-                    type="text"
-                    placeholder="Cái, Bộ, Mét, Chiếc, Bo mạch..."
-                    value={formUnit}
+                  <select
+                    value={formUnit.toLowerCase()}
                     onChange={(e) => setFormUnit(e.target.value)}
                     style={{
                       width: '100%',
@@ -1027,9 +1025,20 @@ export const EmployEquip: React.FC = () => {
                       fontSize: '0.85rem',
                       border: '1px solid #cbd5e1',
                       borderRadius: '8px',
-                      outline: 'none'
+                      outline: 'none',
+                      backgroundColor: '#ffffff'
                     }}
-                  />
+                  >
+                    <option value="bộ">bộ</option>
+                    <option value="cái">cái</option>
+                    <option value="hộp">hộp</option>
+                    <option value="m">m</option>
+                    <option value="cuộn">cuộn</option>
+                    <option value="sợi">sợi</option>
+                    {!['bộ', 'cái', 'hộp', 'm', 'cuộn', 'sợi'].includes(formUnit.toLowerCase()) && formUnit && (
+                      <option value={formUnit}>{formUnit}</option>
+                    )}
+                  </select>
                 </div>
 
                 <div>
