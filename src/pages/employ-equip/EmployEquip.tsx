@@ -31,18 +31,18 @@ export interface StorageItem {
   type?: string;
   unit: string;
   quantity: number;
-  'quantity-out'?: number;
-  'quantity-remain'?: number;
   quantity_out?: number;
   quantity_remain?: number;
+  'quantity-out'?: number;
+  'quantity-remain'?: number;
   price?: number | string;
   total?: number | string;
   invoice?: string;
   time?: string;
-  'time-in'?: string;
-  'time-out'?: string;
   time_in?: string;
   time_out?: string;
+  'time-in'?: string;
+  'time-out'?: string;
   status: string;
 }
 
@@ -146,10 +146,10 @@ export const EmployEquip: React.FC = () => {
     setFormType(item.type || 'sensor');
     setFormUnit(item.unit || 'Cái');
     setFormQuantity(Number(item.quantity) || 1);
-    setFormQuantityOut(Number(item['quantity-out'] !== undefined ? item['quantity-out'] : (item.quantity_out ?? 0)));
+    setFormQuantityOut(Number(item.quantity_out !== undefined ? item.quantity_out : (item['quantity-out'] ?? 0)));
     setFormStatus(item.status || 'Tồn kho');
 
-    const rawIn = item['time-in'] || item.time_in || item.time;
+    const rawIn = item.time_in || item['time-in'] || item.time;
     if (rawIn) {
       const d = new Date(rawIn);
       const localIso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -158,7 +158,7 @@ export const EmployEquip: React.FC = () => {
       setFormTimeIn('');
     }
 
-    const rawOut = item['time-out'] || item.time_out;
+    const rawOut = item.time_out || item['time-out'];
     if (rawOut) {
       const d = new Date(rawOut);
       const localIso = new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
@@ -192,13 +192,9 @@ export const EmployEquip: React.FC = () => {
       type: formType,
       unit: formUnit.trim() || 'Cái',
       quantity: qty,
-      'quantity-out': qtyOut,
-      'quantity-remain': qtyRemain,
       quantity_out: qtyOut,
       quantity_remain: qtyRemain,
       status: formStatus,
-      'time-in': formTimeIn ? new Date(formTimeIn).toISOString() : null,
-      'time-out': formTimeOut ? new Date(formTimeOut).toISOString() : null,
       time_in: formTimeIn ? new Date(formTimeIn).toISOString() : null,
       time_out: formTimeOut ? new Date(formTimeOut).toISOString() : null,
       time: formTimeIn ? new Date(formTimeIn).toISOString() : new Date().toISOString()
@@ -754,29 +750,29 @@ export const EmployEquip: React.FC = () => {
                             {item.quantity}
                           </span>
                         </td>
-                        {/* Số lượng xuất (lấy từ cột quantity-out) */}
+                        {/* Số lượng xuất (lấy từ cột quantity_out) */}
                         <td style={{ padding: '12px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
                           <span style={{ fontWeight: 700, color: '#dc2626', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#fef2f2' }}>
-                            {item['quantity-out'] !== undefined ? item['quantity-out'] : (item.quantity_out ?? 0)}
+                            {item.quantity_out !== undefined ? item.quantity_out : (item['quantity-out'] ?? 0)}
                           </span>
                         </td>
-                        {/* Số lượng còn lại (lấy từ cột quantity-remain) */}
+                        {/* Số lượng còn lại (lấy từ cột quantity_remain) */}
                         <td style={{ padding: '12px 14px', textAlign: 'center', whiteSpace: 'nowrap' }}>
                           <span style={{ fontWeight: 700, color: '#059669', padding: '2px 8px', borderRadius: '12px', backgroundColor: '#ecfdf5' }}>
-                            {item['quantity-remain'] !== undefined
-                              ? item['quantity-remain']
-                              : (item.quantity_remain ?? Math.max(0, (Number(item.quantity) || 0) - (Number(item['quantity-out'] || item.quantity_out) || 0)))}
+                            {item.quantity_remain !== undefined
+                              ? item.quantity_remain
+                              : (item['quantity-remain'] ?? Math.max(0, (Number(item.quantity) || 0) - (Number(item.quantity_out || item['quantity-out']) || 0)))}
                           </span>
                         </td>
-                        {/* Thời gian nhập kho (lấy từ cột time-in) */}
+                        {/* Thời gian nhập kho (lấy từ cột time_in) */}
                         <td style={{ padding: '12px 14px', color: '#1e293b', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                          {formatDateTime(item['time-in'] || item.time_in || item.time)}
+                          {formatDateTime(item.time_in || item['time-in'] || item.time)}
                         </td>
-                        {/* Thời gian xuất kho (lấy từ cột time-out) */}
+                        {/* Thời gian xuất kho (lấy từ cột time_out) */}
                         <td style={{ padding: '12px 14px', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                          {(item['time-out'] || item.time_out) ? (
+                          {(item.time_out || item['time-out']) ? (
                             <span style={{ color: '#059669', fontWeight: 600 }}>
-                              {formatDateTime(item['time-out'] || item.time_out)}
+                              {formatDateTime(item.time_out || item['time-out'])}
                             </span>
                           ) : (
                             <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>Chưa xuất kho</span>
@@ -846,7 +842,7 @@ export const EmployEquip: React.FC = () => {
               }}
             >
               <span>Hiển thị <strong>{filteredItems.length}</strong> / <strong>{items.length}</strong> vật tư</span>
-              <span>Cập nhật đồng bộ với các cột <code>time-in</code> &amp; <code>time-out</code> bảng <code>storage</code></span>
+              <span>Cập nhật đồng bộ với các cột <code>time_in</code> &amp; <code>time_out</code> bảng <code>storage</code></span>
             </div>
           </div>
         </div>

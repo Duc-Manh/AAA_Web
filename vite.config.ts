@@ -1825,30 +1825,42 @@ function mysqlSimuPlugin(): Plugin {
                 id INT AUTO_INCREMENT PRIMARY KEY,
                 device_code VARCHAR(100) NOT NULL,
                 name VARCHAR(255) NOT NULL,
+                type VARCHAR(50) DEFAULT 'sensor',
                 unit VARCHAR(50) DEFAULT 'Cái',
                 quantity INT NOT NULL DEFAULT 1,
-                \`quantity-out\` INT DEFAULT 0,
-                \`quantity-remain\` INT DEFAULT 0,
+                quantity_out INT DEFAULT 0,
+                quantity_remain INT DEFAULT 0,
                 time DATETIME DEFAULT CURRENT_TIMESTAMP,
-                \`time-in\` DATETIME NULL,
-                \`time-out\` DATETIME NULL,
+                time_in DATETIME NULL,
+                time_out DATETIME NULL,
                 status VARCHAR(50) DEFAULT 'Tồn kho'
               ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             `)
             try {
               const [cols]: any = await connection.execute('SHOW COLUMNS FROM storage')
               const colNames = cols.map((c: any) => c.Field)
-              if (!colNames.includes('time-in')) {
-                await connection.execute('ALTER TABLE storage ADD COLUMN `time-in` DATETIME NULL')
+              if (!colNames.includes('type')) {
+                await connection.execute("ALTER TABLE storage ADD COLUMN `type` VARCHAR(50) DEFAULT 'sensor'")
               }
-              if (!colNames.includes('time-out')) {
-                await connection.execute('ALTER TABLE storage ADD COLUMN `time-out` DATETIME NULL')
+              if (colNames.includes('time-in')) {
+                await connection.execute('ALTER TABLE storage CHANGE COLUMN `time-in` time_in DATETIME NULL')
+              } else if (!colNames.includes('time_in')) {
+                await connection.execute('ALTER TABLE storage ADD COLUMN time_in DATETIME NULL')
               }
-              if (!colNames.includes('quantity-out')) {
-                await connection.execute('ALTER TABLE storage ADD COLUMN `quantity-out` INT DEFAULT 0')
+              if (colNames.includes('time-out')) {
+                await connection.execute('ALTER TABLE storage CHANGE COLUMN `time-out` time_out DATETIME NULL')
+              } else if (!colNames.includes('time_out')) {
+                await connection.execute('ALTER TABLE storage ADD COLUMN time_out DATETIME NULL')
               }
-              if (!colNames.includes('quantity-remain')) {
-                await connection.execute('ALTER TABLE storage ADD COLUMN `quantity-remain` INT DEFAULT 0')
+              if (colNames.includes('quantity-out')) {
+                await connection.execute('ALTER TABLE storage CHANGE COLUMN `quantity-out` quantity_out INT DEFAULT 0')
+              } else if (!colNames.includes('quantity_out')) {
+                await connection.execute('ALTER TABLE storage ADD COLUMN quantity_out INT DEFAULT 0')
+              }
+              if (colNames.includes('quantity-remain')) {
+                await connection.execute('ALTER TABLE storage CHANGE COLUMN `quantity-remain` quantity_remain INT DEFAULT 0')
+              } else if (!colNames.includes('quantity_remain')) {
+                await connection.execute('ALTER TABLE storage ADD COLUMN quantity_remain INT DEFAULT 0')
               }
               if (colNames.includes('price')) {
                 await connection.execute('ALTER TABLE storage DROP COLUMN `price`')
@@ -1865,7 +1877,7 @@ function mysqlSimuPlugin(): Plugin {
 
             // 1. GET /api/storage
             if (url.pathname === '/api/storage' && req.method === 'GET') {
-              const [rows] = await connection.execute('SELECT *, `time-in` AS time_in, `time-out` AS time_out, `quantity-out` AS quantity_out, `quantity-remain` AS quantity_remain FROM storage ORDER BY id DESC')
+              const [rows] = await connection.execute('SELECT *, time_in AS `time-in`, time_out AS `time-out`, quantity_out AS `quantity-out`, quantity_remain AS `quantity-remain` FROM storage ORDER BY id DESC')
               res.setHeader('Content-Type', 'application/json; charset=utf-8')
               res.end(JSON.stringify({ success: true, data: rows }))
               await connection.end()
@@ -1879,23 +1891,24 @@ function mysqlSimuPlugin(): Plugin {
               req.on('end', async () => {
                 try {
                   const reqBody = JSON.parse(body || '{}')
-                  const { device_code, name, unit, quantity, time, status } = reqBody
+                  const { device_code, name, type, unit, quantity, time, status } = reqBody
                   const qty = Number(quantity) || 1
-                  const qtyOut = Number(reqBody['quantity-out'] !== undefined ? reqBody['quantity-out'] : (reqBody.quantity_out ?? 0)) || 0
-                  const qtyRemain = reqBody['quantity-remain'] !== undefined
-                    ? Number(reqBody['quantity-remain'])
-                    : (reqBody.quantity_remain !== undefined ? Number(reqBody.quantity_remain) : Math.max(0, qty - qtyOut))
-                  const rawTimeIn = reqBody['time-in'] || reqBody.time_in || time || null
-                  const rawTimeOut = reqBody['time-out'] || reqBody.time_out || null
+                  const qtyOut = Number(reqBody.quantity_out !== undefined ? reqBody.quantity_out : (reqBody['quantity-out'] ?? 0)) || 0
+                  const qtyRemain = reqBody.quantity_remain !== undefined
+                    ? Number(reqBody.quantity_remain)
+                    : (reqBody['quantity-remain'] !== undefined ? Number(reqBody['quantity-remain']) : Math.max(0, qty - qtyOut))
+                  const rawTimeIn = reqBody.time_in || reqBody['time-in'] || time || null
+                  const rawTimeOut = reqBody.time_out || reqBody['time-out'] || null
                   const parsedTimeIn = rawTimeIn ? new Date(rawTimeIn) : new Date()
                   const parsedTimeOut = rawTimeOut ? new Date(rawTimeOut) : null
 
                   const [result]: any = await connection.execute(`
-                    INSERT INTO storage (device_code, name, unit, quantity, \`quantity-out\`, \`quantity-remain\`, time, \`time-in\`, \`time-out\`, status)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    INSERT INTO storage (device_code, name, type, unit, quantity, quantity_out, quantity_remain, time, time_in, time_out, status)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                   `, [
                     (device_code || '').trim().toUpperCase(),
                     (name || '').trim(),
+                    (type || 'sensor').trim(),
                     (unit || 'Cái').trim(),
                     qty,
                     qtyOut,
@@ -1927,15 +1940,15 @@ function mysqlSimuPlugin(): Plugin {
               req.on('end', async () => {
                 try {
                   const reqBody = JSON.parse(body || '{}')
-                  const { device_code, name, unit, quantity, status } = reqBody
+                  const { device_code, name, type, unit, quantity, status } = reqBody
                   const qty = Number(quantity) || 1
-                  const rawQtyOut = reqBody['quantity-out'] !== undefined ? reqBody['quantity-out'] : reqBody.quantity_out
-                  const rawQtyRemain = reqBody['quantity-remain'] !== undefined ? reqBody['quantity-remain'] : reqBody.quantity_remain
+                  const rawQtyOut = reqBody.quantity_out !== undefined ? reqBody.quantity_out : reqBody['quantity-out']
+                  const rawQtyRemain = reqBody.quantity_remain !== undefined ? reqBody.quantity_remain : reqBody['quantity-remain']
                   const qtyOut = rawQtyOut !== undefined ? (Number(rawQtyOut) || 0) : 0
                   const qtyRemain = rawQtyRemain !== undefined ? Number(rawQtyRemain) : Math.max(0, qty - qtyOut)
 
-                  const rawTimeIn = reqBody['time-in'] !== undefined ? reqBody['time-in'] : reqBody.time_in
-                  const rawTimeOut = reqBody['time-out'] !== undefined ? reqBody['time-out'] : reqBody.time_out
+                  const rawTimeIn = reqBody.time_in !== undefined ? reqBody.time_in : reqBody['time-in']
+                  const rawTimeOut = reqBody.time_out !== undefined ? reqBody.time_out : reqBody['time-out']
                   const parsedTimeIn = rawTimeIn ? new Date(rawTimeIn) : null
                   const parsedTimeOut = rawTimeOut ? new Date(rawTimeOut) : null
 
@@ -1943,17 +1956,19 @@ function mysqlSimuPlugin(): Plugin {
                     UPDATE storage SET
                       device_code = ?,
                       name = ?,
+                      type = ?,
                       unit = ?,
                       quantity = ?,
-                      \`quantity-out\` = ?,
-                      \`quantity-remain\` = ?,
+                      quantity_out = ?,
+                      quantity_remain = ?,
                       status = ?,
-                      \`time-in\` = ?,
-                      \`time-out\` = ?
+                      time_in = ?,
+                      time_out = ?
                     WHERE id = ?
                   `, [
                     (device_code || '').trim().toUpperCase(),
                     (name || '').trim(),
+                    (type || 'sensor').trim(),
                     (unit || 'Cái').trim(),
                     qty,
                     qtyOut,
