@@ -25,7 +25,6 @@ import {
   Sparkles
 } from 'lucide-react';
 import { ProjectTelemetryChartModal } from '../../components/common/ProjectTelemetryChartModal';
-import type { ProjectGroup } from '../employ-operate/EmployOperate';
 
 interface CurrentUserData {
   id?: number;
@@ -87,7 +86,7 @@ export const EmployHistory: React.FC = () => {
   } | null>(null);
 
   // Modal xem Biểu đồ vận hành
-  const [selectedChartProject, setSelectedChartProject] = useState<ProjectGroup | null>(null);
+  const [selectedChartProject, setSelectedChartProject] = useState<any>(null);
 
   const wsRef = useRef<WebSocket | null>(null);
   const pollTimerRef = useRef<any>(null);
@@ -1174,7 +1173,7 @@ export const EmployHistory: React.FC = () => {
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
-                              setSelectedChartProject(group as unknown as ProjectGroup);
+                              setSelectedChartProject(group);
                             }}
                             style={{
                               display: 'flex',
