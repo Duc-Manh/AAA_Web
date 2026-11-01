@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import bcrypt from 'bcryptjs';
 import '../dash/Dash.css';
 import { EmpAside } from '../../components/common/EmpAside';
@@ -177,7 +177,25 @@ export const EmployCusto: React.FC = () => {
     }
   };
 
-  const [storageOptions, setStorageOptions] = useState<Array<{ id: number; device_code: string; name: string }>>([]);
+  interface StorageOptionItem {
+    id: number;
+    device_code: string;
+    name: string;
+    quantity_remain?: number;
+    'quantity-remain'?: number;
+    status?: string | number;
+  }
+
+  const [storageOptions, setStorageOptions] = useState<StorageOptionItem[]>([]);
+
+  // Chỉ hiển thị các thiết bị có quantity_remain > 0 hoặc status = 1 (Tại kho)
+  const availableStorageOptions = useMemo(() => {
+    return storageOptions.filter((st) => {
+      const remain = Number(st.quantity_remain !== undefined ? st.quantity_remain : st['quantity-remain']);
+      const s = String(st.status ?? '').trim();
+      return (Number.isFinite(remain) && remain > 0) || s === '1' || s === 'Tại kho';
+    });
+  }, [storageOptions]);
 
   // Lấy danh sách mã thiết bị từ bảng storage database 3ahome
   const fetchStorageOptions = async () => {
@@ -1468,7 +1486,7 @@ export const EmployCusto: React.FC = () => {
                         onChange={(e) => {
                           const val = e.target.value;
                           setTempDevCode(val);
-                          const matched = storageOptions.find((s) => s.device_code === val);
+                          const matched = availableStorageOptions.find((s) => s.device_code === val) || storageOptions.find((s) => s.device_code === val);
                           if (matched && !tempDevName) {
                             setTempDevName(matched.name);
                           }
@@ -1485,8 +1503,8 @@ export const EmployCusto: React.FC = () => {
                           cursor: 'pointer'
                         }}
                       >
-                        <option value="">--Chọn ({storageOptions.length}) --</option>
-                        {storageOptions.map((st) => (
+                        <option value="">--Chọn ({availableStorageOptions.length}) --</option>
+                        {availableStorageOptions.map((st) => (
                           <option key={st.id} value={st.device_code}>
                             {st.device_code} {st.name ? `- ${st.name}` : ''}
                           </option>

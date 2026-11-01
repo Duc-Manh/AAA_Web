@@ -1647,6 +1647,16 @@ function mysqlSimuPlugin(): Plugin {
                         ON DUPLICATE KEY UPDATE device_name = VALUES(device_name), slave_address = VALUES(slave_address), floor = VALUES(floor)
                       `, [gatewayId, dev.device_code.toUpperCase(), dev.device_name, dev.device_type || 'sensor', Number(dev.slave_address) || 1, dev.location_name || dev.floor || 'Khu vực chính'])
                     }
+                    await connection.execute(`
+                      UPDATE storage s
+                      SET 
+                        s.quantity_out = (SELECT COUNT(*) FROM devices d WHERE UPPER(TRIM(d.device_code)) = UPPER(TRIM(s.device_code))),
+                        s.quantity_remain = GREATEST(0, s.quantity - (SELECT COUNT(*) FROM devices d WHERE UPPER(TRIM(d.device_code)) = UPPER(TRIM(s.device_code)))),
+                        s.status = CASE 
+                          WHEN (s.quantity - (SELECT COUNT(*) FROM devices d WHERE UPPER(TRIM(d.device_code)) = UPPER(TRIM(s.device_code)))) > 0 THEN '1' 
+                          ELSE '2' 
+                        END
+                    `)
                   }
 
                   // Gửi email thông tin tài khoản đăng nhập cho khách hàng
@@ -1877,6 +1887,16 @@ function mysqlSimuPlugin(): Plugin {
 
             // 1. GET /api/storage
             if (url.pathname === '/api/storage' && req.method === 'GET') {
+              await connection.execute(`
+                UPDATE storage s
+                SET 
+                  s.quantity_out = (SELECT COUNT(*) FROM devices d WHERE UPPER(TRIM(d.device_code)) = UPPER(TRIM(s.device_code))),
+                  s.quantity_remain = GREATEST(0, s.quantity - (SELECT COUNT(*) FROM devices d WHERE UPPER(TRIM(d.device_code)) = UPPER(TRIM(s.device_code)))),
+                  s.status = CASE 
+                    WHEN (s.quantity - (SELECT COUNT(*) FROM devices d WHERE UPPER(TRIM(d.device_code)) = UPPER(TRIM(s.device_code)))) > 0 THEN '1' 
+                    ELSE '2' 
+                  END
+              `)
               const [rows] = await connection.execute('SELECT *, time_in AS `time-in`, time_out AS `time-out`, quantity_out AS `quantity-out`, quantity_remain AS `quantity-remain` FROM storage ORDER BY id DESC')
               res.setHeader('Content-Type', 'application/json; charset=utf-8')
               res.end(JSON.stringify({ success: true, data: rows }))
@@ -1891,25 +1911,27 @@ function mysqlSimuPlugin(): Plugin {
               req.on('end', async () => {
                 try {
                   const reqBody = JSON.parse(body || '{}')
-                  const { device_code, name, type, unit, quantity, time, status } = reqBody
+                  const { device_code, name, type, unit, quantity, time } = reqBody
+                  const devCode = (device_code || '').trim().toUpperCase()
+                  const [devCountRows]: any = await connection.execute(
+                    'SELECT COUNT(*) AS cnt FROM devices WHERE UPPER(TRIM(device_code)) = ?',
+                    [devCode]
+                  )
+                  const qtyOut = Number(devCountRows[0]?.cnt || 0)
                   const qty = Number(quantity) || 1
-                  const qtyOut = Number(reqBody.quantity_out !== undefined ? reqBody.quantity_out : (reqBody['quantity-out'] ?? 0)) || 0
-                  const qtyRemain = reqBody.quantity_remain !== undefined
-                    ? Number(reqBody.quantity_remain)
-                    : (reqBody['quantity-remain'] !== undefined ? Number(reqBody['quantity-remain']) : Math.max(0, qty - qtyOut))
+                  const qtyRemain = Math.max(0, qty - qtyOut)
+                  const statusVal = qtyRemain > 0 ? '1' : '2'
+
                   const rawTimeIn = reqBody.time_in || reqBody['time-in'] || time || null
                   const rawTimeOut = reqBody.time_out || reqBody['time-out'] || null
                   const parsedTimeIn = rawTimeIn ? new Date(rawTimeIn) : new Date()
                   const parsedTimeOut = rawTimeOut ? new Date(rawTimeOut) : null
 
-                  const rawStatus = String(status || '1').trim()
-                  const statusVal = (rawStatus === '2' || rawStatus === 'Tại dự án' || rawStatus === 'Đang sử dụng') ? '2' : '1'
-
                   const [result]: any = await connection.execute(`
                     INSERT INTO storage (device_code, name, type, unit, quantity, quantity_out, quantity_remain, time, time_in, time_out, status)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                   `, [
-                    (device_code || '').trim().toUpperCase(),
+                    devCode,
                     (name || '').trim(),
                     (type || 'sensor').trim(),
                     (unit || 'Cái').trim(),
@@ -1943,20 +1965,21 @@ function mysqlSimuPlugin(): Plugin {
               req.on('end', async () => {
                 try {
                   const reqBody = JSON.parse(body || '{}')
-                  const { device_code, name, type, unit, quantity, status } = reqBody
+                  const { device_code, name, type, unit, quantity } = reqBody
+                  const devCode = (device_code || '').trim().toUpperCase()
+                  const [devCountRows]: any = await connection.execute(
+                    'SELECT COUNT(*) AS cnt FROM devices WHERE UPPER(TRIM(device_code)) = ?',
+                    [devCode]
+                  )
+                  const qtyOut = Number(devCountRows[0]?.cnt || 0)
                   const qty = Number(quantity) || 1
-                  const rawQtyOut = reqBody.quantity_out !== undefined ? reqBody.quantity_out : reqBody['quantity-out']
-                  const rawQtyRemain = reqBody.quantity_remain !== undefined ? reqBody.quantity_remain : reqBody['quantity-remain']
-                  const qtyOut = rawQtyOut !== undefined ? (Number(rawQtyOut) || 0) : 0
-                  const qtyRemain = rawQtyRemain !== undefined ? Number(rawQtyRemain) : Math.max(0, qty - qtyOut)
+                  const qtyRemain = Math.max(0, qty - qtyOut)
+                  const statusVal = qtyRemain > 0 ? '1' : '2'
 
                   const rawTimeIn = reqBody.time_in !== undefined ? reqBody.time_in : reqBody['time-in']
                   const rawTimeOut = reqBody.time_out !== undefined ? reqBody.time_out : reqBody['time-out']
                   const parsedTimeIn = rawTimeIn ? new Date(rawTimeIn) : null
                   const parsedTimeOut = rawTimeOut ? new Date(rawTimeOut) : null
-
-                  const rawStatus = String(status || '1').trim()
-                  const statusVal = (rawStatus === '2' || rawStatus === 'Tại dự án' || rawStatus === 'Đang sử dụng') ? '2' : '1'
 
                   await connection.execute(`
                     UPDATE storage SET
@@ -1972,7 +1995,7 @@ function mysqlSimuPlugin(): Plugin {
                       time_out = ?
                     WHERE id = ?
                   `, [
-                    (device_code || '').trim().toUpperCase(),
+                    devCode,
                     (name || '').trim(),
                     (type || 'sensor').trim(),
                     (unit || 'Cái').trim(),

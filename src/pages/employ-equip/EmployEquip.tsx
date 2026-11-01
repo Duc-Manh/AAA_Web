@@ -186,6 +186,7 @@ export const EmployEquip: React.FC = () => {
     const qty = Number(formQuantity) || 1;
     const qtyOut = Number(formQuantityOut) || 0;
     const qtyRemain = Math.max(0, qty - qtyOut);
+    const computedStatus = qtyRemain > 0 ? '1' : '2';
 
     const payload = {
       device_code: formDeviceCode.trim().toUpperCase(),
@@ -195,7 +196,7 @@ export const EmployEquip: React.FC = () => {
       quantity: qty,
       quantity_out: qtyOut,
       quantity_remain: qtyRemain,
-      status: formStatus,
+      status: computedStatus,
       time_in: formTimeIn ? new Date(formTimeIn).toISOString() : null,
       time_out: formTimeOut ? new Date(formTimeOut).toISOString() : null,
       time: formTimeIn ? new Date(formTimeIn).toISOString() : new Date().toISOString()
@@ -1019,7 +1020,12 @@ export const EmployEquip: React.FC = () => {
                     type="number"
                     min="1"
                     value={formQuantity}
-                    onChange={(e) => setFormQuantity(Number(e.target.value))}
+                    onChange={(e) => {
+                      const newQty = Number(e.target.value);
+                      setFormQuantity(newQty);
+                      const remain = Math.max(0, newQty - formQuantityOut);
+                      setFormStatus(remain > 0 ? '1' : '2');
+                    }}
                     style={{
                       width: '100%',
                       padding: '9px 12px',
@@ -1102,7 +1108,12 @@ export const EmployEquip: React.FC = () => {
                         min="0"
                         max={formQuantity}
                         value={formQuantityOut}
-                        onChange={(e) => setFormQuantityOut(Number(e.target.value))}
+                        onChange={(e) => {
+                          const newOut = Number(e.target.value);
+                          setFormQuantityOut(newOut);
+                          const remain = Math.max(0, formQuantity - newOut);
+                          setFormStatus(remain > 0 ? '1' : '2');
+                        }}
                         style={{
                           width: '100%',
                           padding: '9px 12px',
