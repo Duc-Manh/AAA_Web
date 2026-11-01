@@ -1106,7 +1106,8 @@ export const DashHistory: React.FC = () => {
                                   <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '120px' }}>Nhiệt Độ (°C)</th>
                                   <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '120px' }}>Độ Ẩm (%)</th>
                                   <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '130px' }}>Công Suất (W)</th>
-                                  <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '140px' }}>Điện Áp / Dòng</th>
+                                  <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '110px' }}>Điện Áp (V)</th>
+                                  <th style={{ padding: '12px 16px', fontWeight: 600, minWidth: '110px' }}>Dòng Điện (A)</th>
                                   <th style={{ padding: '12px 16px', fontWeight: 600, textAlign: 'center', width: '90px' }}>Gói Tin</th>
                                 </tr>
                               </thead>
@@ -1181,11 +1182,8 @@ export const DashHistory: React.FC = () => {
                                               display: 'inline-flex',
                                               alignItems: 'center',
                                               gap: '4px',
-                                              fontWeight: 700,
-                                              color: (row.temperature ?? 0) > 35 ? '#dc2626' : '#ea580c',
-                                              backgroundColor: '#fff7ed',
-                                              padding: '4px 8px',
-                                              borderRadius: '8px'
+                                              fontWeight: 600,
+                                              color: (row.temperature ?? 0) > 35 ? '#dc2626' : '#ea580c'
                                             }}
                                           >
                                             <Thermometer size={14} />
@@ -1204,11 +1202,8 @@ export const DashHistory: React.FC = () => {
                                               display: 'inline-flex',
                                               alignItems: 'center',
                                               gap: '4px',
-                                              fontWeight: 700,
-                                              color: '#0284c7',
-                                              backgroundColor: '#f0f9ff',
-                                              padding: '4px 8px',
-                                              borderRadius: '8px'
+                                              fontWeight: 600,
+                                              color: '#0284c7'
                                             }}
                                           >
                                             <Droplets size={14} />
@@ -1227,11 +1222,8 @@ export const DashHistory: React.FC = () => {
                                               display: 'inline-flex',
                                               alignItems: 'center',
                                               gap: '4px',
-                                              fontWeight: 700,
-                                              color: '#d97706',
-                                              backgroundColor: '#fffbeb',
-                                              padding: '4px 8px',
-                                              borderRadius: '8px'
+                                              fontWeight: 600,
+                                              color: '#d97706'
                                             }}
                                           >
                                             <Zap size={14} />
@@ -1242,15 +1234,23 @@ export const DashHistory: React.FC = () => {
                                         )}
                                       </td>
 
-                                      {/* Điện áp / Dòng */}
+                                      {/* Điện áp */}
                                       <td style={{ padding: '12px 16px' }}>
-                                        {hasVolt || hasCurr ? (
-                                          <div style={{ fontSize: '0.82rem', color: '#334155' }}>
-                                            <div>{hasVolt ? `${row.voltage} V` : ''}</div>
-                                            <div style={{ fontSize: '0.74rem', color: '#64748b' }}>
-                                              {hasCurr ? `${row.current} A` : ''}
-                                            </div>
-                                          </div>
+                                        {hasVolt ? (
+                                          <span style={{ fontWeight: 600, color: '#334155' }}>
+                                            {row.voltage} V
+                                          </span>
+                                        ) : (
+                                          <span style={{ color: '#cbd5e1' }}>--</span>
+                                        )}
+                                      </td>
+
+                                      {/* Dòng điện */}
+                                      <td style={{ padding: '12px 16px' }}>
+                                        {hasCurr ? (
+                                          <span style={{ fontWeight: 600, color: '#0d9488' }}>
+                                            {row.current} A
+                                          </span>
                                         ) : (
                                           <span style={{ color: '#cbd5e1' }}>--</span>
                                         )}
