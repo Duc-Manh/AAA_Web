@@ -102,7 +102,7 @@ export const EmployCusto: React.FC = () => {
   // Form input tạm cho thiết bị mới trong modal tạo
   const [tempDevCode, setTempDevCode] = useState('');
   const [tempDevName, setTempDevName] = useState('');
-  const [tempDevType, setTempDevType] = useState<string>('sensor');
+  const [tempDevType, setTempDevType] = useState<string>('');
   const [tempSlaveAddr, setTempSlaveAddr] = useState<number>(1);
   const [tempLocation, setTempLocation] = useState('');
 
@@ -197,29 +197,6 @@ export const EmployCusto: React.FC = () => {
       return (Number.isFinite(remain) && remain > 0) || s === '1' || s === 'Tại kho';
     });
   }, [storageOptions]);
-
-  const getDeviceTypeLabel = (type?: string) => {
-    const t = (type || 'sensor').toLowerCase().trim();
-    switch (t) {
-      case 'sensor':
-        return 'Cảm biến (sensor)';
-      case 'motor':
-        return 'Động cơ (motor)';
-      case 'valve':
-        return 'Van (valve)';
-      case 'gateway':
-        return 'IoTGateway (gateway)';
-      case 'hmi':
-        return 'Màn hình HMI (hmi)';
-      case 'light':
-        return 'Chiếu sáng (light)';
-      case 'ac':
-        return 'Điều hòa (ac)';
-      default:
-        return type || 'Cảm biến (sensor)';
-    }
-  };
-
 
   // Lấy danh sách mã thiết bị từ bảng storage database 3ahome
   const fetchStorageOptions = async () => {
@@ -318,6 +295,7 @@ export const EmployCusto: React.FC = () => {
     ]);
     setTempDevCode('');
     setTempDevName('');
+    setTempDevType('');
     setTempSlaveAddr(newDevices.length + 2);
     setTempLocation('');
   };
@@ -1515,9 +1493,9 @@ export const EmployCusto: React.FC = () => {
                             if (!tempDevName) {
                               setTempDevName(matched.name);
                             }
-                            if (matched.type) {
-                              setTempDevType(matched.type.toLowerCase().trim());
-                            }
+                            setTempDevType(matched.type || '');
+                          } else {
+                            setTempDevType('');
                           }
                         }}
                         style={{
@@ -1570,7 +1548,7 @@ export const EmployCusto: React.FC = () => {
                         }}
                         title="Loại thiết bị tự động lấy từ kho storage"
                       >
-                        {getDeviceTypeLabel(tempDevType)}
+                        {tempDevType || '-'}
                       </div>
                     </div>
                     <div>
@@ -1637,7 +1615,7 @@ export const EmployCusto: React.FC = () => {
                             <td style={{ padding: '6px 10px' }}>{dev.device_name}</td>
                             <td style={{ padding: '6px 10px', textAlign: 'center' }}>
                               <span style={{ padding: '2px 6px', borderRadius: '4px', backgroundColor: '#f1f5f9', fontSize: '0.72rem', color: '#334155', userSelect: 'none', cursor: 'default' }}>
-                                {getDeviceTypeLabel(dev.device_type)}
+                                {dev.device_type}
                               </span>
                             </td>
                             <td style={{ padding: '6px 10px', textAlign: 'center', fontWeight: 600 }}>{dev.slave_address}</td>
