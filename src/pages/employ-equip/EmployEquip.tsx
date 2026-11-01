@@ -76,7 +76,7 @@ export const EmployEquip: React.FC = () => {
   const [formUnit, setFormUnit] = useState('Cái');
   const [formQuantity, setFormQuantity] = useState<number>(1);
   const [formQuantityOut, setFormQuantityOut] = useState<number>(0);
-  const [formStatus, setFormStatus] = useState('Tồn kho');
+  const [formStatus, setFormStatus] = useState('1');
   const [formTimeIn, setFormTimeIn] = useState('');
   const [formTimeOut, setFormTimeOut] = useState('');
 
@@ -130,7 +130,7 @@ export const EmployEquip: React.FC = () => {
     setFormUnit('Cái');
     setFormQuantity(1);
     setFormQuantityOut(0);
-    setFormStatus('Tồn kho');
+    setFormStatus('1');
     const now = new Date();
     const localIso = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     setFormTimeIn(localIso);
@@ -147,7 +147,8 @@ export const EmployEquip: React.FC = () => {
     setFormUnit(item.unit || 'Cái');
     setFormQuantity(Number(item.quantity) || 1);
     setFormQuantityOut(Number(item.quantity_out !== undefined ? item.quantity_out : (item['quantity-out'] ?? 0)));
-    setFormStatus(item.status || 'Tồn kho');
+    const s = String(item.status || '1').trim();
+    setFormStatus(s === '2' || s === 'Tại dự án' || s === 'Đang sử dụng' ? '2' : '1');
 
     const rawIn = item.time_in || item['time-in'] || item.time;
     if (rawIn) {
@@ -290,7 +291,11 @@ export const EmployEquip: React.FC = () => {
       (item.invoice && item.invoice.toLowerCase().includes(q)) ||
       (item.unit && item.unit.toLowerCase().includes(q));
 
-    const matchStatus = filterStatus === 'all' || item.status === filterStatus;
+    const matchStatus =
+      filterStatus === 'all' ||
+      String(item.status) === filterStatus ||
+      (filterStatus === '1' && (item.status === 'Tại kho' || item.status === 'Tồn kho' || item.status === 'Mới')) ||
+      (filterStatus === '2' && (item.status === 'Tại dự án' || item.status === 'Đang sử dụng'));
     return matchSearch && matchStatus;
   });
 
@@ -344,40 +349,34 @@ export const EmployEquip: React.FC = () => {
   };
 
   // Badge màu theo tình trạng
-  const renderStatusBadge = (status: string) => {
-    switch (status) {
-      case 'Mới':
-        return (
-          <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }}>
-            🟢 Mới
-          </span>
-        );
-      case 'Đang sử dụng':
-        return (
-          <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>
-            ⚡ Đang sử dụng
-          </span>
-        );
-      case 'Tồn kho':
-        return (
-          <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#eff6ff', color: '#1D58BB', border: '1px solid #bfdbfe' }}>
-            📦 Tồn kho
-          </span>
-        );
-      case 'Bảo hành':
-      case 'Hỏng':
-        return (
-          <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
-            ⚠️ {status}
-          </span>
-        );
-      default:
-        return (
-          <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0' }}>
-            {status}
-          </span>
-        );
+  const renderStatusBadge = (status: string | number) => {
+    const s = String(status || '').trim();
+    if (s === '1' || s === 'Tại kho' || s === 'Tồn kho' || s === 'Mới') {
+      return (
+        <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#eff6ff', color: '#1D58BB', border: '1px solid #bfdbfe' }}>
+          📦 Tại kho
+        </span>
+      );
     }
+    if (s === '2' || s === 'Tại dự án' || s === 'Đang sử dụng') {
+      return (
+        <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>
+          🏗️ Tại dự án
+        </span>
+      );
+    }
+    if (s === 'Bảo hành' || s === 'Hỏng') {
+      return (
+        <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}>
+          ⚠️ {s}
+        </span>
+      );
+    }
+    return (
+      <span style={{ padding: '3px 9px', borderRadius: '12px', fontSize: '0.74rem', fontWeight: 600, backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #e2e8f0' }}>
+        {s || 'Tại kho'}
+      </span>
+    );
   };
 
   return (
@@ -611,11 +610,8 @@ export const EmployEquip: React.FC = () => {
                   }}
                 >
                   <option value="all">Tất cả tình trạng</option>
-                  <option value="Mới">Mới</option>
-                  <option value="Tồn kho">Tồn kho</option>
-                  <option value="Đang sử dụng">Đang sử dụng</option>
-                  <option value="Bảo hành">Bảo hành</option>
-                  <option value="Hỏng">Hỏng</option>
+                  <option value="1">📦 Tại kho</option>
+                  <option value="2">🏗️ Tại dự án</option>
                 </select>
               </div>
 
@@ -1052,8 +1048,8 @@ export const EmployEquip: React.FC = () => {
                       backgroundColor: '#ffffff'
                     }}
                   >
-                    <option value="Tại kho">Tại kho</option>
-                    <option value="Tại dự án">Tại dự án</option>
+                    <option value="1">Tại kho</option>
+                    <option value="2">Tại dự án</option>
                   </select>
                 </div>
 

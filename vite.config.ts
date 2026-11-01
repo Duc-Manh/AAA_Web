@@ -1833,7 +1833,7 @@ function mysqlSimuPlugin(): Plugin {
                 time DATETIME DEFAULT CURRENT_TIMESTAMP,
                 time_in DATETIME NULL,
                 time_out DATETIME NULL,
-                status VARCHAR(50) DEFAULT 'Tồn kho'
+                status VARCHAR(50) DEFAULT '1'
               ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             `)
             try {
@@ -1902,6 +1902,9 @@ function mysqlSimuPlugin(): Plugin {
                   const parsedTimeIn = rawTimeIn ? new Date(rawTimeIn) : new Date()
                   const parsedTimeOut = rawTimeOut ? new Date(rawTimeOut) : null
 
+                  const rawStatus = String(status || '1').trim()
+                  const statusVal = (rawStatus === '2' || rawStatus === 'Tại dự án' || rawStatus === 'Đang sử dụng') ? '2' : '1'
+
                   const [result]: any = await connection.execute(`
                     INSERT INTO storage (device_code, name, type, unit, quantity, quantity_out, quantity_remain, time, time_in, time_out, status)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
@@ -1916,7 +1919,7 @@ function mysqlSimuPlugin(): Plugin {
                     parsedTimeIn,
                     parsedTimeIn,
                     parsedTimeOut,
-                    (status || 'Tồn kho').trim()
+                    statusVal
                   ])
 
                   res.setHeader('Content-Type', 'application/json; charset=utf-8')
@@ -1952,6 +1955,9 @@ function mysqlSimuPlugin(): Plugin {
                   const parsedTimeIn = rawTimeIn ? new Date(rawTimeIn) : null
                   const parsedTimeOut = rawTimeOut ? new Date(rawTimeOut) : null
 
+                  const rawStatus = String(status || '1').trim()
+                  const statusVal = (rawStatus === '2' || rawStatus === 'Tại dự án' || rawStatus === 'Đang sử dụng') ? '2' : '1'
+
                   await connection.execute(`
                     UPDATE storage SET
                       device_code = ?,
@@ -1973,7 +1979,7 @@ function mysqlSimuPlugin(): Plugin {
                     qty,
                     qtyOut,
                     qtyRemain,
-                    (status || 'Tồn kho').trim(),
+                    statusVal,
                     parsedTimeIn,
                     parsedTimeOut,
                     id
