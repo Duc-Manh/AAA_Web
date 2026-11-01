@@ -21,162 +21,83 @@ export interface DashGuideProps {
 export const adminGuideData: DashGuideItem[] = [
   {
     category: 'Trang chủ',
-    image: '/uploads/news/1-Home.png',
-    title: 'Tổng quan hệ thống & Giám sát vận hành',
+    image: '/uploads/guide/1-Home.png',
+    title: 'Giao diện trang chủ ',
     content:
-      'Theo dõi trạng thái kết nối các bộ điều khiển trung tâm BMS, thông số cảm biến môi trường (nhiệt độ, độ ẩm, CO2, áp suất) và tình trạng an ninh trực quan theo thời gian thực.',
-    tags: ['Dashboard', 'Cảm biến IoT', 'BMS']
+      'Người dùng đọc giới thiệu, hồ sơ năng lực, tin tức, xem thông tin dự án, thiết bị, lịch sử, mô phỏng, nhận tư vấn, liên hệ  ',
+    tags: ['Giới thiệu', 'Hồ sơ năng lực', 'Tin tức', 'Dự án', 'Sản phẩm', 'Lịch sử', 'Mô phỏng', 'Tư vấn', 'Liên hệ']
   },
   {
-    category: 'Mô phỏng thiết bị',
-    image: '/uploads/news/2-Simu.png',
-    title: 'Thao tác thiết bị cơ bản',
-    content: 'Bật tắt, thay đổi chế độ, điều chỉnh thông số thiết bị một cách trực quan.',
-    tags: ['Thiết bị', 'Kịch bản', 'Chiếu sáng', 'Điều hoà']
+    category: 'Mô phỏng',
+    image: '/uploads/guide/2-Simu.png',
+    title: 'Giao diện mô phỏng',
+    content:
+      'Người dùng nhập thông tin tại mục mô phỏng để vào trang mô phỏng',
+    tags: ['Mô phỏng']
   },
   {
-    category: 'Phòng mô phỏng thiết bị',
-    image: '/uploads/news/3-SimuLive.png',
-    title: 'Trải nghiệm trực tiếp (Live Demo)',
+    category: 'Tư vấn',
+    image: '/uploads/guide/3-Complain.png',
+    title: 'Giao diện tư vấn',
     content:
-      'Thao tác mô phỏng thiết bị trong môi trường thực tế với đầy đủ các tính năng, đảm bảo trải nghiệm chính xác như sử dụng thật.',
-    tags: ['Demo', 'Thực tế', 'Trực quan']
+      'Người dùng nhập thông tin tư vấn và gửi yêu cầu',
+    tags: ['Tư vấn']
   },
   {
     category: 'Đăng nhập',
-    image: '/uploads/news/4-Login.png',
-    title: 'Đăng nhập vào hệ thống',
+    image: '/uploads/guide/4-Login.png',
+    title: 'Giao diện Đăng nhập',
     content:
-      'Đăng nhập vào hệ thống bằng tên đăng nhập và mật khẩu.',
-    tags: ['Đăng nhập', 'Tài khoản', 'Bảo mật']
+      'Người dùng nhập thông tin đăng nhập để đăng nhập vào trang hệ thống, chú ý nhập sai quá 3 lần sẽ bị khoá tài khoản',
+    tags: ['Đăng nhập']
   },
   {
-    category: 'Đăng nhập sai',
-    image: '/uploads/news/4-LoginWrong.png',
-    title: 'Sai tên đăng nhập hoặc mật khẩu',
+    category: 'Thông tin dự án',
+    image: '/uploads/guide/5-Project.png',
+    title: 'Giao diện dự án đăng bài',
     content:
-      'Sai tên đăng nhập hoặc mật khẩu',
-    tags: ['Tài khoản', 'Phân quyền', 'Bảo mật']
+      'Tại mục Dự án đăng bài, người dùng nhập thông tin dự án để đăng bài dự án, nội dung sẽ hiển thị trên trang chủ',
+    tags: ['Dự án']
   },
   {
-    category: 'Tài khoản bị khóa',
-    image: '/uploads/news/4-LoginBlock.png',
-    title: 'Tài khoản bị khóa',
+    category: 'Tin tức đăng bài',
+    image: '/uploads/guide/6-News.png',
+    title: 'Giao diện tin tức đăng bài',
     content:
-      'Tài khoản bị khóa',
-    tags: ['Tài khoản', 'Phân quyền', 'Bảo mật']
+      'Tại mục Tin tức đăng bài, người dùng nhập thông tin tin tức để đăng bài dự án, nội dung sẽ hiển thị trên trang chủ, chú ý thể loại bài đăng',
+    tags: ['Tin tức']
   },
   {
-    category: 'Trang Admin',
-    image: '/uploads/news/5-Admin.png',
-    title: 'Trang Admin',
+    category: 'Vật tư tồn kho',
+    image: ['/uploads/guide/7-Equip1.png', '/uploads/guide/7-Equip.png'],
+    title: 'Giao diện nhập kho vật tư',
     content:
-      'Trang Admin',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+      'Tại mục Vật tư tồn kho, người dùng nhập thông tin vật tư tồn kho để nhập kho, chú ý Mục Mã thiết bị (device_code) nên lấy số Serial Number của thiết bị, nếu không có thì tự đặt theo quy luật TB-1, TB-2, TB-3....(quy định ban hành sau) để kiểm soát, nội dung mục này sẽ nhập trùng trong IoT Gateway. Đây là nơi bắt đầu cho 1 thiết bị mới, sau khi khai báo ở đây thì có thể sử dụng thiết bị ở các mục dưới đây',
+    tags: ['Vật tư tồn kho']
   },
   {
-    category: 'Thêm mới tài khoản',
-    image: '/uploads/news/5-AdminAddUser.png',
-    title: 'Thêm mới tài khoản',
+    category: 'Quản lý khách hàng',
+    image: ['/uploads/guide/8-Custo.png', '/uploads/guide/8-Custo1.png'],
+    title: 'Giao diện quản lý khách hàng',
     content:
-      'Thêm mới tài khoản',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+      'Tại mục Quản lý khách hàng, người dùng nhập thông tin khách hàng đại diện cho dự án để quản lý. Tại ô Mã device_code (kho storage) hiển thị các mã thiết bị đang còn trong kho.',
+    tags: ['Thông tin khách hàng']
   },
   {
-    category: 'Xem thông tin tài khoản',
-    image: '/uploads/news/5-AdminClear.png',
-    title: 'Xem thông tin tài khoản',
+    category: 'Quản lý vận hành',
+    image: '/uploads/guide/9-Opera.png',
+    title: 'Giao diện Quản lý vận hành',
     content:
-      'Xem thông tin tài khoản',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+      'Tại mục Quản lý vận hành, thông số các thiết bị kết nối với IoT Gateway dùng trong dự án hiện ra theo khai báo tại mục Quản lý khách hàng nếu mã device_code khai báo ở trên trùng với mã device_code khai báo trong cấu hình IoT Gateway.',
+    tags: ['Quản lý vận hành']
   },
   {
-    category: 'Chỉnh sửa thông tin tài khoản',
-    image: '/uploads/news/5-AdminFix.png',
-    title: 'Chỉnh sửa thông tin tài khoản',
+    category: 'Lịch sử vận hành',
+    image: '/uploads/guide/10-History.png',
+    title: 'Giao diện Lịch sử vận hành',
     content:
-      'Chỉnh sửa thông tin tài khoản',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
-  },
-  {
-    category: 'Reset mật khẩu',
-    image: '/uploads/news/5-AdminReset.png',
-    title: 'Reset mật khẩu',
-    content:
-      'Reset mật khẩu',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
-  },
-  {
-    category: 'Danh sách dự án',
-    image: '/uploads/news/6-Proj.png',
-    title: 'Danh sách dự án',
-    content:
-      'Danh sách dự án',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
-  },
-  {
-    category: 'Thêm mới dự án',
-    image: '/uploads/news/6-ProjAdd.png',
-    title: 'Thêm mới dự án',
-    content:
-      'Thêm mới dự án',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
-  },
-  {
-    category: 'Xem thông tin dự án',
-    image: '/uploads/news/6-ProjClear.png',
-    title: 'Xem thông tin dự án',
-    content:
-      'Xem thông tin dự án',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
-  },
-  {
-    category: 'Chỉnh sửa thông tin dự án',
-    image: '/uploads/news/6-ProjFix.png',
-    title: 'Chỉnh sửa thông tin dự án',
-    content:
-      'Chỉnh sửa thông tin dự án',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
-  },
-  {
-    category: 'Tin tức',
-    image: '/uploads/news/7-News.png',
-    title: 'Tin tức',
-    content:
-      'Tin tức',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
-  },
-  {
-    category: 'Thêm mới tin tức',
-    image: '/uploads/news/7-NewsPost.png',
-    title: 'Thêm mới tin tức',
-    content:
-      'Thêm mới tin tức',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
-  },
-  {
-    category: 'Chỉnh sửa thông tin tin tức',
-    image: '/uploads/news/7-NewsFix.png',
-    title: 'Chỉnh sửa thông tin tin tức',
-    content:
-      'Chỉnh sửa thông tin tin tức',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
-  },
-  {
-    category: 'Thiết bị',
-    image: '/uploads/news/8-Device.png',
-    title: 'Thiết bị',
-    content:
-      'Thiết bị',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
-  },
-  {
-    category: 'Thêm mới thiết bị',
-    image: '/uploads/news/8-DevicePost.png',
-    title: 'Thêm mới thiết bị',
-    content:
-      'Thêm mới thiết bị',
-    tags: ['Trang Admin', 'Quản trị', 'Bảo mật']
+      'Tại mục Lịch sử vận hành, người dùng xem thông số các thiết bị kết nối với IoT Gateway dùng trong dự án, theo khoảng thời gian đã chọn (Ngày/Tháng/Năm)',
+    tags: ['Lịch sử vận hành']
   }
 ];
 

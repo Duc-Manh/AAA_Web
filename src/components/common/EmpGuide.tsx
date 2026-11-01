@@ -70,11 +70,35 @@ export const employeeGuideData: EmpGuideItem[] = [
   ,
   {
     category: 'Vật tư tồn kho',
-    image: ['/uploads/guide/7-Equip.png', '/uploads/guide/7-Equip1.png'],
+    image: ['/uploads/guide/7-Equip1.png', '/uploads/guide/7-Equip.png'],
     title: 'Giao diện nhập kho vật tư',
     content:
-      'Tại mục Vật tư tồn kho, người dùng nhập thông tin vật tư tồn kho để nhập kho, chú ý Mục Mã thiết bị (device_code) nên lấy số Serial Number của thiết bị, nếu không có thì tự đặt theo quy luật TB-1, TB-2, TB-3....(quy định ban hành sau) để kiểm soát, nội dung mục này sẽ nhập trùng trong IoT Gateway',
+      'Tại mục Vật tư tồn kho, người dùng nhập thông tin vật tư tồn kho để nhập kho, chú ý Mục Mã thiết bị (device_code) nên lấy số Serial Number của thiết bị, nếu không có thì tự đặt theo quy luật TB-1, TB-2, TB-3....(quy định ban hành sau) để kiểm soát, nội dung mục này sẽ nhập trùng trong IoT Gateway. Đây là nơi bắt đầu cho 1 thiết bị mới, sau khi khai báo ở đây thì có thể sử dụng thiết bị ở các mục dưới đây',
     tags: ['Vật tư tồn kho']
+  },
+  {
+    category: 'Quản lý khách hàng',
+    image: ['/uploads/guide/8-Custo.png', '/uploads/guide/8-Custo1.png'],
+    title: 'Giao diện quản lý khách hàng',
+    content:
+      'Tại mục Quản lý khách hàng, người dùng nhập thông tin khách hàng đại diện cho dự án để quản lý. Tại ô Mã device_code (kho storage) hiển thị các mã thiết bị đang còn trong kho.',
+    tags: ['Thông tin khách hàng']
+  },
+  {
+    category: 'Quản lý vận hành',
+    image: '/uploads/guide/9-Opera.png',
+    title: 'Giao diện Quản lý vận hành',
+    content:
+      'Tại mục Quản lý vận hành, thông số các thiết bị kết nối với IoT Gateway dùng trong dự án hiện ra theo khai báo tại mục Quản lý khách hàng nếu mã device_code khai báo ở trên trùng với mã device_code khai báo trong cấu hình IoT Gateway.',
+    tags: ['Quản lý vận hành']
+  },
+  {
+    category: 'Lịch sử vận hành',
+    image: '/uploads/guide/10-History.png',
+    title: 'Giao diện Lịch sử vận hành',
+    content:
+      'Tại mục Lịch sử vận hành, người dùng xem thông số các thiết bị kết nối với IoT Gateway dùng trong dự án, theo khoảng thời gian đã chọn (Ngày/Tháng/Năm)',
+    tags: ['Lịch sử vận hành']
   }
 ];
 
