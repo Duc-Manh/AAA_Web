@@ -35,7 +35,7 @@ export interface DeviceItem {
   id: number;
   device_code: string;       // UK: e.g. TEMP_T1_01, EM_T1_01, FAN_HVAC_01
   device_name: string;       // e.g. Cảm biến nhiệt độ Tầng 1
-  device_type: 'sensor' | 'motor' | 'light' | 'ac';
+  device_type: 'sensor' | 'motor' | 'valve' | 'gateway' | 'hmi' | 'light' | 'ac' | string;
   slave_address: number;     // Modbus Slave ID: 1, 2, 3...
   location_name?: string;    // e.g. Tầng 1
   created_at?: string;
@@ -102,7 +102,7 @@ export const EmployCusto: React.FC = () => {
   // Form input tạm cho thiết bị mới trong modal tạo
   const [tempDevCode, setTempDevCode] = useState('');
   const [tempDevName, setTempDevName] = useState('');
-  const [tempDevType, setTempDevType] = useState<'sensor' | 'motor' | 'light' | 'ac'>('sensor');
+  const [tempDevType, setTempDevType] = useState<string>('sensor');
   const [tempSlaveAddr, setTempSlaveAddr] = useState<number>(1);
   const [tempLocation, setTempLocation] = useState('');
 
@@ -181,6 +181,7 @@ export const EmployCusto: React.FC = () => {
     id: number;
     device_code: string;
     name: string;
+    type?: string;
     quantity_remain?: number;
     'quantity-remain'?: number;
     status?: string | number;
@@ -196,6 +197,45 @@ export const EmployCusto: React.FC = () => {
       return (Number.isFinite(remain) && remain > 0) || s === '1' || s === 'Tại kho';
     });
   }, [storageOptions]);
+
+  const getDeviceTypeLabel = (type?: string) => {
+    const t = (type || 'sensor').toLowerCase().trim();
+    switch (t) {
+      case 'sensor':
+        return 'Cảm biến (sensor)';
+      case 'motor':
+        return 'Động cơ (motor)';
+      case 'valve':
+        return 'Van (valve)';
+      case 'gateway':
+        return 'IoTGateway (gateway)';
+      case 'hmi':
+        return 'Màn hình HMI (hmi)';
+      case 'light':
+        return 'Chiếu sáng (light)';
+      case 'ac':
+        return 'Điều hòa (ac)';
+      default:
+        return type || 'Cảm biến (sensor)';
+    }
+  };
+
+  // Danh sách các loại thiết bị tương ứng với các lựa chọn trong tempDevCode
+  const relevantDeviceTypes = useMemo(() => {
+    if (tempDevCode) {
+      const matched = availableStorageOptions.find((s) => s.device_code === tempDevCode) || storageOptions.find((s) => s.device_code === tempDevCode);
+      if (matched && matched.type) {
+        return [matched.type.toLowerCase().trim()];
+      }
+    }
+    // Khi chưa chọn thiết bị cụ thể, hiển thị danh sách các loại của tất cả các thiết bị đang có trong availableStorageOptions
+    const set = new Set<string>();
+    availableStorageOptions.forEach((st) => {
+      if (st.type) set.add(st.type.toLowerCase().trim());
+    });
+    const list = Array.from(set);
+    return list.length > 0 ? list : ['sensor', 'motor', 'valve', 'gateway', 'hmi'];
+  }, [tempDevCode, availableStorageOptions, storageOptions]);
 
   // Lấy danh sách mã thiết bị từ bảng storage database 3ahome
   const fetchStorageOptions = async () => {
@@ -1487,8 +1527,13 @@ export const EmployCusto: React.FC = () => {
                           const val = e.target.value;
                           setTempDevCode(val);
                           const matched = availableStorageOptions.find((s) => s.device_code === val) || storageOptions.find((s) => s.device_code === val);
-                          if (matched && !tempDevName) {
-                            setTempDevName(matched.name);
+                          if (matched) {
+                            if (!tempDevName) {
+                              setTempDevName(matched.name);
+                            }
+                            if (matched.type) {
+                              setTempDevType(matched.type.toLowerCase().trim());
+                            }
                           }
                         }}
                         style={{
@@ -1525,13 +1570,14 @@ export const EmployCusto: React.FC = () => {
                       <label style={{ fontSize: '0.74rem', color: '#64748b', display: 'block', marginBottom: '2px' }}>Loại (device_type)</label>
                       <select
                         value={tempDevType}
-                        onChange={(e) => setTempDevType(e.target.value as any)}
+                        onChange={(e) => setTempDevType(e.target.value)}
                         style={{ width: '100%', padding: '6px 8px', fontSize: '0.8rem', border: '1px solid #cbd5e1', borderRadius: '6px', backgroundColor: '#ffffff' }}
                       >
-                        <option value="sensor">Cảm biến (sensor)</option>
-                        <option value="motor">Động cơ/Quạt (motor)</option>
-                        <option value="light">Chiếu sáng (light)</option>
-                        <option value="ac">Điều hòa (ac)</option>
+                        {relevantDeviceTypes.map((typeKey) => (
+                          <option key={typeKey} value={typeKey}>
+                            {getDeviceTypeLabel(typeKey)}
+                          </option>
+                        ))}
                       </select>
                     </div>
                     <div>
