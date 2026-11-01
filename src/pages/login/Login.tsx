@@ -204,13 +204,13 @@ export const Login: React.FC = () => {
         setTimeout(() => {
           // Phân quyền theo cột authen: 1 -> Dash.tsx, 2 -> Employ.tsx
           if (Number(data.user.authen) === 1) {
-            window.location.hash = '#dash';
+            window.location.href = '/#dash';
           } else if (Number(data.user.authen) === 2) {
-            window.location.hash = '#employ';
+            window.location.href = '/#employ';
           } else {
-            window.location.hash = '#dash';
+            window.location.href = '/#dash';
           }
-        }, 1000);
+        }, 600);
       } else {
         handleLoginFailure(data.message || 'Gmail hoặc Mật khẩu không chính xác.');
       }
@@ -261,15 +261,15 @@ export const Login: React.FC = () => {
 
               setTimeout(() => {
                 if (data.role === 'customer') {
-                  window.location.hash = '#dash-custo';
+                  window.location.href = '/#dash-custo';
                 } else if (Number(data.user.authen) === 1) {
-                  window.location.hash = '#dash';
+                  window.location.href = '/#dash';
                 } else if (Number(data.user.authen) === 2) {
-                  window.location.hash = '#employ';
+                  window.location.href = '/#employ';
                 } else {
-                  window.location.hash = '#dash';
+                  window.location.href = '/#dash';
                 }
-              }, 1000);
+              }, 600);
             } else {
               handleLoginFailure(data.message || 'Đăng nhập Google thất bại.');
             }
