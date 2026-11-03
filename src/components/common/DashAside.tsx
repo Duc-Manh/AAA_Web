@@ -11,7 +11,6 @@ import {
   Wallet,
   ClipboardList,
   Activity,
-  History,
   Wrench,
   X
 } from 'lucide-react';
@@ -164,17 +163,6 @@ export const DashAside: React.FC<DashAsideProps> = ({
         >
           <Activity size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Quản lý vận hành</span>}
-        </button>
-        <button
-          type="button"
-          className={`dash-menu-item ${isTabActive('history', ['#dash-history', '/dash-history']) ? 'active' : ''}`}
-          onClick={() => {
-            setIsMobileOpen(false);
-            window.location.hash = '#dash-history';
-          }}
-        >
-          <History size={19} className="dash-menu-icon" />
-          {!isCollapsed && <span>Lịch sử vận hành</span>}
         </button>
         <button
           type="button"

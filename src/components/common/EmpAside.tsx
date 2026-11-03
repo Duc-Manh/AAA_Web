@@ -9,7 +9,6 @@ import {
   Wallet,
   ClipboardList,
   Activity,
-  History,
   Settings,
   Menu,
   Wrench,
@@ -185,22 +184,6 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
         >
           <Activity size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Quản lý vận hành</span>}
-        </button>
-
-        {/* 9. Lịch sử viễn trắc -> EmployHistory.tsx (#employ-history) */}
-        <button
-          type="button"
-          className={`dash-menu-item ${isTabActive('history', ['#employ-history', '/employ-history']) ? 'active' : ''}`}
-          onClick={() => {
-            setIsMobileOpen(false);
-            if (setActiveTab) {
-              setActiveTab('history');
-            }
-            window.location.hash = '#employ-history';
-          }}
-        >
-          <History size={19} className="dash-menu-icon" />
-          {!isCollapsed && <span>Lịch sử vận hành</span>}
         </button>
         {/* 6. Tài chính kế toán -> EmployFinan.tsx (#employ-finan) */}
         <button

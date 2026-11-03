@@ -202,7 +202,7 @@ export const ProjectTelemetryChartModal: React.FC<ProjectTelemetryChartModalProp
   const fetchTelemetryHistory = async () => {
     if (!project) return;
 
-    // 1. Nếu project truyền vào đã có sẵn danh sách records (từ EmployHistory hoặc DashHistory)
+    // 1. Nếu project truyền vào đã có sẵn danh sách records
     if (project.records && project.records.length > 0) {
       setRecords(project.records);
       setLoading(false);
@@ -221,11 +221,12 @@ export const ProjectTelemetryChartModal: React.FC<ProjectTelemetryChartModalProp
       } else if (project.devices && project.devices.length > 0) {
         params.append('device_ids', project.devices.map(d => d.device_id).join(','));
       }
+      params.append('order', 'ASC');
       params.append('limit', String(limit));
 
       const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
       const backendUrl = import.meta.env.VITE_API_URL || (isLocal ? 'http://localhost:5000' : '');
-      const res = await fetch(`${backendUrl}/api/telemetry-history?${params.toString()}`);
+      const res = await fetch(`${backendUrl}/api/telemetry-data?${params.toString()}`);
       if (res.ok) {
         const data = await res.json();
         if (data.success && Array.isArray(data.data) && data.data.length > 0) {
@@ -1000,7 +1001,7 @@ export const ProjectTelemetryChartModal: React.FC<ProjectTelemetryChartModalProp
               }}
             >
               <RefreshCw size={24} className="spin" color="#1D58BB" />
-              <span>Đang tải lịch sử viễn trắc từ bảng telemetry_history...</span>
+              <span>Đang tải dữ liệu viễn trắc từ bảng telemetry_data...</span>
             </div>
           ) : error ? (
             <div
@@ -1048,10 +1049,10 @@ export const ProjectTelemetryChartModal: React.FC<ProjectTelemetryChartModalProp
             >
               <Activity size={32} style={{ color: '#94a3b8' }} />
               <div style={{ fontWeight: 600, fontSize: '0.95rem', color: '#334155' }}>
-                Chưa có dữ liệu viễn trắc trong bảng telemetry_history cho dự án này
+                Chưa có dữ liệu viễn trắc trong bảng telemetry_data cho dự án này
               </div>
               <div style={{ fontSize: '0.8rem', color: '#94a3b8', maxWidth: '480px', textAlign: 'center' }}>
-                Khi các thiết bị con của Gateway gửi gói tin MQTT hoặc viễn trắc chu kỳ định kỳ, dữ liệu sẽ được lưu tự động vào bảng telemetry_history và hiển thị tại đây.
+                Khi các thiết bị con của Gateway gửi gói tin MQTT hoặc viễn trắc chu kỳ định kỳ, dữ liệu sẽ được lưu tự động vào bảng telemetry_data và hiển thị tại đây.
               </div>
             </div>
           ) : selectedMetric === 'all' ? (

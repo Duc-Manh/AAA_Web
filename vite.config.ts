@@ -2039,14 +2039,19 @@ function mysqlSimuPlugin(): Plugin {
           }
         }
 
-        // API /api/telemetry-data (Số liệu vận hành thiết bị IoT mới nhất)
+        // API /api/telemetry-data (Số liệu vận hành thiết bị IoT)
         if (url.pathname === '/api/telemetry-data' && req.method === 'GET') {
           let connection: mysql.Connection | null = null
           try {
             connection = await mysql.createConnection(mysqlConfig)
-            const device_code = url.searchParams.get('device_code')
+            const project_name = url.searchParams.get('project_name')
             const location_id = url.searchParams.get('location_id')
+            const device_ids = url.searchParams.get('device_ids')
+            const device_code = url.searchParams.get('device_code')
             const gateway_sn = url.searchParams.get('gateway_sn')
+            const search = url.searchParams.get('search')
+            const order = url.searchParams.get('order') || 'DESC'
+            const limit = url.searchParams.get('limit') || '500'
 
             let sql = `
               SELECT 
@@ -2065,73 +2070,11 @@ function mysqlSimuPlugin(): Plugin {
                 l.address AS project_address,
                 t.\`show\`,
                 t.raw_data,
-                DATE_FORMAT(t.recorded_at, '%Y-%m-%d %H:%i:%s') AS recorded_at
+                t.note,
+                DATE_FORMAT(t.recorded_at, '%Y-%m-%d %H:%i:%s') AS recorded_at,
+                DATE_FORMAT(t.recorded_at, '%H:%i %d/%m') AS time_label
               FROM telemetry_data t
               JOIN devices d ON t.device_id = d.device_id
-              LEFT JOIN gateways g ON d.gateway_id = g.gateway_id
-              LEFT JOIN locations l ON g.location_id = l.location_id
-              WHERE 1=1
-            `
-            const params: any[] = []
-            if (device_code) {
-              sql += ' AND d.device_code = ?'
-              params.push(String(device_code).toUpperCase())
-            }
-            if (location_id) {
-              sql += ' AND l.location_id = ?'
-              params.push(Number(location_id))
-            }
-            if (gateway_sn) {
-              sql += ' AND g.gateway_sn = ?'
-              params.push(String(gateway_sn))
-            }
-            sql += ' ORDER BY t.recorded_at DESC'
-
-            const [rows] = await connection.execute(sql, params)
-            const list = rows as any[]
-            res.setHeader('Content-Type', 'application/json; charset=utf-8')
-            res.end(JSON.stringify({ success: true, count: list.length, data: list }))
-          } catch {
-            res.setHeader('Content-Type', 'application/json; charset=utf-8')
-            res.end(JSON.stringify({ success: true, count: 0, data: [] }))
-          } finally {
-            if (connection) await connection.end()
-          }
-          return
-        }
-
-        // API /api/telemetry-history (Lịch sử viễn trắc thiết bị IoT)
-        if (url.pathname === '/api/telemetry-history' && req.method === 'GET') {
-          let connection: mysql.Connection | null = null
-          try {
-            connection = await mysql.createConnection(mysqlConfig)
-            const project_name = url.searchParams.get('project_name')
-            const location_id = url.searchParams.get('location_id')
-            const device_ids = url.searchParams.get('device_ids')
-            const device_code = url.searchParams.get('device_code')
-            const search = url.searchParams.get('search')
-            const order = url.searchParams.get('order') || 'ASC'
-            const limit = url.searchParams.get('limit') || '500'
-
-            let sql = `
-              SELECT 
-                h.id,
-                h.device_id,
-                d.device_code,
-                d.device_name,
-                d.device_type,
-                d.floor,
-                COALESCE(l.location_name, 'Dự án nội bộ') AS project_name,
-                l.address AS project_address,
-                l.location_id,
-                g.gateway_sn,
-                g.ip_address AS gateway_ip,
-                h.\`show\`,
-                h.raw_data,
-                DATE_FORMAT(h.recorded_at, '%Y-%m-%d %H:%i:%s') AS recorded_at,
-                DATE_FORMAT(h.recorded_at, '%H:%i %d/%m') AS time_label
-              FROM telemetry_history h
-              JOIN devices d ON h.device_id = d.device_id
               LEFT JOIN gateways g ON d.gateway_id = g.gateway_id
               LEFT JOIN locations l ON g.location_id = l.location_id
               WHERE 1=1
@@ -2149,6 +2092,10 @@ function mysqlSimuPlugin(): Plugin {
               sql += ' AND d.device_code = ?'
               params.push(String(device_code).toUpperCase())
             }
+            if (gateway_sn) {
+              sql += ' AND g.gateway_sn = ?'
+              params.push(String(gateway_sn))
+            }
             if (search) {
               sql += ' AND (d.device_code LIKE ? OR d.device_name LIKE ? OR l.location_name LIKE ?)'
               const sTerm = `%${search}%`
@@ -2157,13 +2104,13 @@ function mysqlSimuPlugin(): Plugin {
             if (device_ids) {
               const idList = String(device_ids).split(',').map(s => Number(s.trim())).filter(n => !isNaN(n))
               if (idList.length > 0) {
-                sql += ` AND h.device_id IN (${idList.map(() => '?').join(',')})`
+                sql += ` AND t.device_id IN (${idList.map(() => '?').join(',')})`
                 params.push(...idList)
               }
             }
-            const sortDir = String(order).toUpperCase() === 'DESC' ? 'DESC' : 'ASC'
+            const sortDir = String(order).toUpperCase() === 'ASC' ? 'ASC' : 'DESC'
             const limitNum = Math.min(Number(limit) || 500, 2000)
-            sql += ` ORDER BY h.recorded_at ${sortDir}, h.id ${sortDir} LIMIT ${limitNum}`
+            sql += ` ORDER BY t.recorded_at ${sortDir} LIMIT ${limitNum}`
 
             const [rows] = await connection.execute(sql, params)
             const list = rows as any[]
@@ -2172,6 +2119,57 @@ function mysqlSimuPlugin(): Plugin {
           } catch {
             res.setHeader('Content-Type', 'application/json; charset=utf-8')
             res.end(JSON.stringify({ success: true, count: 0, data: [] }))
+          } finally {
+            if (connection) await connection.end()
+          }
+          return
+        }
+
+        // PUT /api/telemetry-data/:deviceId/note (Cập nhật cột note bảng telemetry_data)
+        if (url.pathname.match(/^\/api\/telemetry-data\/\d+\/note$/) && (req.method === 'PUT' || req.method === 'POST')) {
+          const deviceId = Number(url.pathname.split('/')[3])
+          let body = ''
+          req.on('data', (chunk) => { body += chunk })
+          req.on('end', async () => {
+            let connection: mysql.Connection | null = null
+            try {
+              const { note } = JSON.parse(body || '{}')
+              connection = await mysql.createConnection(mysqlConfig)
+              try {
+                await connection.execute('ALTER TABLE telemetry_data ADD COLUMN note TEXT DEFAULT NULL')
+              } catch {
+                // Cột đã tồn tại
+              }
+              await connection.execute('UPDATE telemetry_data SET note = ? WHERE device_id = ?', [
+                note !== undefined && note !== null ? String(note) : null,
+                deviceId
+              ])
+              res.setHeader('Content-Type', 'application/json; charset=utf-8')
+              res.end(JSON.stringify({ success: true, message: 'Đã lưu ghi chú thành công', device_id: deviceId, note }))
+            } catch (err: any) {
+              res.statusCode = 500
+              res.setHeader('Content-Type', 'application/json; charset=utf-8')
+              res.end(JSON.stringify({ success: false, message: err.message }))
+            } finally {
+              if (connection) await connection.end()
+            }
+          })
+          return
+        }
+
+        // DELETE /api/telemetry-data/:deviceId (Xoá hàng tương ứng trong bảng telemetry_data)
+        if (url.pathname.match(/^\/api\/telemetry-data\/\d+$/) && req.method === 'DELETE') {
+          const deviceId = Number(url.pathname.split('/')[3])
+          let connection: mysql.Connection | null = null
+          try {
+            connection = await mysql.createConnection(mysqlConfig)
+            await connection.execute('DELETE FROM telemetry_data WHERE device_id = ?', [deviceId])
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.end(JSON.stringify({ success: true, message: 'Đã xoá hàng trong bảng telemetry_data thành công', device_id: deviceId }))
+          } catch (err: any) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json; charset=utf-8')
+            res.end(JSON.stringify({ success: false, message: err.message }))
           } finally {
             if (connection) await connection.end()
           }
