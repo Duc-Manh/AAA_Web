@@ -95,7 +95,7 @@ export const adminGuideData: DashGuideItem[] = [
     image: ['/uploads/guide/8-Custo.png', '/uploads/guide/8-Custo1.png'],
     title: 'Giao diện quản lý khách hàng',
     content:
-      'Tại mục Quản lý khách hàng, người dùng nhập thông tin khách hàng đại diện cho dự án để quản lý. Tại ô Mã device_code (kho storage) hiển thị các mã thiết bị đang còn trong kho.',
+      'Tại mục Quản lý khách hàng, người dùng nhập thông tin khách hàng đại diện cho dự án để tạo tài khoản quản lý, mật khẩu mặc định là 3AH@me. Tại ô Mã device_code (kho storage) hiển thị các mã thiết bị đang còn trong kho.',
     tags: ['Thông tin khách hàng']
   },
   {

@@ -27,10 +27,35 @@ export interface TelemetryHistoryRecord {
   power?: number | null;
   voltage?: number | null;
   current?: number | null;
+  show?: any;
   raw_data?: any;
   recorded_at: string;
-  time_label: string;
+  time_label?: string;
 }
+
+const normalizeRecordMetrics = (r: TelemetryHistoryRecord): TelemetryHistoryRecord => {
+  const parseObj = (val: any) => {
+    if (!val) return null;
+    if (typeof val === 'object') return val;
+    if (typeof val === 'string') {
+      try {
+        return JSON.parse(val);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+  const showObj = parseObj(r.show) || parseObj(r.raw_data) || {};
+  return {
+    ...r,
+    temperature: r.temperature ?? (showObj.m1 !== undefined ? Number(showObj.m1) : null),
+    humidity: r.humidity ?? (showObj.m2 !== undefined ? Number(showObj.m2) : null),
+    voltage: r.voltage ?? (showObj.m3 !== undefined ? Number(showObj.m3) : null),
+    power: r.power ?? (showObj.m4 !== undefined ? Number(showObj.m4) : null),
+    current: r.current ?? (showObj.m5 !== undefined ? Number(showObj.m5) : null)
+  };
+};
 
 export interface ProjectTelemetryChartModalProps {
   project: {
@@ -236,9 +261,10 @@ export const ProjectTelemetryChartModal: React.FC<ProjectTelemetryChartModalProp
 
   // Lọc danh sách theo thiết bị nếu chọn
   const filteredRecords = useMemo(() => {
-    if (selectedDeviceId === 'all') return records;
+    const normalized = records.map(normalizeRecordMetrics);
+    if (selectedDeviceId === 'all') return normalized;
     const devId = Number(selectedDeviceId);
-    return records.filter(r => r.device_id === devId);
+    return normalized.filter(r => r.device_id === devId);
   }, [records, selectedDeviceId]);
 
   // Tính toán số liệu thống kê (Latest, Min, Max, Avg) cho mỗi thông số

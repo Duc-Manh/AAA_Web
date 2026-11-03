@@ -50,14 +50,14 @@ export const EmployFinan: React.FC = () => {
         setIsCollapsed={setIsCollapsed}
         isMobileOpen={isMobileOpen}
         setIsMobileOpen={setIsMobileOpen}
-        triggerToast={() => {}}
+        triggerToast={() => { }}
       />
 
       {/* 2. KHU VỰC NỘI DUNG CHÍNH */}
       <div className="dash-main">
         {/* TOP NAVBAR */}
         <EmpHeader
-          title="Quản Lý Thu Chi & Tài Chính"
+          title="Quản Lý Thu Chi và Tài Chính"
           subtitle="Theo dõi doanh thu, chi phí dự án và báo cáo tài chính nội bộ 3AHOME"
           isMobileOpen={isMobileOpen}
           setIsMobileOpen={setIsMobileOpen}

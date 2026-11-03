@@ -4,9 +4,6 @@ import { EmpAside } from '../../components/common/EmpAside';
 import { EmpHeader } from '../../components/common/EmpHeader';
 import {
   RefreshCw,
-  Thermometer,
-  Droplets,
-  Zap,
   Cpu,
   Search,
   Building2,
@@ -17,7 +14,11 @@ import {
   Network,
   ChevronDown,
   ChevronRight,
-  BarChart3
+  BarChart3,
+  Plus,
+  Minus,
+  Trash2,
+  X
 } from 'lucide-react';
 import { ProjectTelemetryChartModal } from '../../components/common/ProjectTelemetryChartModal';
 
@@ -29,6 +30,7 @@ interface CurrentUserData {
 }
 
 export interface TelemetryDeviceRow {
+  id?: number;
   device_id: number;
   device_code: string;
   device_name: string;
@@ -42,14 +44,96 @@ export interface TelemetryDeviceRow {
   location_id?: number;
   project_name?: string;
   project_address?: string;
-  temperature?: number | null;
-  humidity?: number | null;
-  power?: number | null;
-  voltage?: number | null;
-  current?: number | null;
+  show?: any;
   raw_data?: any;
   recorded_at: string;
 }
+
+export const extractMValues = (row: any): Record<string, any> => {
+  const result: Record<string, any> = {};
+  const parseObj = (val: any) => {
+    if (!val) return null;
+    if (typeof val === 'object') return val;
+    if (typeof val === 'string') {
+      try {
+        return JSON.parse(val);
+      } catch {
+        return null;
+      }
+    }
+    return null;
+  };
+
+  const showObj = parseObj(row?.show);
+  const rawObj = parseObj(row?.raw_data);
+  const source = showObj || rawObj?.values || rawObj || {};
+
+  Object.keys(source).forEach((k) => {
+    if (/^m\d+$/i.test(k) && source[k] !== undefined && source[k] !== null) {
+      result[k.toLowerCase()] = source[k];
+    }
+  });
+
+  if (Object.keys(result).length === 0 && source && typeof source === 'object') {
+    const ignored = new Set([
+      'device_code',
+      'device_id',
+      'deviceId',
+      'deviceCode',
+      'device_name',
+      'device_type',
+      'floor',
+      'timestamp',
+      'status',
+      'gateway',
+      'values'
+    ]);
+    const otherKeys = Object.keys(source).filter(
+      (k) => !ignored.has(k) && source[k] !== null && source[k] !== undefined && typeof source[k] !== 'object'
+    );
+    otherKeys.forEach((k, idx) => {
+      result[`m${idx + 1}`] = source[k];
+    });
+  }
+
+  return result;
+};
+
+export const getMaxMIndex = (rows: any[]): number => {
+  let maxIdx = 3;
+  rows.forEach((r) => {
+    const mVals = extractMValues(r);
+    Object.keys(mVals).forEach((k) => {
+      const match = k.match(/^m(\d+)$/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxIdx) maxIdx = num;
+      }
+    });
+  });
+  return maxIdx;
+};
+
+export const parseRecordedAtMs = (val?: string): number => {
+  if (!val) return 0;
+  const trimmed = String(val).trim();
+  const vnMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})\s+(\d{1,2}):(\d{1,2})(?::(\d{1,2}))?/);
+  if (vnMatch) {
+    const [, dd, mm, yyyy, hh, min, ss = '0'] = vnMatch;
+    return new Date(Number(yyyy), Number(mm) - 1, Number(dd), Number(hh), Number(min), Number(ss)).getTime();
+  }
+  const isoStr = trimmed.includes('T') ? trimmed : trimmed.replace(' ', 'T');
+  const parsed = Date.parse(isoStr);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+export const sortRowsNewestFirst = <T extends { recorded_at?: string; id?: number; device_id?: number }>(rows: T[]): T[] => {
+  return [...rows].sort((a, b) => {
+    const diff = parseRecordedAtMs(b.recorded_at) - parseRecordedAtMs(a.recorded_at);
+    if (diff !== 0) return diff;
+    return (Number(b.id || b.device_id) || 0) - (Number(a.id || a.device_id) || 0);
+  });
+};
 
 export interface ProjectGroup {
   location_id?: number;
@@ -70,6 +154,32 @@ export const EmployOperate: React.FC = () => {
 
   // Danh sách dữ liệu viễn trắc (mỗi thiết bị là 1 hàng trong DB)
   const [telemetryList, setTelemetryList] = useState<TelemetryDeviceRow[]>([]);
+  // Lịch sử các gói tin MQTT nhận được theo từng thiết bị để hiển thị các hàng trong bảng Giá trị
+  const [deviceRowsMap, setDeviceRowsMap] = useState<Record<string, TelemetryDeviceRow[]>>({});
+  // Danh sách cột m tuỳ chỉnh và danh sách cột m đã xoá của từng thiết bị
+  const [customMColsMap, setCustomMColsMap] = useState<Record<string, string[]>>(() => {
+    try {
+      const saved = localStorage.getItem('aaa_telemetry_m_col_list');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+  const [removedMColsMap, setRemovedMColsMap] = useState<Record<string, string[]>>(() => {
+    try {
+      const saved = localStorage.getItem('aaa_telemetry_removed_m_cols');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+  // Trạng thái hiển thị bảng chọn xoá nhiều cột m
+  const [deleteColModal, setDeleteColModal] = useState<{
+    devKey: string;
+    deviceName: string;
+    columns: string[];
+    selected: string[];
+  } | null>(null);
   const [loading, setLoading] = useState(true);
   const [lastFetched, setLastFetched] = useState<string>('');
   const [autoRefresh, setAutoRefresh] = useState(true);
@@ -89,6 +199,89 @@ export const EmployOperate: React.FC = () => {
   const wsRef = useRef<WebSocket | null>(null);
   const pollTimerRef = useRef<any>(null);
 
+  const getDeviceMColumns = (devKey: string, rows: any[]): string[] => {
+    const maxDataM = getMaxMIndex(rows);
+    const defaultCols = Array.from({ length: Math.max(3, maxDataM) }, (_, i) => `m${i + 1}`);
+    const removed = new Set(removedMColsMap[devKey] || []);
+    const custom = customMColsMap[devKey] || [];
+    const merged = new Set<string>();
+    defaultCols.forEach((c) => {
+      if (!removed.has(c)) merged.add(c);
+    });
+    custom.forEach((c) => {
+      if (!removed.has(c)) merged.add(c);
+    });
+    return Array.from(merged).sort((a, b) => {
+      const na = parseInt(a.replace(/^m/i, ''), 10) || 0;
+      const nb = parseInt(b.replace(/^m/i, ''), 10) || 0;
+      return na - nb;
+    });
+  };
+
+  const handleAddMColumn = (devKey: string, currentCols: string[]) => {
+    let maxNum = 0;
+    currentCols.forEach((c) => {
+      const n = parseInt(c.replace(/^m/i, ''), 10) || 0;
+      if (n > maxNum) maxNum = n;
+    });
+    const nextCol = `m${maxNum + 1}`;
+
+    setRemovedMColsMap((prev) => {
+      const list = (prev[devKey] || []).filter((c) => c !== nextCol);
+      const next = { ...prev, [devKey]: list };
+      try {
+        localStorage.setItem('aaa_telemetry_removed_m_cols', JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+
+    setCustomMColsMap((prev) => {
+      const existing = prev[devKey] || currentCols;
+      const updated = Array.from(new Set([...existing, nextCol]));
+      const next = { ...prev, [devKey]: updated };
+      try {
+        localStorage.setItem('aaa_telemetry_m_col_list', JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+  };
+
+  const handleConfirmDeleteColumns = () => {
+    if (!deleteColModal || deleteColModal.selected.length === 0) return;
+    const { devKey, selected, columns } = deleteColModal;
+    const toRemoveSet = new Set(selected);
+
+    setRemovedMColsMap((prev) => {
+      const existing = prev[devKey] || [];
+      const updated = Array.from(new Set([...existing, ...selected]));
+      const next = { ...prev, [devKey]: updated };
+      try {
+        localStorage.setItem('aaa_telemetry_removed_m_cols', JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+
+    setCustomMColsMap((prev) => {
+      const existing = prev[devKey] || columns;
+      const updated = existing.filter((c) => !toRemoveSet.has(c));
+      const next = { ...prev, [devKey]: updated };
+      try {
+        localStorage.setItem('aaa_telemetry_m_col_list', JSON.stringify(next));
+      } catch {
+        // ignore
+      }
+      return next;
+    });
+
+    setDeleteColModal(null);
+  };
+
   useEffect(() => {
     window.scrollTo(0, 0);
     const authData = localStorage.getItem('aaa_admin_auth');
@@ -107,14 +300,55 @@ export const EmployOperate: React.FC = () => {
     try {
       const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
       const backendUrl = import.meta.env.VITE_API_URL || (isLocal ? 'http://localhost:5000' : '');
-      const res = await fetch(`${backendUrl}/api/telemetry-data`);
-      if (res.ok) {
-        const json = await res.json();
-        if (json.success && Array.isArray(json.data)) {
-          setTelemetryList(json.data);
-          const now = new Date();
-          setLastFetched(now.toLocaleTimeString('vi-VN'));
+
+      let dataRows: TelemetryDeviceRow[] = [];
+      try {
+        const res = await fetch(`${backendUrl}/api/telemetry-data`);
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            dataRows = json.data;
+          }
         }
+      } catch {
+        const fallbackRes = await fetch('/api/telemetry-data');
+        if (fallbackRes.ok) {
+          const json = await fallbackRes.json();
+          if (json.success && Array.isArray(json.data)) {
+            dataRows = json.data;
+          }
+        }
+      }
+
+      if (dataRows.length > 0) {
+        setTelemetryList(dataRows);
+        const now = new Date();
+        setLastFetched(now.toLocaleTimeString('vi-VN'));
+      }
+
+      // Đồng thời tải lịch sử bản tin MQTT (telemetry_history) để hiển thị các hàng giá trị bên dưới
+      try {
+        let histRes = await fetch(`${backendUrl}/api/telemetry-history?order=DESC&limit=300`).catch(() => null);
+        if (!histRes || !histRes.ok) {
+          histRes = await fetch('/api/telemetry-history?order=DESC&limit=300').catch(() => null);
+        }
+        if (histRes && histRes.ok) {
+          const histJson = await histRes.json();
+          if (histJson.success && Array.isArray(histJson.data)) {
+            const grouped: Record<string, TelemetryDeviceRow[]> = {};
+            histJson.data.forEach((hRow: TelemetryDeviceRow) => {
+              const key = hRow.device_code || String(hRow.device_id);
+              if (!grouped[key]) grouped[key] = [];
+              grouped[key].push(hRow);
+            });
+            Object.keys(grouped).forEach((k) => {
+              grouped[k] = sortRowsNewestFirst(grouped[k]);
+            });
+            setDeviceRowsMap(grouped);
+          }
+        }
+      } catch {
+        // ignore
       }
     } catch (err) {
       console.warn('Lỗi khi tải dữ liệu telemetry_data:', err);
@@ -252,12 +486,20 @@ export const EmployOperate: React.FC = () => {
     }
     const grp = groupMap.get(pName)!;
     grp.devices.push(row);
-    if (row.recorded_at && (!grp.latest_recorded_at || row.recorded_at > grp.latest_recorded_at)) {
+    if (
+      row.recorded_at &&
+      (!grp.latest_recorded_at || parseRecordedAtMs(row.recorded_at) > parseRecordedAtMs(grp.latest_recorded_at))
+    ) {
       grp.latest_recorded_at = row.recorded_at;
     }
   });
 
-  const projectGroups = Array.from(groupMap.values());
+  const projectGroups = Array.from(groupMap.values())
+    .map((grp) => ({
+      ...grp,
+      devices: sortRowsNewestFirst(grp.devices)
+    }))
+    .sort((a, b) => parseRecordedAtMs(b.latest_recorded_at) - parseRecordedAtMs(a.latest_recorded_at));
 
   // Toggle mở / đóng dropdown của 1 dự án
   const toggleProject = (projectName: string) => {
@@ -931,179 +1173,326 @@ export const EmployOperate: React.FC = () => {
                                               letterSpacing: '0.4px'
                                             }}
                                           >
-                                            <th style={{ padding: '10px 12px', width: '80px' }}>ID</th>
-                                            <th style={{ padding: '10px 12px', width: '150px' }}>Mã thiết bị</th>
+                                            <th style={{ padding: '10px 12px', width: '70px' }}>ID</th>
+                                            <th style={{ padding: '10px 12px', width: '140px' }}>Mã thiết bị</th>
                                             <th style={{ padding: '10px 12px', width: '180px' }}>Tên thiết bị</th>
-                                            <th style={{ padding: '10px 12px', textAlign: 'center', width: '120px' }}>
-                                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                                                <Thermometer size={13} color="#ef4444" /> Nhiệt độ
-                                              </div>
-                                            </th>
-                                            <th style={{ padding: '10px 12px', textAlign: 'center', width: '120px' }}>
-                                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                                                <Droplets size={13} color="#0284c7" /> Độ ẩm
-                                              </div>
-                                            </th>
-                                            <th style={{ padding: '10px 12px', textAlign: 'center', width: '120px' }}>
-                                              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
-                                                <Zap size={13} color="#f59e0b" /> Công suất
-                                              </div>
-                                            </th>
-                                            <th style={{ padding: '10px 12px', textAlign: 'center', width: '130px' }}>Điện áp / Dòng</th>
-                                            <th style={{ padding: '10px 12px', width: '150px' }}>Cập nhật lúc</th>
+                                            <th style={{ padding: '10px 12px', textAlign: 'center' }}>Giá trị</th>
                                             <th style={{ padding: '10px 12px', textAlign: 'center', width: '100px' }}>Trạng thái</th>
                                           </tr>
                                         </thead>
                                         <tbody>
                                           {group.devices.length === 0 ? (
                                             <tr>
-                                              <td colSpan={9} style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
+                                              <td colSpan={5} style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
                                                 Dự án này chưa có thiết bị nào truyền dữ liệu
                                               </td>
                                             </tr>
                                           ) : (
-                                            group.devices.map((dev, devIdx) => (
-                                              <tr
-                                                key={dev.device_id}
-                                                style={{
-                                                  borderBottom: '1px solid #f1f5f9',
-                                                  backgroundColor: devIdx % 2 === 0 ? '#ffffff' : '#fafafa'
-                                                }}
-                                              >
-                                                {/* ID */}
-                                                <td style={{ padding: '10px 12px', fontWeight: 700, color: '#64748b' }}>
-                                                  #{dev.device_id}
-                                                </td>
+                                            group.devices.map((dev, devIdx) => {
+                                              const devKey = dev.device_code || String(dev.device_id);
+                                              const rawHistRows =
+                                                deviceRowsMap[devKey] && deviceRowsMap[devKey].length > 0
+                                                  ? deviceRowsMap[devKey]
+                                                  : [dev];
+                                              const combinedRows = rawHistRows.some(
+                                                (r) => r.recorded_at === dev.recorded_at
+                                              )
+                                                ? rawHistRows
+                                                : [dev, ...rawHistRows];
+                                              const histRows = sortRowsNewestFirst(combinedRows);
+                                              const mCols = getDeviceMColumns(devKey, [dev, ...histRows]);
 
-                                                {/* Mã thiết bị */}
-                                                <td style={{ padding: '10px 12px' }}>
-                                                  <span
-                                                    style={{
-                                                      display: 'inline-block',
-                                                      padding: '3px 8px',
-                                                      backgroundColor: '#eff6ff',
-                                                      color: '#1D58BB',
-                                                      borderRadius: '6px',
-                                                      fontFamily: 'monospace',
-                                                      fontWeight: 700,
-                                                      fontSize: '0.8rem',
-                                                      border: '1px solid #bfdbfe'
-                                                    }}
-                                                  >
-                                                    {dev.device_code}
-                                                  </span>
-                                                </td>
+                                              return (
+                                                <tr
+                                                  key={dev.device_id}
+                                                  style={{
+                                                    borderBottom: '1px solid #f1f5f9',
+                                                    backgroundColor: devIdx % 2 === 0 ? '#ffffff' : '#fafafa',
+                                                    verticalAlign: 'top'
+                                                  }}
+                                                >
+                                                  {/* ID */}
+                                                  <td style={{ padding: '12px', fontWeight: 700, color: '#64748b' }}>
+                                                    #{dev.device_id}
+                                                  </td>
 
-                                                {/* Tên thiết bị */}
-                                                <td style={{ padding: '10px 12px', fontWeight: 600, color: '#0f172a' }}>
-                                                  {dev.device_name}
-                                                  <div style={{ fontSize: '0.7rem', color: '#94a3b8' }}>
-                                                    Modbus #{dev.slave_address} {dev.floor ? `(${dev.floor})` : ''}
-                                                  </div>
-                                                </td>
+                                                  {/* Mã thiết bị */}
+                                                  <td style={{ padding: '12px' }}>
+                                                    <span
+                                                      style={{
+                                                        display: 'inline-block',
+                                                        padding: '3px 8px',
+                                                        backgroundColor: '#eff6ff',
+                                                        color: '#1D58BB',
+                                                        borderRadius: '6px',
+                                                        fontFamily: 'monospace',
+                                                        fontWeight: 700,
+                                                        fontSize: '0.8rem',
+                                                        border: '1px solid #bfdbfe'
+                                                      }}
+                                                    >
+                                                      {dev.device_code}
+                                                    </span>
+                                                  </td>
 
-                                                {/* Nhiệt độ */}
-                                                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                                                  {dev.temperature !== null && dev.temperature !== undefined ? (
+                                                  {/* Tên thiết bị */}
+                                                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>
+                                                    {dev.device_name}
+                                                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
+                                                      Modbus #{dev.slave_address} {dev.floor ? `(${dev.floor})` : ''}
+                                                    </div>
+                                                  </td>
+
+                                                  {/* Cột Giá trị: Bảng lồng gồm m1, m2, m3, ..., Cập nhật lúc và nút Thêm cột */}
+                                                  <td style={{ padding: '10px 12px' }}>
+                                                    <div
+                                                      style={{
+                                                        border: '1px solid #cbd5e1',
+                                                        borderRadius: '8px',
+                                                        maxWidth: '685px',
+                                                        margin: '0 auto',
+                                                        overflowX: mCols.length > 5 ? 'auto' : 'hidden',
+                                                        maxHeight: histRows.length > 10 ? '365px' : 'none',
+                                                        overflowY: histRows.length > 10 ? 'auto' : 'visible',
+                                                        backgroundColor: '#ffffff'
+                                                      }}
+                                                    >
+                                                      <table
+                                                        style={{
+                                                          width: mCols.length > 5 ? `${mCols.length * 72 + 325}px` : '100%',
+                                                          minWidth: mCols.length > 5 ? `${mCols.length * 72 + 325}px` : undefined,
+                                                          borderCollapse: 'separate',
+                                                          borderSpacing: 0,
+                                                          fontSize: '0.78rem',
+                                                          textAlign: 'center'
+                                                        }}
+                                                      >
+                                                        <thead>
+                                                          <tr
+                                                            style={{
+                                                              backgroundColor: '#f8fafc',
+                                                              color: '#1e293b',
+                                                              fontWeight: 700
+                                                            }}
+                                                          >
+                                                            {mCols.map((mKey) => (
+                                                              <th
+                                                                key={mKey}
+                                                                style={{
+                                                                  position: 'sticky',
+                                                                  top: 0,
+                                                                  zIndex: 2,
+                                                                  backgroundColor: '#f8fafc',
+                                                                  padding: '7px 10px',
+                                                                  borderBottom: '1px solid #cbd5e1',
+                                                                  borderRight: '1px solid #e2e8f0',
+                                                                  fontFamily: 'monospace',
+                                                                  color: '#1D58BB',
+                                                                  width: '72px',
+                                                                  minWidth: '72px',
+                                                                  maxWidth: '72px',
+                                                                  boxSizing: 'border-box'
+                                                                }}
+                                                              >
+                                                                {mKey}
+                                                              </th>
+                                                            ))}
+                                                            <th
+                                                              style={{
+                                                                position: 'sticky',
+                                                                top: 0,
+                                                                right: mCols.length > 5 ? '180px' : undefined,
+                                                                zIndex: mCols.length > 5 ? 3 : 2,
+                                                                backgroundColor: '#f8fafc',
+                                                                padding: '7px 10px',
+                                                                borderBottom: '1px solid #cbd5e1',
+                                                                borderRight: '1px solid #e2e8f0',
+                                                                borderLeft: mCols.length > 5 ? '1px solid #cbd5e1' : undefined,
+                                                                width: '145px',
+                                                                minWidth: '145px',
+                                                                color: '#475569',
+                                                                boxSizing: 'border-box'
+                                                              }}
+                                                            >
+                                                              Cập nhật lúc
+                                                            </th>
+                                                            <th
+                                                              style={{
+                                                                position: 'sticky',
+                                                                top: 0,
+                                                                right: mCols.length > 5 ? 0 : undefined,
+                                                                zIndex: mCols.length > 5 ? 3 : 2,
+                                                                backgroundColor: '#f8fafc',
+                                                                borderBottom: '1px solid #cbd5e1',
+                                                                padding: '5px 8px',
+                                                                width: '180px',
+                                                                minWidth: '180px',
+                                                                boxSizing: 'border-box'
+                                                              }}
+                                                            >
+                                                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                                                <button
+                                                                  type="button"
+                                                                  onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleAddMColumn(devKey, mCols);
+                                                                  }}
+                                                                  style={{
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '3px',
+                                                                    padding: '4px 8px',
+                                                                    borderRadius: '6px',
+                                                                    border: '1px solid #1D58BB',
+                                                                    backgroundColor: '#eff6ff',
+                                                                    color: '#1D58BB',
+                                                                    fontSize: '0.72rem',
+                                                                    fontWeight: 700,
+                                                                    cursor: 'pointer',
+                                                                    whiteSpace: 'nowrap'
+                                                                  }}
+                                                                  title="Thêm cột thông số m tiếp theo"
+                                                                >
+                                                                  <Plus size={12} />
+                                                                  <span>Thêm cột</span>
+                                                                </button>
+                                                                <button
+                                                                  type="button"
+                                                                  disabled={mCols.length === 0}
+                                                                  onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setDeleteColModal({
+                                                                      devKey,
+                                                                      deviceName: dev.device_name || dev.device_code,
+                                                                      columns: mCols,
+                                                                      selected: []
+                                                                    });
+                                                                  }}
+                                                                  style={{
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '3px',
+                                                                    padding: '4px 8px',
+                                                                    borderRadius: '6px',
+                                                                    border: '1px solid #ef4444',
+                                                                    backgroundColor: mCols.length === 0 ? '#f8fafc' : '#fef2f2',
+                                                                    color: mCols.length === 0 ? '#cbd5e1' : '#dc2626',
+                                                                    borderColor: mCols.length === 0 ? '#e2e8f0' : '#fca5a5',
+                                                                    fontSize: '0.72rem',
+                                                                    fontWeight: 700,
+                                                                    cursor: mCols.length === 0 ? 'not-allowed' : 'pointer',
+                                                                    whiteSpace: 'nowrap'
+                                                                  }}
+                                                                  title="Mở bảng chọn các cột m muốn xoá"
+                                                                >
+                                                                  <Minus size={12} />
+                                                                  <span>Xoá cột</span>
+                                                                </button>
+                                                              </div>
+                                                            </th>
+                                                          </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                          {histRows.map((mRow, rIdx) => {
+                                                            const mVals = extractMValues(mRow);
+                                                            return (
+                                                              <tr
+                                                                key={mRow.id ? `h-${mRow.id}` : `r-${rIdx}-${mRow.recorded_at}`}
+                                                                style={{
+                                                                  backgroundColor: rIdx === 0 ? '#f0fdf4' : '#ffffff'
+                                                                }}
+                                                              >
+                                                                {mCols.map((mKey) => {
+                                                                  const val = mVals[mKey];
+                                                                  const hasVal = val !== undefined && val !== null && val !== '';
+                                                                  return (
+                                                                    <td
+                                                                      key={mKey}
+                                                                      style={{
+                                                                        padding: '7px 10px',
+                                                                        borderBottom: rIdx < histRows.length - 1 ? '1px solid #f1f5f9' : 'none',
+                                                                        borderRight: '1px solid #f1f5f9',
+                                                                        fontWeight: hasVal ? 700 : 400,
+                                                                        color: hasVal ? '#0f172a' : '#cbd5e1',
+                                                                        fontFamily: 'monospace',
+                                                                        width: '72px',
+                                                                        minWidth: '72px',
+                                                                        maxWidth: '72px',
+                                                                        boxSizing: 'border-box'
+                                                                      }}
+                                                                    >
+                                                                      {hasVal ? String(val) : '--'}
+                                                                    </td>
+                                                                  );
+                                                                })}
+                                                                <td
+                                                                  style={{
+                                                                    position: mCols.length > 5 ? 'sticky' : undefined,
+                                                                    right: mCols.length > 5 ? '180px' : undefined,
+                                                                    zIndex: mCols.length > 5 ? 1 : undefined,
+                                                                    backgroundColor: rIdx === 0 ? '#f0fdf4' : '#ffffff',
+                                                                    padding: '7px 10px',
+                                                                    borderBottom: rIdx < histRows.length - 1 ? '1px solid #f1f5f9' : 'none',
+                                                                    borderRight: '1px solid #f1f5f9',
+                                                                    borderLeft: mCols.length > 5 ? '1px solid #e2e8f0' : undefined,
+                                                                    color: '#64748b',
+                                                                    fontFamily: 'monospace',
+                                                                    fontSize: '0.74rem',
+                                                                    whiteSpace: 'nowrap',
+                                                                    width: '145px',
+                                                                    minWidth: '145px',
+                                                                    boxSizing: 'border-box'
+                                                                  }}
+                                                                >
+                                                                  {mRow.recorded_at || '--'}
+                                                                </td>
+                                                                <td
+                                                                  style={{
+                                                                    position: mCols.length > 5 ? 'sticky' : undefined,
+                                                                    right: mCols.length > 5 ? 0 : undefined,
+                                                                    zIndex: mCols.length > 5 ? 1 : undefined,
+                                                                    backgroundColor: rIdx === 0 ? '#f0fdf4' : '#ffffff',
+                                                                    borderBottom: rIdx < histRows.length - 1 ? '1px solid #f1f5f9' : 'none',
+                                                                    padding: '7px 8px',
+                                                                    width: '180px',
+                                                                    minWidth: '180px',
+                                                                    fontSize: '0.7rem',
+                                                                    color: '#16a34a',
+                                                                    fontWeight: 600,
+                                                                    boxSizing: 'border-box'
+                                                                  }}
+                                                                >
+                                                                  {rIdx === 0 ? 'Mới nhất' : `#${rIdx + 1}`}
+                                                                </td>
+                                                              </tr>
+                                                            );
+                                                          })}
+                                                        </tbody>
+                                                      </table>
+                                                    </div>
+                                                  </td>
+
+                                                  {/* Trạng thái */}
+                                                  <td style={{ padding: '12px', textAlign: 'center' }}>
                                                     <span
                                                       style={{
                                                         display: 'inline-flex',
                                                         alignItems: 'center',
                                                         gap: '3px',
-                                                        padding: '3px 8px',
-                                                        borderRadius: '12px',
-                                                        backgroundColor: '#fef2f2',
-                                                        color: '#ef4444',
-                                                        fontWeight: 700,
-                                                        fontSize: '0.82rem',
-                                                        border: '1px solid #fee2e2'
+                                                        padding: '2px 7px',
+                                                        borderRadius: '6px',
+                                                        backgroundColor: '#ecfdf5',
+                                                        color: '#16a34a',
+                                                        fontSize: '0.7rem',
+                                                        fontWeight: 600
                                                       }}
                                                     >
-                                                      {dev.temperature} °C
+                                                      <CheckCircle2 size={11} /> Online
                                                     </span>
-                                                  ) : (
-                                                    <span style={{ color: '#cbd5e1' }}>--</span>
-                                                  )}
-                                                </td>
-
-                                                {/* Độ ẩm */}
-                                                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                                                  {dev.humidity !== null && dev.humidity !== undefined ? (
-                                                    <span
-                                                      style={{
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        gap: '3px',
-                                                        padding: '3px 8px',
-                                                        borderRadius: '12px',
-                                                        backgroundColor: '#f0f9ff',
-                                                        color: '#0284c7',
-                                                        fontWeight: 700,
-                                                        fontSize: '0.82rem',
-                                                        border: '1px solid #e0f2fe'
-                                                      }}
-                                                    >
-                                                      {dev.humidity} %
-                                                    </span>
-                                                  ) : (
-                                                    <span style={{ color: '#cbd5e1' }}>--</span>
-                                                  )}
-                                                </td>
-
-                                                {/* Công suất */}
-                                                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                                                  {dev.power !== null && dev.power !== undefined ? (
-                                                    <span
-                                                      style={{
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        gap: '3px',
-                                                        padding: '3px 8px',
-                                                        borderRadius: '12px',
-                                                        backgroundColor: '#fffbeb',
-                                                        color: '#b45309',
-                                                        fontWeight: 700,
-                                                        fontSize: '0.82rem',
-                                                        border: '1px solid #fef3c7'
-                                                      }}
-                                                    >
-                                                      {dev.power} W
-                                                    </span>
-                                                  ) : (
-                                                    <span style={{ color: '#cbd5e1' }}>--</span>
-                                                  )}
-                                                </td>
-
-                                                {/* Điện áp / Dòng */}
-                                                <td style={{ padding: '10px 12px', textAlign: 'center', fontSize: '0.78rem', color: '#475569' }}>
-                                                  {dev.voltage ? `${dev.voltage}V` : '--'} / {dev.current ? `${dev.current}A` : '--'}
-                                                </td>
-
-                                                {/* Cập nhật lúc */}
-                                                <td style={{ padding: '10px 12px', color: '#64748b', fontFamily: 'monospace', fontSize: '0.76rem' }}>
-                                                  {dev.recorded_at}
-                                                </td>
-
-                                                {/* Trạng thái */}
-                                                <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                                                  <span
-                                                    style={{
-                                                      display: 'inline-flex',
-                                                      alignItems: 'center',
-                                                      gap: '3px',
-                                                      padding: '2px 7px',
-                                                      borderRadius: '6px',
-                                                      backgroundColor: '#ecfdf5',
-                                                      color: '#16a34a',
-                                                      fontSize: '0.7rem',
-                                                      fontWeight: 600
-                                                    }}
-                                                  >
-                                                    <CheckCircle2 size={11} /> Online
-                                                  </span>
-                                                </td>
-                                              </tr>
-                                            ))
+                                                  </td>
+                                                </tr>
+                                              );
+                                            })
                                           )}
                                         </tbody>
                                       </table>
@@ -1144,6 +1533,216 @@ export const EmployOperate: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* BẢNG CHỌN CÁC CỘT M MUỐN XOÁ */}
+      {deleteColModal && (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.55)',
+            backdropFilter: 'blur(3px)',
+            zIndex: 9999,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '16px'
+          }}
+          onClick={() => setDeleteColModal(null)}
+        >
+          <div
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: '16px',
+              maxWidth: '440px',
+              width: '100%',
+              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2)',
+              border: '1px solid #e2e8f0',
+              overflow: 'hidden'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Header */}
+            <div
+              style={{
+                padding: '16px 20px',
+                backgroundColor: '#f8fafc',
+                borderBottom: '1px solid #e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <div>
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#0f172a' }}>
+                  Chọn Cột Thông Số (m) Muốn Xoá
+                </h3>
+                <div style={{ fontSize: '0.78rem', color: '#64748b', marginTop: '2px' }}>
+                  Thiết bị: <strong>{deleteColModal.deviceName}</strong> ({deleteColModal.devKey})
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setDeleteColModal(null)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#94a3b8',
+                  padding: '4px'
+                }}
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            {/* Bảng danh sách các cột m xếp theo hàng */}
+            <div style={{ padding: '16px 20px', maxHeight: '340px', overflowY: 'auto' }}>
+              <div style={{ border: '1px solid #cbd5e1', borderRadius: '10px', overflow: 'hidden' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ backgroundColor: '#f1f5f9', borderBottom: '1px solid #cbd5e1', color: '#334155', fontWeight: 700 }}>
+                      <th style={{ padding: '10px 14px', width: '50px', textAlign: 'center' }}>
+                        <input
+                          type="checkbox"
+                          checked={
+                            deleteColModal.columns.length > 0 &&
+                            deleteColModal.selected.length === deleteColModal.columns.length
+                          }
+                          onChange={(e) => {
+                            const checked = e.target.checked;
+                            setDeleteColModal((prev) =>
+                              prev
+                                ? {
+                                    ...prev,
+                                    selected: checked ? [...prev.columns] : []
+                                  }
+                                : null
+                            );
+                          }}
+                          style={{ cursor: 'pointer', width: '15px', height: '15px' }}
+                          title="Chọn tất cả các hàng"
+                        />
+                      </th>
+                      <th style={{ padding: '10px 14px', width: '70px', textAlign: 'center' }}>STT</th>
+                      <th style={{ padding: '10px 14px' }}>Cột thông số (m)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {deleteColModal.columns.map((colKey, idx) => {
+                      const isSelected = deleteColModal.selected.includes(colKey);
+                      return (
+                        <tr
+                          key={colKey}
+                          onClick={() => {
+                            setDeleteColModal((prev) => {
+                              if (!prev) return null;
+                              const exists = prev.selected.includes(colKey);
+                              return {
+                                ...prev,
+                                selected: exists
+                                  ? prev.selected.filter((c) => c !== colKey)
+                                  : [...prev.selected, colKey]
+                              };
+                            });
+                          }}
+                          style={{
+                            borderBottom: idx < deleteColModal.columns.length - 1 ? '1px solid #e2e8f0' : 'none',
+                            backgroundColor: isSelected ? '#fef2f2' : '#ffffff',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.12s'
+                          }}
+                        >
+                          <td style={{ padding: '10px 14px', textAlign: 'center' }} onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => {
+                                setDeleteColModal((prev) => {
+                                  if (!prev) return null;
+                                  const exists = prev.selected.includes(colKey);
+                                  return {
+                                    ...prev,
+                                    selected: exists
+                                      ? prev.selected.filter((c) => c !== colKey)
+                                      : [...prev.selected, colKey]
+                                  };
+                                });
+                              }}
+                              style={{ cursor: 'pointer', width: '15px', height: '15px' }}
+                            />
+                          </td>
+                          <td style={{ padding: '10px 14px', textAlign: 'center', color: '#64748b', fontWeight: 600 }}>
+                            {idx + 1}
+                          </td>
+                          <td style={{ padding: '10px 14px', fontFamily: 'monospace', fontWeight: 700, color: isSelected ? '#dc2626' : '#1D58BB', fontSize: '0.9rem' }}>
+                            Cột {colKey}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Footer nút Xoá */}
+            <div
+              style={{
+                padding: '12px 20px',
+                backgroundColor: '#f8fafc',
+                borderTop: '1px solid #e2e8f0',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between'
+              }}
+            >
+              <span style={{ fontSize: '0.8rem', color: '#64748b' }}>
+                Đã chọn: <strong style={{ color: '#dc2626' }}>{deleteColModal.selected.length}</strong> cột
+              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <button
+                  type="button"
+                  onClick={() => setDeleteColModal(null)}
+                  style={{
+                    padding: '7px 14px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    backgroundColor: '#ffffff',
+                    color: '#475569',
+                    fontSize: '0.82rem',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Huỷ
+                </button>
+                <button
+                  type="button"
+                  disabled={deleteColModal.selected.length === 0}
+                  onClick={handleConfirmDeleteColumns}
+                  style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '5px',
+                    padding: '7px 16px',
+                    borderRadius: '8px',
+                    border: 'none',
+                    backgroundColor: deleteColModal.selected.length === 0 ? '#cbd5e1' : '#dc2626',
+                    color: '#ffffff',
+                    fontSize: '0.82rem',
+                    fontWeight: 700,
+                    cursor: deleteColModal.selected.length === 0 ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  <Trash2 size={14} />
+                  <span>Xoá ({deleteColModal.selected.length})</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Modal Biểu đồ lịch sử viễn trắc (telemetry_history) */}
       {selectedChartProject && (
