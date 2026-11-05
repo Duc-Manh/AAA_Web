@@ -11,6 +11,7 @@ import {
   Wallet,
   ClipboardList,
   Activity,
+  FlaskConical,
   Wrench,
   X
 } from 'lucide-react';
@@ -186,6 +187,22 @@ export const DashAside: React.FC<DashAsideProps> = ({
         >
           <ClipboardList size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Quản lý công việc</span>}
+        </button>
+
+        <button
+          type="button"
+          className={`dash-menu-item ${isTabActive('lab', ['#dash-lab', '/dash-lab']) ? 'active' : ''}`}
+          onClick={() => {
+            setIsMobileOpen(false);
+            if (setActiveTab) {
+              setActiveTab('lab');
+            }
+            window.location.hash = '#dash-lab';
+            window.dispatchEvent(new Event('hashchange'));
+          }}
+        >
+          <FlaskConical size={19} className="dash-menu-icon" />
+          {!isCollapsed && <span>Thử nghiệm</span>}
         </button>
 
 

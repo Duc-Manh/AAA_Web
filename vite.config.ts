@@ -2053,8 +2053,19 @@ function mysqlSimuPlugin(): Plugin {
             const order = url.searchParams.get('order') || 'DESC'
             const limit = url.searchParams.get('limit') || '500'
 
+            try {
+              await connection.execute('ALTER TABLE telemetry_data ADD COLUMN meter TEXT DEFAULT NULL')
+            } catch {}
+            try {
+              await connection.execute('ALTER TABLE telemetry_data ADD COLUMN control TEXT DEFAULT NULL')
+            } catch {}
+            try {
+              await connection.execute('ALTER TABLE telemetry_data DROP COLUMN note')
+            } catch {}
+
             let sql = `
               SELECT 
+                t.id,
                 t.device_id,
                 d.device_code,
                 d.device_name,
@@ -2070,7 +2081,8 @@ function mysqlSimuPlugin(): Plugin {
                 l.address AS project_address,
                 t.\`show\`,
                 t.raw_data,
-                t.note,
+                t.meter,
+                t.control,
                 DATE_FORMAT(t.recorded_at, '%Y-%m-%d %H:%i:%s') AS recorded_at,
                 DATE_FORMAT(t.recorded_at, '%H:%i %d/%m') AS time_label
               FROM telemetry_data t
@@ -2146,6 +2158,55 @@ function mysqlSimuPlugin(): Plugin {
               ])
               res.setHeader('Content-Type', 'application/json; charset=utf-8')
               res.end(JSON.stringify({ success: true, message: 'Đã lưu ghi chú thành công', device_id: deviceId, note }))
+            } catch (err: any) {
+              res.statusCode = 500
+              res.setHeader('Content-Type', 'application/json; charset=utf-8')
+              res.end(JSON.stringify({ success: false, message: err.message }))
+            } finally {
+              if (connection) await connection.end()
+            }
+          })
+          return
+        }
+
+        // PUT /api/telemetry-data/:deviceId/meter-control (Cập nhật cột meter và control bảng telemetry_data)
+        if (url.pathname.match(/^\/api\/telemetry-data\/\d+\/meter-control$/) && (req.method === 'PUT' || req.method === 'POST')) {
+          const deviceId = Number(url.pathname.split('/')[3])
+          let body = ''
+          req.on('data', (chunk) => { body += chunk })
+          req.on('end', async () => {
+            let connection: mysql.Connection | null = null
+            try {
+              const { meter, control, device_ids } = JSON.parse(body || '{}')
+              connection = await mysql.createConnection(mysqlConfig)
+              try {
+                await connection.execute('ALTER TABLE telemetry_data ADD COLUMN meter TEXT DEFAULT NULL')
+              } catch {}
+              try {
+                await connection.execute('ALTER TABLE telemetry_data ADD COLUMN control TEXT DEFAULT NULL')
+              } catch {}
+              const targetIds: number[] = Array.isArray(device_ids) && device_ids.length > 0
+                ? device_ids.map((id: any) => Number(id)).filter((n: number) => !Number.isNaN(n) && n > 0)
+                : [deviceId].filter((n) => !Number.isNaN(n) && n > 0)
+              const setClauses: string[] = []
+              const values: any[] = []
+              if (meter !== undefined) {
+                setClauses.push('meter = ?')
+                values.push(meter !== null && String(meter).trim() !== '' ? String(meter).trim() : null)
+              }
+              if (control !== undefined) {
+                setClauses.push('control = ?')
+                values.push(control !== null && String(control).trim() !== '' ? String(control).trim() : null)
+              }
+              if (setClauses.length > 0 && targetIds.length > 0) {
+                const placeholders = targetIds.map(() => '?').join(',')
+                await connection.execute(
+                  `UPDATE telemetry_data SET ${setClauses.join(', ')} WHERE device_id IN (${placeholders})`,
+                  [...values, ...targetIds]
+                )
+              }
+              res.setHeader('Content-Type', 'application/json; charset=utf-8')
+              res.end(JSON.stringify({ success: true, message: 'Đã lưu cột meter / control thành công', device_ids: targetIds, meter, control }))
             } catch (err: any) {
               res.statusCode = 500
               res.setHeader('Content-Type', 'application/json; charset=utf-8')

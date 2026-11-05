@@ -47,8 +47,74 @@ export interface TelemetryDeviceRow {
   show?: any;
   raw_data?: any;
   note?: string | null;
+  meter?: string | null;
+  control?: string | null;
   recorded_at: string;
 }
+
+export const parseMeterControlMap = (raw?: string | null): Record<string, string> => {
+  if (!raw || typeof raw !== 'string') return {};
+  const trimmed = raw.trim();
+  if (!trimmed) return {};
+  const map: Record<string, string> = {};
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (Array.isArray(parsed)) {
+      parsed.forEach((item) => {
+        const s = String(item || '').trim().toLowerCase();
+        if (/^m\d+$/i.test(s)) {
+          map[s] = '';
+        }
+      });
+      return map;
+    }
+    if (parsed && typeof parsed === 'object') {
+      Object.entries(parsed).forEach(([k, v]) => {
+        const s = String(k || '').trim().toLowerCase();
+        if (/^m\d+$/i.test(s)) {
+          map[s] = v !== null && v !== undefined ? String(v).trim() : '';
+        }
+      });
+      return map;
+    }
+  } catch {
+    // fallback
+  }
+  trimmed.split(/[\r\n,;]+/).forEach((part) => {
+    const line = part.trim();
+    if (!line) return;
+    const kv = line.match(/^\s*(m\d+)\s*[:=-]\s*(.*)\s*$/i);
+    if (kv) {
+      map[kv[1].toLowerCase()] = kv[2].trim();
+      return;
+    }
+    line.split(/[\s|]+/).forEach((token) => {
+      const s = token.trim().toLowerCase();
+      if (/^m\d+$/i.test(s) && !(s in map)) {
+        map[s] = '';
+      }
+    });
+  });
+  return map;
+};
+
+export const serializeMeterControlMap = (map: Record<string, string>): string => {
+  const keys = Object.keys(map)
+    .map((k) => k.trim().toLowerCase())
+    .filter((k) => /^m\d+$/i.test(k))
+    .sort((a, b) => (parseInt(a.slice(1), 10) || 0) - (parseInt(b.slice(1), 10) || 0));
+  if (keys.length === 0) return '';
+  const ordered: Record<string, string> = {};
+  keys.forEach((k) => {
+    ordered[k] = String(map[k] ?? '').trim();
+  });
+  return JSON.stringify(ordered);
+};
+
+export const parseMColList = (raw?: string | null): string[] => {
+  const map = parseMeterControlMap(raw);
+  return Object.keys(map).sort((a, b) => (parseInt(a.slice(1), 10) || 0) - (parseInt(b.slice(1), 10) || 0));
+};
 
 export const extractMValues = (row: any): Record<string, any> => {
   const result: Record<string, any> = {};
@@ -111,6 +177,20 @@ export const getMaxMIndex = (rows: any[]): number => {
         if (num > maxIdx) maxIdx = num;
       }
     });
+    parseMColList(r?.meter).forEach((k) => {
+      const match = k.match(/^m(\d+)$/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxIdx) maxIdx = num;
+      }
+    });
+    parseMColList(r?.control).forEach((k) => {
+      const match = k.match(/^m(\d+)$/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxIdx) maxIdx = num;
+      }
+    });
   });
   return maxIdx;
 };
@@ -134,6 +214,52 @@ export const sortRowsNewestFirst = <T extends { recorded_at?: string; id?: numbe
     if (diff !== 0) return diff;
     return (Number(b.id || b.device_id) || 0) - (Number(a.id || a.device_id) || 0);
   });
+};
+
+export const TELEMETRY_PARAM_OPTIONS: string[] = [
+  'Nhiệt độ',
+  'Độ ẩm',
+  'Điện áp',
+  'Độ sáng',
+  'Tốc độ',
+  'Áp lực',
+  'Lưu lượng',
+  'Nồng độ',
+  'Dòng điện',
+  'Công suất',
+  'Tần số',
+  'Điện năng',
+  'Mức độ',
+  'Điều khiển quạt',
+  'Cài đặt nhiệt độ'
+];
+
+export const parseNoteMapping = (rawNote?: string | null): Record<string, string> => {
+  if (!rawNote || typeof rawNote !== 'string') return {};
+  const trimmed = rawNote.trim();
+  if (!trimmed) return {};
+  try {
+    const parsed = JSON.parse(trimmed);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      const map: Record<string, string> = {};
+      Object.entries(parsed).forEach(([k, v]) => {
+        if (v !== null && v !== undefined && String(v).trim() !== '') {
+          map[k.toLowerCase()] = String(v).trim();
+        }
+      });
+      return map;
+    }
+  } catch {
+    const map: Record<string, string> = {};
+    trimmed.split(/\r?\n|,/).forEach((line) => {
+      const m = line.match(/^\s*(m\d+)\s*[:=-]\s*(.+)\s*$/i);
+      if (m) {
+        map[m[1].toLowerCase()] = m[2].trim();
+      }
+    });
+    return map;
+  }
+  return {};
 };
 
 export interface ProjectGroup {
@@ -174,22 +300,34 @@ export const EmployOperate: React.FC = () => {
       return {};
     }
   });
+  // Trạng thái hiển thị khung chọn Đo lường / Điều khiển khi nhấn + Thêm cột
+  const [addColMenu, setAddColMenu] = useState<{
+    projectName: string;
+    groupDevKeys: string[];
+    devices: TelemetryDeviceRow[];
+    currentCols: string[];
+    top: number;
+    left: number;
+  } | null>(null);
   // Trạng thái hiển thị bảng chọn xoá nhiều cột m
   const [deleteColModal, setDeleteColModal] = useState<{
     devKey: string;
+    groupDevKeys?: string[];
+    devices?: TelemetryDeviceRow[];
     deviceName: string;
     columns: string[];
     selected: string[];
   } | null>(null);
-  // Trạng thái nhập / sửa ghi chú (note) và xem cửa sổ chi tiết note
+  // Trạng thái nhập / sửa ghi chú (note) dạng JSON mapping m1, m2, m3... và xem cửa sổ chi tiết note
   const [editingNoteDevId, setEditingNoteDevId] = useState<number | null>(null);
-  const [noteDraftText, setNoteDraftText] = useState<string>('');
+  const [noteDraftMap, setNoteDraftMap] = useState<Record<string, string>>({});
   const [savingNoteDevId, setSavingNoteDevId] = useState<number | null>(null);
   const [viewingNoteModal, setViewingNoteModal] = useState<{
     device_id: number;
     device_code: string;
     device_name: string;
     note: string;
+    mCols: string[];
   } | null>(null);
   const [deletingDevId, setDeletingDevId] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
@@ -223,6 +361,14 @@ export const EmployOperate: React.FC = () => {
     custom.forEach((c) => {
       if (!removed.has(c)) merged.add(c);
     });
+    rows.forEach((r) => {
+      parseMColList(r?.meter).forEach((c) => {
+        if (!removed.has(c)) merged.add(c);
+      });
+      parseMColList(r?.control).forEach((c) => {
+        if (!removed.has(c)) merged.add(c);
+      });
+    });
     return Array.from(merged).sort((a, b) => {
       const na = parseInt(a.replace(/^m/i, ''), 10) || 0;
       const nb = parseInt(b.replace(/^m/i, ''), 10) || 0;
@@ -230,17 +376,51 @@ export const EmployOperate: React.FC = () => {
     });
   };
 
-  const handleAddMColumn = (devKey: string, currentCols: string[]) => {
+  const persistMeterControlToDb = async (deviceIds: number[], payload: { meter?: string; control?: string }) => {
+    if (!deviceIds || deviceIds.length === 0) return;
+    const primaryId = deviceIds[0];
+    const isLocal =
+      typeof window !== 'undefined' &&
+      (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
+    const backendUrl = import.meta.env.VITE_API_URL || (isLocal ? 'http://localhost:5000' : '');
+    const bodyStr = JSON.stringify({ ...payload, device_ids: deviceIds });
+
+    let ok = false;
+    try {
+      const res = await fetch(`${backendUrl}/api/telemetry-data/${primaryId}/meter-control`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: bodyStr
+      });
+      if (res.ok) ok = true;
+    } catch {
+      // fallback
+    }
+    if (!ok) {
+      await fetch(`/api/telemetry-data/${primaryId}/meter-control`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: bodyStr
+      }).catch(() => null);
+    }
+  };
+
+  const handleSelectAddColumnType = async (colType: 'meter' | 'control') => {
+    if (!addColMenu) return;
+    const { groupDevKeys, devices, currentCols } = addColMenu;
     let maxNum = 0;
     currentCols.forEach((c) => {
       const n = parseInt(c.replace(/^m/i, ''), 10) || 0;
       if (n > maxNum) maxNum = n;
     });
     const nextCol = `m${maxNum + 1}`;
+    setAddColMenu(null);
 
     setRemovedMColsMap((prev) => {
-      const list = (prev[devKey] || []).filter((c) => c !== nextCol);
-      const next = { ...prev, [devKey]: list };
+      const next = { ...prev };
+      groupDevKeys.forEach((devKey) => {
+        next[devKey] = (next[devKey] || []).filter((c) => c !== nextCol);
+      });
       try {
         localStorage.setItem('aaa_telemetry_removed_m_cols', JSON.stringify(next));
       } catch {
@@ -250,9 +430,11 @@ export const EmployOperate: React.FC = () => {
     });
 
     setCustomMColsMap((prev) => {
-      const existing = prev[devKey] || currentCols;
-      const updated = Array.from(new Set([...existing, nextCol]));
-      const next = { ...prev, [devKey]: updated };
+      const next = { ...prev };
+      groupDevKeys.forEach((devKey) => {
+        const existing = next[devKey] || currentCols;
+        next[devKey] = Array.from(new Set([...existing, nextCol]));
+      });
       try {
         localStorage.setItem('aaa_telemetry_m_col_list', JSON.stringify(next));
       } catch {
@@ -260,17 +442,72 @@ export const EmployOperate: React.FC = () => {
       }
       return next;
     });
+
+    // Cập nhật cột meter hoặc control cho các thiết bị trong nhóm và lưu xuống database 3ahome
+    for (const dev of devices) {
+      const dKey = dev.device_code || String(dev.device_id);
+      const devRows = deviceRowsMap[dKey] || [dev];
+      const existingMeterRaw =
+        dev.meter ??
+        devRows.find((r) => r.meter !== undefined && r.meter !== null && String(r.meter).trim() !== '')?.meter ??
+        '';
+      const existingControlRaw =
+        dev.control ??
+        devRows.find((r) => r.control !== undefined && r.control !== null && String(r.control).trim() !== '')?.control ??
+        '';
+
+      const meterMap = parseMeterControlMap(existingMeterRaw);
+      const controlMap = parseMeterControlMap(existingControlRaw);
+
+      if (colType === 'meter') {
+        if (!(nextCol in meterMap)) {
+          meterMap[nextCol] = controlMap[nextCol] || '';
+        }
+        delete controlMap[nextCol];
+      } else {
+        if (!(nextCol in controlMap)) {
+          controlMap[nextCol] = meterMap[nextCol] || '';
+        }
+        delete meterMap[nextCol];
+      }
+
+      const newMeterStr = serializeMeterControlMap(meterMap);
+      const newControlStr = serializeMeterControlMap(controlMap);
+
+      setTelemetryList((prev) =>
+        prev.map((item) =>
+          item.device_id === dev.device_id
+            ? { ...item, meter: newMeterStr, control: newControlStr }
+            : item
+        )
+      );
+      setDeviceRowsMap((prev) => {
+        if (!prev[dKey]) return prev;
+        return {
+          ...prev,
+          [dKey]: prev[dKey].map((r) => ({ ...r, meter: newMeterStr, control: newControlStr }))
+        };
+      });
+
+      await persistMeterControlToDb([dev.device_id], {
+        meter: newMeterStr,
+        control: newControlStr
+      });
+    }
   };
 
-  const handleConfirmDeleteColumns = () => {
+  const handleConfirmDeleteColumns = async () => {
     if (!deleteColModal || deleteColModal.selected.length === 0) return;
-    const { devKey, selected, columns } = deleteColModal;
-    const toRemoveSet = new Set(selected);
+    const { devKey, groupDevKeys, devices, selected, columns } = deleteColModal;
+    const targetKeys = groupDevKeys && groupDevKeys.length > 0 ? groupDevKeys : [devKey];
+    const toRemoveSet = new Set(selected.map((s) => s.toLowerCase()));
 
     setRemovedMColsMap((prev) => {
-      const existing = prev[devKey] || [];
-      const updated = Array.from(new Set([...existing, ...selected]));
-      const next = { ...prev, [devKey]: updated };
+      const next = { ...prev };
+      targetKeys.forEach((k) => {
+        const existing = next[k] || [];
+        next[k] = Array.from(new Set([...existing, ...selected]));
+      });
       try {
         localStorage.setItem('aaa_telemetry_removed_m_cols', JSON.stringify(next));
       } catch {
@@ -280,9 +517,11 @@ export const EmployOperate: React.FC = () => {
     });
 
     setCustomMColsMap((prev) => {
-      const existing = prev[devKey] || columns;
-      const updated = existing.filter((c) => !toRemoveSet.has(c));
-      const next = { ...prev, [devKey]: updated };
+      const next = { ...prev };
+      targetKeys.forEach((k) => {
+        const existing = next[k] || columns;
+        next[k] = existing.filter((c) => !toRemoveSet.has(c.toLowerCase()));
+      });
       try {
         localStorage.setItem('aaa_telemetry_m_col_list', JSON.stringify(next));
       } catch {
@@ -292,49 +531,123 @@ export const EmployOperate: React.FC = () => {
     });
 
     setDeleteColModal(null);
+
+    if (devices && devices.length > 0) {
+      for (const dev of devices) {
+        const dKey = dev.device_code || String(dev.device_id);
+        const devRows = deviceRowsMap[dKey] || [dev];
+        const existingMeterRaw =
+          dev.meter ??
+          devRows.find((r) => r.meter !== undefined && r.meter !== null && String(r.meter).trim() !== '')?.meter ??
+          '';
+        const existingControlRaw =
+          dev.control ??
+          devRows.find((r) => r.control !== undefined && r.control !== null && String(r.control).trim() !== '')?.control ??
+          '';
+
+        const meterMap = parseMeterControlMap(existingMeterRaw);
+        const controlMap = parseMeterControlMap(existingControlRaw);
+        toRemoveSet.forEach((remKey) => {
+          delete meterMap[remKey];
+          delete controlMap[remKey];
+        });
+
+        const newMeterStr = serializeMeterControlMap(meterMap);
+        const newControlStr = serializeMeterControlMap(controlMap);
+
+        setTelemetryList((prev) =>
+          prev.map((item) =>
+            item.device_id === dev.device_id
+              ? { ...item, meter: newMeterStr, control: newControlStr }
+              : item
+          )
+        );
+        setDeviceRowsMap((prev) => {
+          if (!prev[dKey]) return prev;
+          return {
+            ...prev,
+            [dKey]: prev[dKey].map((r) => ({ ...r, meter: newMeterStr, control: newControlStr }))
+          };
+        });
+
+        await persistMeterControlToDb([dev.device_id], {
+          meter: newMeterStr,
+          control: newControlStr
+        });
+      }
+    }
   };
 
-  // Lưu nội dung cột note vào bảng telemetry_data
-  const handleSaveNote = async (dev: TelemetryDeviceRow) => {
+  // Lưu tên nhập trong cột Ghi chú dạng JSON mapping vào cột meter (nếu m thuộc meter) hoặc cột control (nếu m thuộc control) của bảng telemetry_data
+  const handleSaveNote = async (dev: TelemetryDeviceRow, mCols: string[]) => {
     const devId = dev.device_id;
-    const trimmedNote = noteDraftText.trim();
+    const dKey = dev.device_code || String(dev.device_id);
+    const devRows = deviceRowsMap[dKey] || [dev];
+
+    const existingMeterRaw =
+      dev.meter ??
+      devRows.find((r) => r.meter !== undefined && r.meter !== null && String(r.meter).trim() !== '')?.meter ??
+      '';
+    const existingControlRaw =
+      dev.control ??
+      devRows.find((r) => r.control !== undefined && r.control !== null && String(r.control).trim() !== '')?.control ??
+      '';
+
+    const meterMap = parseMeterControlMap(existingMeterRaw);
+    const controlMap = parseMeterControlMap(existingControlRaw);
+
+    const allKeys = Array.from(
+      new Set([
+        ...mCols.map((c) => c.toLowerCase()),
+        ...Object.keys(noteDraftMap).map((c) => c.toLowerCase())
+      ])
+    );
+
+    allKeys.forEach((k) => {
+      if (!/^m\d+$/i.test(k)) return;
+      const hasDraft =
+        Object.prototype.hasOwnProperty.call(noteDraftMap, k) ||
+        Object.prototype.hasOwnProperty.call(noteDraftMap, k.toUpperCase());
+      const draftVal = hasDraft ? String(noteDraftMap[k] ?? noteDraftMap[k.toUpperCase()] ?? '').trim() : undefined;
+
+      if (k in meterMap) {
+        if (draftVal !== undefined) {
+          meterMap[k] = draftVal;
+        }
+      }
+      if (k in controlMap) {
+        if (draftVal !== undefined) {
+          controlMap[k] = draftVal;
+        }
+      }
+    });
+
+    const newMeterStr = serializeMeterControlMap(meterMap);
+    const newControlStr = serializeMeterControlMap(controlMap);
+
     setSavingNoteDevId(devId);
     try {
-      const isLocal = typeof window !== 'undefined' && (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1');
-      const backendUrl = import.meta.env.VITE_API_URL || (isLocal ? 'http://localhost:5000' : '');
-
-      let ok = false;
-      try {
-        const res = await fetch(`${backendUrl}/api/telemetry-data/${devId}/note`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ note: trimmedNote })
-        });
-        if (res.ok) ok = true;
-      } catch {
-        // fallback
-      }
-      if (!ok) {
-        await fetch(`/api/telemetry-data/${devId}/note`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ note: trimmedNote })
-        }).catch(() => null);
-      }
+      await persistMeterControlToDb([devId], {
+        meter: newMeterStr,
+        control: newControlStr
+      });
 
       setTelemetryList((prev) =>
-        prev.map((item) => (item.device_id === devId ? { ...item, note: trimmedNote } : item))
+        prev.map((item) =>
+          item.device_id === devId
+            ? { ...item, meter: newMeterStr, control: newControlStr }
+            : item
+        )
       );
       setDeviceRowsMap((prev) => {
-        const key = dev.device_code || String(dev.device_id);
-        if (!prev[key]) return prev;
+        if (!prev[dKey]) return prev;
         return {
           ...prev,
-          [key]: prev[key].map((r) => ({ ...r, note: trimmedNote }))
+          [dKey]: prev[dKey].map((r) => ({ ...r, meter: newMeterStr, control: newControlStr }))
         };
       });
       setEditingNoteDevId(null);
-      setNoteDraftText('');
+      setNoteDraftMap({});
     } finally {
       setSavingNoteDevId(null);
     }
@@ -1233,666 +1546,1421 @@ export const EmployOperate: React.FC = () => {
                                       </div>
                                     </div>
 
-                                    {/* BẢNG CON CHI TIẾT ĐẦY ĐỦ CÁC CỘT */}
+                                    {/* BẢNG CON CHI TIẾT ĐẦY ĐỦ CÁC CỘT (1 BẢNG DUY NHẤT) */}
                                     <div style={{ overflowX: 'auto' }}>
-                                      <table
-                                        style={{
-                                          width: '100%',
-                                          borderCollapse: 'collapse',
-                                          fontSize: '0.82rem',
-                                          textAlign: 'left'
-                                        }}
-                                      >
-                                        <thead>
-                                          <tr
+                                      {(() => {
+                                        const groupDevKeys =
+                                          group.devices.length > 0
+                                            ? group.devices.map((d) => d.device_code || String(d.device_id))
+                                            : [group.project_name];
+                                        const primaryDevKey = groupDevKeys[0];
+                                        const allGroupRows: TelemetryDeviceRow[] = [];
+                                        let totalBodyRows = 0;
+                                        group.devices.forEach((d) => {
+                                          const dKey = d.device_code || String(d.device_id);
+                                          const rRows =
+                                            deviceRowsMap[dKey] && deviceRowsMap[dKey].length > 0
+                                              ? deviceRowsMap[dKey]
+                                              : [d];
+                                          const cRows = rRows.some((r) => r.recorded_at === d.recorded_at)
+                                            ? rRows
+                                            : [d, ...rRows];
+                                          totalBodyRows += cRows.length;
+                                          allGroupRows.push(d, ...rRows);
+                                        });
+                                        const mCols = getDeviceMColumns(primaryDevKey, allGroupRows);
+
+                                        // Độ rộng cố định của 10 cột bên trái để neo sticky khi cuộn ngang các cột m
+                                        const leftColsWidth = 64 + 136 + 180 + 96 + 256 + 150 + 150 + 96 + 148 + 184; // 1460px
+                                        const mTotalWidth = Math.max(mCols.length, 1) * 72;
+                                        // Nếu số cột m > 3 thì hiển thị 3 cột và 1 nửa cột tiếp theo (3.5 * 72 = 252px)
+                                        const mVisibleWidth = mCols.length > 3 ? 252 : mTotalWidth;
+                                        const containerWidth = leftColsWidth + mVisibleWidth;
+                                        // Hiển thị tối đa 5 hàng, nếu > 5 hàng thì hiển thị thanh cuộn dọc (header 40px + 5 * 52px = 300px)
+                                        const hasVerticalScroll = totalBodyRows > 5;
+                                        const hasHorizontalScroll = mCols.length > 3;
+
+                                        return (
+                                          <div
                                             style={{
-                                              backgroundColor: '#eff6ff',
-                                              borderBottom: '1px solid #dbeafe',
-                                              color: '#1e40af',
-                                              fontWeight: 700,
-                                              fontSize: '0.73rem',
-                                              textTransform: 'uppercase',
-                                              letterSpacing: '0.4px'
+                                              display: 'flex',
+                                              alignItems: 'flex-start',
+                                              width: `${containerWidth}px`,
+                                              minWidth: `${containerWidth}px`,
+                                              maxWidth: `${containerWidth}px`,
+                                              maxHeight: hasVerticalScroll ? '300px' : undefined,
+                                              overflowX: 'hidden',
+                                              overflowY: hasVerticalScroll ? 'auto' : 'hidden',
+                                              border: '1px solid #dbeafe',
+                                              borderRadius: '8px',
+                                              backgroundColor: '#ffffff',
+                                              boxSizing: 'content-box'
                                             }}
                                           >
-                                            <th style={{ padding: '10px 12px', width: '70px' }}>ID</th>
-                                            <th style={{ padding: '10px 12px', width: '140px' }}>Mã thiết bị</th>
-                                            <th style={{ padding: '10px 12px', width: '180px' }}>TÊN IOT GATEWAY</th>
-                                            <th style={{ padding: '10px 12px', textAlign: 'center' }}>Giá trị</th>
-                                            <th style={{ padding: '10px 12px', textAlign: 'center', width: '100px' }}>Trạng thái</th>
-                                            <th style={{ padding: '10px 12px', textAlign: 'center', width: '240px' }}>Ghi chú</th>
-                                            <th style={{ padding: '10px 12px', textAlign: 'center', width: '110px' }}>Thao tác</th>
-                                          </tr>
-                                        </thead>
-                                        <tbody>
-                                          {group.devices.length === 0 ? (
-                                            <tr>
-                                              <td colSpan={7} style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>
-                                                Dự án này chưa có thiết bị nào truyền dữ liệu
-                                              </td>
-                                            </tr>
-                                          ) : (
-                                            group.devices.map((dev, devIdx) => {
-                                              const devKey = dev.device_code || String(dev.device_id);
-                                              const rawHistRows =
-                                                deviceRowsMap[devKey] && deviceRowsMap[devKey].length > 0
-                                                  ? deviceRowsMap[devKey]
-                                                  : [dev];
-                                              const combinedRows = rawHistRows.some(
-                                                (r) => r.recorded_at === dev.recorded_at
-                                              )
-                                                ? rawHistRows
-                                                : [dev, ...rawHistRows];
-                                              const histRows = sortRowsNewestFirst(combinedRows);
-                                              const mCols = getDeviceMColumns(devKey, [dev, ...histRows]);
-                                              const valueTableHeight = 38 + Math.min(Math.max(histRows.length, 1), 10) * 34 + 2;
-
-                                              return (
+                                            <table
+                                              style={{
+                                                width: `${leftColsWidth}px`,
+                                                minWidth: `${leftColsWidth}px`,
+                                                maxWidth: `${leftColsWidth}px`,
+                                                flexShrink: 0,
+                                                tableLayout: 'fixed',
+                                                borderCollapse: 'separate',
+                                                borderSpacing: 0,
+                                                fontSize: '0.82rem',
+                                                textAlign: 'left'
+                                              }}
+                                            >
+                                              <thead>
                                                 <tr
-                                                  key={dev.device_id}
                                                   style={{
-                                                    borderBottom: '1px solid #f1f5f9',
-                                                    backgroundColor: devIdx % 2 === 0 ? '#ffffff' : '#fafafa',
-                                                    verticalAlign: 'top'
+                                                    height: '40px',
+                                                    backgroundColor: '#eff6ff',
+                                                    color: '#1e40af',
+                                                    fontWeight: 700,
+                                                    fontSize: '0.73rem',
+                                                    textTransform: 'uppercase',
+                                                    letterSpacing: '0.4px'
                                                   }}
                                                 >
-                                                  {/* ID */}
-                                                  <td style={{ padding: '12px', fontWeight: 700, color: '#64748b' }}>
-                                                    #{dev.device_id}
-                                                  </td>
-
-                                                  {/* Mã thiết bị */}
-                                                  <td style={{ padding: '12px' }}>
-                                                    <span
-                                                      style={{
-                                                        display: 'inline-block',
-                                                        padding: '3px 8px',
-                                                        backgroundColor: '#eff6ff',
-                                                        color: '#1D58BB',
-                                                        borderRadius: '6px',
-                                                        fontFamily: 'monospace',
-                                                        fontWeight: 700,
-                                                        fontSize: '0.8rem',
-                                                        border: '1px solid #bfdbfe'
-                                                      }}
-                                                    >
-                                                      {dev.device_code}
-                                                    </span>
-                                                  </td>
-
-                                                  {/* Tên thiết bị */}
-                                                  <td style={{ padding: '12px', fontWeight: 600, color: '#0f172a' }}>
-                                                    {dev.device_name}
-                                                    <div style={{ fontSize: '0.7rem', color: '#94a3b8', marginTop: '2px' }}>
-                                                      Modbus #{dev.slave_address} {dev.floor ? `(${dev.floor})` : ''}
+                                                  <th
+                                                    style={{
+                                                      position: 'sticky',
+                                                      top: 0,
+                                                      left: '0px',
+                                                      zIndex: 4,
+                                                      backgroundColor: '#eff6ff',
+                                                      borderBottom: '1px solid #dbeafe',
+                                                      padding: '0 10px',
+                                                      width: '64px',
+                                                      minWidth: '64px',
+                                                      maxWidth: '64px',
+                                                      whiteSpace: 'nowrap',
+                                                      boxSizing: 'border-box'
+                                                    }}
+                                                  >
+                                                    ID
+                                                  </th>
+                                                  <th
+                                                    style={{
+                                                      position: 'sticky',
+                                                      top: 0,
+                                                      left: '64px',
+                                                      zIndex: 4,
+                                                      backgroundColor: '#eff6ff',
+                                                      borderBottom: '1px solid #dbeafe',
+                                                      padding: '0 10px',
+                                                      width: '136px',
+                                                      minWidth: '136px',
+                                                      maxWidth: '136px',
+                                                      whiteSpace: 'nowrap',
+                                                      boxSizing: 'border-box'
+                                                    }}
+                                                  >
+                                                    Mã thiết bị
+                                                  </th>
+                                                  <th
+                                                    style={{
+                                                      position: 'sticky',
+                                                      top: 0,
+                                                      left: '200px',
+                                                      zIndex: 4,
+                                                      backgroundColor: '#eff6ff',
+                                                      borderBottom: '1px solid #dbeafe',
+                                                      padding: '0 10px',
+                                                      width: '180px',
+                                                      minWidth: '180px',
+                                                      maxWidth: '180px',
+                                                      whiteSpace: 'nowrap',
+                                                      boxSizing: 'border-box'
+                                                    }}
+                                                  >
+                                                    TÊN IOT GATEWAY
+                                                  </th>
+                                                  <th
+                                                    style={{
+                                                      position: 'sticky',
+                                                      top: 0,
+                                                      left: '380px',
+                                                      zIndex: 4,
+                                                      backgroundColor: '#eff6ff',
+                                                      borderBottom: '1px solid #dbeafe',
+                                                      padding: '0 8px',
+                                                      textAlign: 'center',
+                                                      width: '96px',
+                                                      minWidth: '96px',
+                                                      maxWidth: '96px',
+                                                      whiteSpace: 'nowrap',
+                                                      boxSizing: 'border-box'
+                                                    }}
+                                                  >
+                                                    Trạng thái
+                                                  </th>
+                                                  <th
+                                                    style={{
+                                                      position: 'sticky',
+                                                      top: 0,
+                                                      left: '476px',
+                                                      zIndex: 4,
+                                                      backgroundColor: '#eff6ff',
+                                                      borderBottom: '1px solid #dbeafe',
+                                                      padding: '0 10px',
+                                                      textAlign: 'center',
+                                                      width: '256px',
+                                                      minWidth: '256px',
+                                                      maxWidth: '256px',
+                                                      whiteSpace: 'nowrap',
+                                                      boxSizing: 'border-box'
+                                                    }}
+                                                  >
+                                                    Ghi chú
+                                                  </th>
+                                                  <th
+                                                    style={{
+                                                      position: 'sticky',
+                                                      top: 0,
+                                                      left: '732px',
+                                                      zIndex: 4,
+                                                      backgroundColor: '#eff6ff',
+                                                      borderBottom: '1px solid #dbeafe',
+                                                      borderLeft: '1px solid #dbeafe',
+                                                      padding: '0 8px',
+                                                      textAlign: 'center',
+                                                      width: '150px',
+                                                      minWidth: '150px',
+                                                      maxWidth: '150px',
+                                                      whiteSpace: 'nowrap',
+                                                      boxSizing: 'border-box'
+                                                    }}
+                                                  >
+                                                    Đo lường
+                                                  </th>
+                                                  <th
+                                                    style={{
+                                                      position: 'sticky',
+                                                      top: 0,
+                                                      left: '882px',
+                                                      zIndex: 4,
+                                                      backgroundColor: '#eff6ff',
+                                                      borderBottom: '1px solid #dbeafe',
+                                                      borderLeft: '1px solid #dbeafe',
+                                                      padding: '0 8px',
+                                                      textAlign: 'center',
+                                                      width: '150px',
+                                                      minWidth: '150px',
+                                                      maxWidth: '150px',
+                                                      whiteSpace: 'nowrap',
+                                                      boxSizing: 'border-box'
+                                                    }}
+                                                  >
+                                                    Điều khiển
+                                                  </th>
+                                                  <th
+                                                    style={{
+                                                      position: 'sticky',
+                                                      top: 0,
+                                                      left: '1032px',
+                                                      zIndex: 4,
+                                                      backgroundColor: '#eff6ff',
+                                                      borderBottom: '1px solid #dbeafe',
+                                                      borderLeft: '1px solid #dbeafe',
+                                                      padding: '0 8px',
+                                                      textAlign: 'center',
+                                                      width: '96px',
+                                                      minWidth: '96px',
+                                                      maxWidth: '96px',
+                                                      whiteSpace: 'nowrap',
+                                                      boxSizing: 'border-box'
+                                                    }}
+                                                  >
+                                                    Thao tác
+                                                  </th>
+                                                  <th
+                                                    style={{
+                                                      position: 'sticky',
+                                                      top: 0,
+                                                      left: '1128px',
+                                                      zIndex: 4,
+                                                      backgroundColor: '#eff6ff',
+                                                      borderBottom: '1px solid #dbeafe',
+                                                      borderLeft: '1px solid #dbeafe',
+                                                      padding: '0 10px',
+                                                      textAlign: 'center',
+                                                      width: '148px',
+                                                      minWidth: '148px',
+                                                      maxWidth: '148px',
+                                                      whiteSpace: 'nowrap',
+                                                      boxSizing: 'border-box'
+                                                    }}
+                                                  >
+                                                    Cập nhật lúc
+                                                  </th>
+                                                  <th
+                                                    style={{
+                                                      position: 'sticky',
+                                                      top: 0,
+                                                      left: '1276px',
+                                                      zIndex: 4,
+                                                      backgroundColor: '#eff6ff',
+                                                      borderBottom: '1px solid #dbeafe',
+                                                      borderLeft: '1px solid #dbeafe',
+                                                      borderRight: '1px solid #cbd5e1',
+                                                      padding: '0 8px',
+                                                      textAlign: 'center',
+                                                      width: '184px',
+                                                      minWidth: '184px',
+                                                      maxWidth: '184px',
+                                                      whiteSpace: 'nowrap',
+                                                      textTransform: 'none',
+                                                      letterSpacing: 'normal',
+                                                      boxSizing: 'border-box'
+                                                    }}
+                                                  >
+                                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                                      <button
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                          e.stopPropagation();
+                                                          const rect = e.currentTarget.getBoundingClientRect();
+                                                          setAddColMenu((prev) =>
+                                                            prev && prev.projectName === group.project_name
+                                                              ? null
+                                                              : {
+                                                                  projectName: group.project_name,
+                                                                  groupDevKeys,
+                                                                  devices: group.devices,
+                                                                  currentCols: mCols,
+                                                                  top: rect.bottom + 6,
+                                                                  left: Math.max(
+                                                                    12,
+                                                                    Math.min(
+                                                                      rect.left,
+                                                                      typeof window !== 'undefined'
+                                                                        ? window.innerWidth - 220
+                                                                        : rect.left
+                                                                    )
+                                                                  )
+                                                                }
+                                                          );
+                                                        }}
+                                                        style={{
+                                                          display: 'inline-flex',
+                                                          alignItems: 'center',
+                                                          gap: '3px',
+                                                          padding: '4px 8px',
+                                                          borderRadius: '6px',
+                                                          border: '1px solid #1D58BB',
+                                                          backgroundColor: '#ffffff',
+                                                          color: '#1D58BB',
+                                                          fontSize: '0.72rem',
+                                                          fontWeight: 700,
+                                                          cursor: 'pointer',
+                                                          whiteSpace: 'nowrap'
+                                                        }}
+                                                        title="Chọn thêm cột Đo lường hoặc Điều khiển"
+                                                      >
+                                                        <Plus size={12} />
+                                                        <span>Thêm cột</span>
+                                                      </button>
+                                                      <button
+                                                        type="button"
+                                                        disabled={mCols.length === 0}
+                                                        onClick={(e) => {
+                                                          e.stopPropagation();
+                                                          setDeleteColModal({
+                                                            devKey: primaryDevKey,
+                                                            groupDevKeys,
+                                                            devices: group.devices,
+                                                            deviceName:
+                                                              group.devices[0]?.device_name ||
+                                                              group.devices[0]?.device_code ||
+                                                              group.project_name,
+                                                            columns: mCols,
+                                                            selected: []
+                                                          });
+                                                        }}
+                                                        style={{
+                                                          display: 'inline-flex',
+                                                          alignItems: 'center',
+                                                          gap: '3px',
+                                                          padding: '4px 8px',
+                                                          borderRadius: '6px',
+                                                          border: '1px solid #ef4444',
+                                                          backgroundColor: mCols.length === 0 ? '#f8fafc' : '#fef2f2',
+                                                          color: mCols.length === 0 ? '#cbd5e1' : '#dc2626',
+                                                          borderColor: mCols.length === 0 ? '#e2e8f0' : '#fca5a5',
+                                                          fontSize: '0.72rem',
+                                                          fontWeight: 700,
+                                                          cursor: mCols.length === 0 ? 'not-allowed' : 'pointer',
+                                                          whiteSpace: 'nowrap'
+                                                        }}
+                                                        title="Mở bảng chọn các cột m muốn xoá"
+                                                      >
+                                                        <Minus size={12} />
+                                                        <span>Xoá cột</span>
+                                                      </button>
                                                     </div>
-                                                  </td>
-
-                                                  {/* Cột Giá trị: Bảng lồng gồm Cập nhật lúc, nút Thêm cột / Xoá cột và các cột m1, m2, m3, ... xếp bên phải theo thứ tự tăng dần */}
-                                                  <td style={{ padding: '10px 12px' }}>
-                                                    <div
-                                                      style={{
-                                                        border: '1px solid #cbd5e1',
-                                                        borderRadius: '8px',
-                                                        display: 'inline-flex',
-                                                        alignItems: 'flex-start',
-                                                        height: `${valueTableHeight}px`,
-                                                        maxHeight: `${valueTableHeight}px`,
-                                                        boxSizing: 'border-box',
-                                                        overflowY: histRows.length > 10 ? 'auto' : 'hidden',
-                                                        overflowX: 'hidden',
-                                                        backgroundColor: '#ffffff'
-                                                      }}
+                                                  </th>
+                                                </tr>
+                                              </thead>
+                                              <tbody>
+                                                {group.devices.length === 0 ? (
+                                                  <tr>
+                                                    <td
+                                                      colSpan={10}
+                                                      style={{ height: '52px', padding: '0 20px', textAlign: 'center', color: '#94a3b8' }}
                                                     >
-                                                      {/* KHỐI TRÁI: CỘT CẬP NHẬT LÚC VÀ CỘT + THÊM CỘT / - XOÁ CỘT HIỂN THỊ ĐẦY ĐỦ */}
-                                                      <div
-                                                        style={{
-                                                          flex: '0 0 auto',
-                                                          borderRight: '1px solid #cbd5e1'
-                                                        }}
-                                                      >
-                                                        <table
-                                                          style={{
-                                                            borderCollapse: 'separate',
-                                                            borderSpacing: 0,
-                                                            fontSize: '0.78rem',
-                                                            textAlign: 'center'
-                                                          }}
-                                                        >
-                                                          <thead>
-                                                            <tr
-                                                              style={{
-                                                                height: '38px',
-                                                                backgroundColor: '#f8fafc',
-                                                                color: '#1e293b',
-                                                                fontWeight: 700
-                                                              }}
-                                                            >
-                                                              <th
-                                                                style={{
-                                                                  position: 'sticky',
-                                                                  top: 0,
-                                                                  zIndex: 2,
-                                                                  height: '38px',
-                                                                  backgroundColor: '#f8fafc',
-                                                                  padding: '0 12px',
-                                                                  borderBottom: '1px solid #cbd5e1',
-                                                                  borderRight: '1px solid #e2e8f0',
-                                                                  minWidth: '148px',
-                                                                  color: '#475569',
-                                                                  whiteSpace: 'nowrap',
-                                                                  boxSizing: 'border-box'
-                                                                }}
-                                                              >
-                                                                Cập nhật lúc
-                                                              </th>
-                                                              <th
-                                                                style={{
-                                                                  position: 'sticky',
-                                                                  top: 0,
-                                                                  zIndex: 2,
-                                                                  height: '38px',
-                                                                  backgroundColor: '#f8fafc',
-                                                                  borderBottom: '1px solid #cbd5e1',
-                                                                  padding: '0 10px',
-                                                                  minWidth: '184px',
-                                                                  whiteSpace: 'nowrap',
-                                                                  boxSizing: 'border-box'
-                                                                }}
-                                                              >
-                                                                <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
-                                                                  <button
-                                                                    type="button"
-                                                                    onClick={(e) => {
-                                                                      e.stopPropagation();
-                                                                      handleAddMColumn(devKey, mCols);
-                                                                    }}
-                                                                    style={{
-                                                                      display: 'inline-flex',
-                                                                      alignItems: 'center',
-                                                                      gap: '3px',
-                                                                      padding: '4px 8px',
-                                                                      borderRadius: '6px',
-                                                                      border: '1px solid #1D58BB',
-                                                                      backgroundColor: '#eff6ff',
-                                                                      color: '#1D58BB',
-                                                                      fontSize: '0.72rem',
-                                                                      fontWeight: 700,
-                                                                      cursor: 'pointer',
-                                                                      whiteSpace: 'nowrap'
-                                                                    }}
-                                                                    title="Thêm cột thông số m tiếp theo"
-                                                                  >
-                                                                    <Plus size={12} />
-                                                                    <span>Thêm cột</span>
-                                                                  </button>
-                                                                  <button
-                                                                    type="button"
-                                                                    disabled={mCols.length === 0}
-                                                                    onClick={(e) => {
-                                                                      e.stopPropagation();
-                                                                      setDeleteColModal({
-                                                                        devKey,
-                                                                        deviceName: dev.device_name || dev.device_code,
-                                                                        columns: mCols,
-                                                                        selected: []
-                                                                      });
-                                                                    }}
-                                                                    style={{
-                                                                      display: 'inline-flex',
-                                                                      alignItems: 'center',
-                                                                      gap: '3px',
-                                                                      padding: '4px 8px',
-                                                                      borderRadius: '6px',
-                                                                      border: '1px solid #ef4444',
-                                                                      backgroundColor: mCols.length === 0 ? '#f8fafc' : '#fef2f2',
-                                                                      color: mCols.length === 0 ? '#cbd5e1' : '#dc2626',
-                                                                      borderColor: mCols.length === 0 ? '#e2e8f0' : '#fca5a5',
-                                                                      fontSize: '0.72rem',
-                                                                      fontWeight: 700,
-                                                                      cursor: mCols.length === 0 ? 'not-allowed' : 'pointer',
-                                                                      whiteSpace: 'nowrap'
-                                                                    }}
-                                                                    title="Mở bảng chọn các cột m muốn xoá"
-                                                                  >
-                                                                    <Minus size={12} />
-                                                                    <span>Xoá cột</span>
-                                                                  </button>
-                                                                </div>
-                                                              </th>
-                                                            </tr>
-                                                          </thead>
-                                                          <tbody>
-                                                            {histRows.map((mRow, rIdx) => (
-                                                              <tr
-                                                                key={mRow.id ? `f-h-${mRow.id}` : `f-r-${rIdx}-${mRow.recorded_at}`}
-                                                                style={{
-                                                                  height: '34px',
-                                                                  backgroundColor: rIdx === 0 ? '#f0fdf4' : '#ffffff'
-                                                                }}
-                                                              >
-                                                                <td
-                                                                  style={{
-                                                                    height: '34px',
-                                                                    padding: '0 12px',
-                                                                    borderBottom: rIdx < histRows.length - 1 ? '1px solid #f1f5f9' : 'none',
-                                                                    borderRight: '1px solid #f1f5f9',
-                                                                    color: '#64748b',
-                                                                    fontFamily: 'monospace',
-                                                                    fontSize: '0.74rem',
-                                                                    whiteSpace: 'nowrap',
-                                                                    minWidth: '148px',
-                                                                    boxSizing: 'border-box'
-                                                                  }}
-                                                                >
-                                                                  {mRow.recorded_at || '--'}
-                                                                </td>
-                                                                <td
-                                                                  style={{
-                                                                    height: '34px',
-                                                                    borderBottom: rIdx < histRows.length - 1 ? '1px solid #f1f5f9' : 'none',
-                                                                    padding: '0 10px',
-                                                                    minWidth: '184px',
-                                                                    fontSize: '0.7rem',
-                                                                    color: '#16a34a',
-                                                                    fontWeight: 600,
-                                                                    whiteSpace: 'nowrap',
-                                                                    boxSizing: 'border-box'
-                                                                  }}
-                                                                >
-                                                                  {rIdx === 0 ? 'Mới nhất' : `#${rIdx + 1}`}
-                                                                </td>
-                                                              </tr>
-                                                            ))}
-                                                          </tbody>
-                                                        </table>
-                                                      </div>
+                                                      Dự án này chưa có thiết bị nào truyền dữ liệu
+                                                    </td>
+                                                  </tr>
+                                                ) : (
+                                                  group.devices.map((dev, devIdx) => {
+                                                    const devKey = dev.device_code || String(dev.device_id);
+                                                    const rawHistRows =
+                                                      deviceRowsMap[devKey] && deviceRowsMap[devKey].length > 0
+                                                        ? deviceRowsMap[devKey]
+                                                        : [dev];
+                                                    const combinedRows = rawHistRows.some(
+                                                      (r) => r.recorded_at === dev.recorded_at
+                                                    )
+                                                      ? rawHistRows
+                                                      : [dev, ...rawHistRows];
+                                                    const histRows = sortRowsNewestFirst(combinedRows);
+                                                    const isLastDev = devIdx === group.devices.length - 1;
+                                                    const rowHeight =
+                                                      editingNoteDevId === dev.device_id && histRows.length === 1
+                                                        ? '86px'
+                                                        : '52px';
 
-                                                      {/* KHỐI PHẢI: CÁC CỘT M SẮP XẾP TĂNG DẦN (TỐI ĐA 5 CỘT, > 5 CỘT CÓ THANH CUỘN NGANG RIÊNG) */}
-                                                      <div
-                                                        style={{
-                                                          width: mCols.length > 5 ? '360px' : `${Math.max(mCols.length, 1) * 72}px`,
-                                                          maxWidth: '360px',
-                                                          flex: '0 0 auto',
-                                                          overflowX: mCols.length > 5 ? 'auto' : 'hidden'
-                                                        }}
-                                                      >
-                                                        <table
+                                                    return histRows.map((mRow, rIdx) => {
+                                                      const isLastHistRow = rIdx === histRows.length - 1;
+                                                      const cellBorderBottom =
+                                                        isLastDev && isLastHistRow
+                                                          ? 'none'
+                                                          : isLastHistRow
+                                                            ? '1px solid #e2e8f0'
+                                                            : '1px solid #f1f5f9';
+                                                      const devCellBorderBottom = isLastDev
+                                                        ? 'none'
+                                                        : '1px solid #e2e8f0';
+
+                                                      return (
+                                                        <tr
+                                                          key={
+                                                            mRow.id
+                                                              ? `row-${dev.device_id}-${mRow.id}`
+                                                              : `row-${dev.device_id}-${rIdx}-${mRow.recorded_at}`
+                                                          }
                                                           style={{
-                                                            width: `${Math.max(mCols.length, 1) * 72}px`,
-                                                            borderCollapse: 'separate',
-                                                            borderSpacing: 0,
-                                                            fontSize: '0.78rem',
-                                                            textAlign: 'center',
-                                                            tableLayout: 'fixed'
+                                                            height: rowHeight,
+                                                            color: '#000000',
+                                                            verticalAlign: 'middle'
                                                           }}
                                                         >
-                                                          <thead>
-                                                            <tr
-                                                              style={{
-                                                                height: '38px',
-                                                                backgroundColor: '#f8fafc',
-                                                                color: '#1e293b',
-                                                                fontWeight: 700
-                                                              }}
-                                                            >
-                                                              {mCols.length === 0 ? (
-                                                                <th
+                                                          {rIdx === 0 && (
+                                                            <>
+                                                              {/* ID */}
+                                                              <td
+                                                                rowSpan={histRows.length}
+                                                                style={{
+                                                                  position: 'sticky',
+                                                                  left: '0px',
+                                                                  zIndex: 3,
+                                                                  borderBottom: devCellBorderBottom,
+                                                                  padding: '6px 10px',
+                                                                  fontWeight: 700,
+                                                                  color: '#000000',
+                                                                  width: '64px',
+                                                                  minWidth: '64px',
+                                                                  maxWidth: '64px',
+                                                                  whiteSpace: 'nowrap',
+                                                                  boxSizing: 'border-box'
+                                                                }}
+                                                              >
+                                                                #{dev.device_id}
+                                                              </td>
+
+                                                              {/* Mã thiết bị */}
+                                                              <td
+                                                                rowSpan={histRows.length}
+                                                                style={{
+                                                                  position: 'sticky',
+                                                                  left: '64px',
+                                                                  zIndex: 3,
+                                                                  borderBottom: devCellBorderBottom,
+                                                                  padding: '6px 10px',
+                                                                  color: '#000000',
+                                                                  width: '136px',
+                                                                  minWidth: '136px',
+                                                                  maxWidth: '136px',
+                                                                  whiteSpace: 'nowrap',
+                                                                  boxSizing: 'border-box'
+                                                                }}
+                                                              >
+                                                                <span
                                                                   style={{
-                                                                    position: 'sticky',
-                                                                    top: 0,
-                                                                    zIndex: 2,
-                                                                    height: '38px',
-                                                                    backgroundColor: '#f8fafc',
-                                                                    padding: '0 8px',
-                                                                    borderBottom: '1px solid #cbd5e1',
-                                                                    color: '#94a3b8',
-                                                                    width: '72px',
-                                                                    boxSizing: 'border-box'
+                                                                    display: 'inline-block',
+                                                                    padding: '3px 8px',
+                                                                    color: '#000000',
+                                                                    borderRadius: '6px',
+                                                                    fontFamily: 'monospace',
+                                                                    fontWeight: 700,
+                                                                    fontSize: '0.8rem',
+                                                                    border: '1px solid #bfdbfe'
                                                                   }}
                                                                 >
-                                                                  --
-                                                                </th>
-                                                              ) : (
-                                                                mCols.map((mKey, mIdx) => (
-                                                                  <th
+                                                                  {dev.device_code}
+                                                                </span>
+                                                              </td>
+
+                                                              {/* Tên IOT GATEWAY */}
+                                                              <td
+                                                                rowSpan={histRows.length}
+                                                                style={{
+                                                                  position: 'sticky',
+                                                                  left: '200px',
+                                                                  zIndex: 3,
+                                                                  borderBottom: devCellBorderBottom,
+                                                                  padding: '6px 10px',
+                                                                  fontWeight: 600,
+                                                                  color: '#000000',
+                                                                  width: '180px',
+                                                                  minWidth: '180px',
+                                                                  maxWidth: '180px',
+                                                                  whiteSpace: 'nowrap',
+                                                                  overflow: 'hidden',
+                                                                  textOverflow: 'ellipsis',
+                                                                  boxSizing: 'border-box'
+                                                                }}
+                                                              >
+                                                                {dev.device_name}
+                                                                <div
+                                                                  style={{
+                                                                    fontSize: '0.7rem',
+                                                                    color: '#000000',
+                                                                    marginTop: '2px'
+                                                                  }}
+                                                                >
+                                                                  Modbus #{dev.slave_address}{' '}
+                                                                  {dev.floor ? `(${dev.floor})` : ''}
+                                                                </div>
+                                                              </td>
+
+                                                              {/* Trạng thái */}
+                                                              <td
+                                                                rowSpan={histRows.length}
+                                                                style={{
+                                                                  position: 'sticky',
+                                                                  left: '380px',
+                                                                  zIndex: 3,
+                                                                  borderBottom: devCellBorderBottom,
+                                                                  padding: '6px 8px',
+                                                                  textAlign: 'center',
+                                                                  color: '#000000',
+                                                                  width: '96px',
+                                                                  minWidth: '96px',
+                                                                  maxWidth: '96px',
+                                                                  whiteSpace: 'nowrap',
+                                                                  boxSizing: 'border-box'
+                                                                }}
+                                                              >
+                                                                <span
+                                                                  style={{
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '3px',
+                                                                    padding: '2px 7px',
+                                                                    borderRadius: '6px',
+                                                                    color: '#000000',
+                                                                    fontSize: '0.7rem',
+                                                                    fontWeight: 600
+                                                                  }}
+                                                                >
+                                                                  <CheckCircle2 size={11} /> Online
+                                                                </span>
+                                                              </td>
+
+                                                              {/* Ghi chú */}
+                                                              <td
+                                                                rowSpan={histRows.length}
+                                                                style={{
+                                                                  position: 'sticky',
+                                                                  left: '476px',
+                                                                  zIndex: 3,
+                                                                  borderBottom: devCellBorderBottom,
+                                                                  padding: '4px 8px',
+                                                                  textAlign: 'center',
+                                                                  color: '#000000',
+                                                                  width: '256px',
+                                                                  minWidth: '256px',
+                                                                  maxWidth: '256px',
+                                                                  boxSizing: 'border-box'
+                                                                }}
+                                                              >
+                                                                {(() => {
+                                                                  const rawMeterForNote = String(
+                                                                    dev.meter ??
+                                                                      histRows.find(
+                                                                        (r) =>
+                                                                          r.meter !== undefined &&
+                                                                          r.meter !== null &&
+                                                                          String(r.meter).trim() !== ''
+                                                                      )?.meter ??
+                                                                      ''
+                                                                  ).trim();
+                                                                  const rawControlForNote = String(
+                                                                    dev.control ??
+                                                                      histRows.find(
+                                                                        (r) =>
+                                                                          r.control !== undefined &&
+                                                                          r.control !== null &&
+                                                                          String(r.control).trim() !== ''
+                                                                      )?.control ??
+                                                                      ''
+                                                                  ).trim();
+                                                                  const meterMapForNote = parseMeterControlMap(rawMeterForNote);
+                                                                  const controlMapForNote = parseMeterControlMap(rawControlForNote);
+                                                                  const parsedMap: Record<string, string> = {
+                                                                    ...meterMapForNote,
+                                                                    ...controlMapForNote
+                                                                  };
+                                                                  const nonEmptyMap: Record<string, string> = {};
+                                                                  Object.entries(parsedMap).forEach(([k, v]) => {
+                                                                    if (v && String(v).trim() !== '') {
+                                                                      nonEmptyMap[k] = String(v).trim();
+                                                                    }
+                                                                  });
+                                                                  const currentNote =
+                                                                    Object.keys(nonEmptyMap).length > 0
+                                                                      ? JSON.stringify(nonEmptyMap)
+                                                                      : '';
+                                                                  const displayMCols =
+                                                                    mCols.length > 0 ? mCols : ['m1', 'm2', 'm3'];
+                                                                  const isEditing = editingNoteDevId === dev.device_id;
+                                                                  const noteBoxMaxH =
+                                                                    Math.min(Math.max(histRows.length, 1), 5) * 52 - 10;
+
+                                                                  if (isEditing) {
+                                                                    return (
+                                                                      <div
+                                                                        style={{
+                                                                          display: 'flex',
+                                                                          alignItems: 'center',
+                                                                          justifyContent: 'center',
+                                                                          gap: '6px',
+                                                                          boxSizing: 'border-box'
+                                                                        }}
+                                                                      >
+                                                                        <div
+                                                                          style={{
+                                                                            width: '182px',
+                                                                            maxHeight: `${Math.max(noteBoxMaxH, 76)}px`,
+                                                                            padding: '4px 6px',
+                                                                            borderRadius: '6px',
+                                                                            border: '1px solid #93c5fd',
+                                                                            overflowY: 'auto',
+                                                                            boxSizing: 'border-box',
+                                                                            display: 'flex',
+                                                                            flexDirection: 'column',
+                                                                            gap: '4px'
+                                                                          }}
+                                                                        >
+                                                                          {displayMCols.map((mKey) => {
+                                                                            const k = mKey.toLowerCase();
+                                                                            const selectedVal =
+                                                                              noteDraftMap[k] ??
+                                                                              noteDraftMap[mKey] ??
+                                                                              '';
+                                                                            return (
+                                                                              <div
+                                                                                key={mKey}
+                                                                                style={{
+                                                                                  display: 'flex',
+                                                                                  alignItems: 'center',
+                                                                                  gap: '5px'
+                                                                                }}
+                                                                              >
+                                                                                <span
+                                                                                  style={{
+                                                                                    minWidth: '32px',
+                                                                                    padding: '1px 4px',
+                                                                                    borderRadius: '4px',
+                                                                                    border: '1px solid #bfdbfe',
+                                                                                    color: '#000000',
+                                                                                    fontFamily: 'monospace',
+                                                                                    fontWeight: 700,
+                                                                                    fontSize: '0.72rem',
+                                                                                    textAlign: 'center',
+                                                                                    flexShrink: 0
+                                                                                  }}
+                                                                                >
+                                                                                  {mKey}
+                                                                                </span>
+                                                                                <input
+                                                                                  type="text"
+                                                                                  value={selectedVal}
+                                                                                  placeholder="Nhập tên..."
+                                                                                  onChange={(e) => {
+                                                                                    const val = e.target.value;
+                                                                                    setNoteDraftMap((prev) => ({
+                                                                                      ...prev,
+                                                                                      [k]: val
+                                                                                    }));
+                                                                                  }}
+                                                                                  style={{
+                                                                                    flex: 1,
+                                                                                    minWidth: 0,
+                                                                                    padding: '2px 5px',
+                                                                                    borderRadius: '4px',
+                                                                                    border: '1px solid #cbd5e1',
+                                                                                    color: '#000000',
+                                                                                    fontSize: '0.73rem',
+                                                                                    fontWeight: selectedVal ? 600 : 400,
+                                                                                    outline: 'none'
+                                                                                  }}
+                                                                                />
+                                                                              </div>
+                                                                            );
+                                                                          })}
+                                                                        </div>
+                                                                        <div
+                                                                          style={{
+                                                                            display: 'flex',
+                                                                            flexDirection: 'column',
+                                                                            gap: '4px',
+                                                                            flexShrink: 0
+                                                                          }}
+                                                                        >
+                                                                          <button
+                                                                            type="button"
+                                                                            disabled={savingNoteDevId === dev.device_id}
+                                                                            onClick={() =>
+                                                                              handleSaveNote(dev, displayMCols)
+                                                                            }
+                                                                            style={{
+                                                                              display: 'inline-flex',
+                                                                              alignItems: 'center',
+                                                                              justifyContent: 'center',
+                                                                              padding: '3px 8px',
+                                                                              borderRadius: '5px',
+                                                                              border: '1px solid #cbd5e1',
+                                                                              color: '#000000',
+                                                                              fontSize: '0.72rem',
+                                                                              fontWeight: 700,
+                                                                              cursor:
+                                                                                savingNoteDevId === dev.device_id
+                                                                                  ? 'wait'
+                                                                                  : 'pointer'
+                                                                            }}
+                                                                          >
+                                                                            <span>
+                                                                              {savingNoteDevId === dev.device_id
+                                                                                ? '...'
+                                                                                : 'Lưu'}
+                                                                            </span>
+                                                                          </button>
+                                                                          <button
+                                                                            type="button"
+                                                                            onClick={() => {
+                                                                              setEditingNoteDevId(null);
+                                                                              setNoteDraftMap({});
+                                                                            }}
+                                                                            style={{
+                                                                              padding: '3px 8px',
+                                                                              borderRadius: '5px',
+                                                                              border: '1px solid #cbd5e1',
+                                                                              color: '#000000',
+                                                                              fontSize: '0.72rem',
+                                                                              fontWeight: 600,
+                                                                              cursor: 'pointer'
+                                                                            }}
+                                                                          >
+                                                                            Huỷ
+                                                                          </button>
+                                                                        </div>
+                                                                      </div>
+                                                                    );
+                                                                  }
+
+                                                                  if (!currentNote) {
+                                                                    return (
+                                                                      <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                          setEditingNoteDevId(dev.device_id);
+                                                                          setNoteDraftMap(parsedMap);
+                                                                        }}
+                                                                        style={{
+                                                                          display: 'inline-flex',
+                                                                          alignItems: 'center',
+                                                                          gap: '4px',
+                                                                          padding: '5px 12px',
+                                                                          borderRadius: '6px',
+                                                                          border: '1px solid #1D58BB',
+                                                                          color: '#000000',
+                                                                          fontSize: '0.75rem',
+                                                                          fontWeight: 700,
+                                                                          cursor: 'pointer'
+                                                                        }}
+                                                                      >
+                                                                        <Plus size={13} />
+                                                                        <span>Thêm</span>
+                                                                      </button>
+                                                                    );
+                                                                  }
+
+                                                                  const mappedEntries = displayMCols
+                                                                    .map((mKey) => ({
+                                                                      mKey,
+                                                                      label:
+                                                                        parsedMap[mKey.toLowerCase()] ||
+                                                                        parsedMap[mKey] ||
+                                                                        ''
+                                                                    }))
+                                                                    .filter((item) => item.label !== '');
+
+                                                                  return (
+                                                                    <div
+                                                                      style={{
+                                                                        display: 'flex',
+                                                                        alignItems: 'center',
+                                                                        justifyContent: 'center',
+                                                                        gap: '6px',
+                                                                        boxSizing: 'border-box'
+                                                                      }}
+                                                                    >
+                                                                      <div
+                                                                        onClick={() =>
+                                                                          setViewingNoteModal({
+                                                                            device_id: dev.device_id,
+                                                                            device_code: dev.device_code,
+                                                                            device_name: dev.device_name,
+                                                                            note: currentNote,
+                                                                            mCols: displayMCols
+                                                                          })
+                                                                        }
+                                                                        title="Nhấn để mở cửa sổ xem chi tiết cấu hình ghi chú (JSON)"
+                                                                        style={{
+                                                                          width: '188px',
+                                                                          maxHeight: `${noteBoxMaxH}px`,
+                                                                          padding: '4px 6px',
+                                                                          borderRadius: '6px',
+                                                                          border: '1px solid #cbd5e1',
+                                                                          color: '#000000',
+                                                                          fontSize: '0.73rem',
+                                                                          lineHeight: 1.35,
+                                                                          overflowY: 'auto',
+                                                                          cursor: 'pointer',
+                                                                          textAlign: 'left',
+                                                                          boxSizing: 'border-box',
+                                                                          display: 'flex',
+                                                                          flexDirection: 'column',
+                                                                          gap: '3px'
+                                                                        }}
+                                                                      >
+                                                                        {mappedEntries.length > 0 ? (
+                                                                          mappedEntries.map(({ mKey, label }) => (
+                                                                            <div
+                                                                              key={mKey}
+                                                                              style={{
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                justifyContent: 'space-between',
+                                                                                gap: '6px',
+                                                                                padding: '1px 5px',
+                                                                                borderRadius: '4px',
+                                                                                border: '1px solid #e2e8f0'
+                                                                              }}
+                                                                            >
+                                                                              <span
+                                                                                style={{
+                                                                                  fontFamily: 'monospace',
+                                                                                  fontWeight: 700,
+                                                                                  color: '#000000',
+                                                                                  fontSize: '0.72rem'
+                                                                                }}
+                                                                              >
+                                                                                {mKey}
+                                                                              </span>
+                                                                              <span
+                                                                                style={{
+                                                                                  fontWeight: 600,
+                                                                                  color: '#000000',
+                                                                                  fontSize: '0.72rem',
+                                                                                  whiteSpace: 'nowrap',
+                                                                                  overflow: 'hidden',
+                                                                                  textOverflow: 'ellipsis'
+                                                                                }}
+                                                                              >
+                                                                                {label}
+                                                                              </span>
+                                                                            </div>
+                                                                          ))
+                                                                        ) : (
+                                                                          <span
+                                                                            style={{
+                                                                              color: '#000000',
+                                                                              whiteSpace: 'pre-wrap',
+                                                                              wordBreak: 'break-word'
+                                                                            }}
+                                                                          >
+                                                                            {currentNote}
+                                                                          </span>
+                                                                        )}
+                                                                      </div>
+                                                                      <button
+                                                                        type="button"
+                                                                        onClick={() => {
+                                                                          setEditingNoteDevId(dev.device_id);
+                                                                          setNoteDraftMap(parsedMap);
+                                                                        }}
+                                                                        style={{
+                                                                          display: 'inline-flex',
+                                                                          alignItems: 'center',
+                                                                          gap: '4px',
+                                                                          padding: '4px 8px',
+                                                                          borderRadius: '6px',
+                                                                          border: '1px solid #f59e0b',
+                                                                          color: '#000000',
+                                                                          fontSize: '0.73rem',
+                                                                          fontWeight: 700,
+                                                                          cursor: 'pointer',
+                                                                          flexShrink: 0
+                                                                        }}
+                                                                      >
+                                                                        <span>Sửa</span>
+                                                                      </button>
+                                                                    </div>
+                                                                  );
+                                                                })()}
+                                                              </td>
+
+                                                              {/* Đo lường (meter) */}
+                                                              <td
+                                                                rowSpan={histRows.length}
+                                                                style={{
+                                                                  position: 'sticky',
+                                                                  left: '732px',
+                                                                  zIndex: 3,
+                                                                  borderBottom: devCellBorderBottom,
+                                                                  borderLeft: '1px solid #e2e8f0',
+                                                                  padding: '4px 6px',
+                                                                  textAlign: 'center',
+                                                                  color: '#000000',
+                                                                  width: '150px',
+                                                                  minWidth: '150px',
+                                                                  maxWidth: '150px',
+                                                                  boxSizing: 'border-box'
+                                                                }}
+                                                              >
+                                                                {(() => {
+                                                                  const rawMeter = String(
+                                                                    dev.meter ??
+                                                                      histRows.find(
+                                                                        (r) =>
+                                                                          r.meter !== undefined &&
+                                                                          r.meter !== null &&
+                                                                          String(r.meter).trim() !== ''
+                                                                      )?.meter ??
+                                                                      ''
+                                                                  ).trim();
+                                                                  const meterMap = parseMeterControlMap(rawMeter);
+                                                                  const meterCols = parseMColList(rawMeter);
+                                                                  const colBoxMaxH =
+                                                                    Math.min(Math.max(histRows.length, 1), 5) * 52 - 10;
+                                                                  if (meterCols.length === 0) {
+                                                                    return (
+                                                                      <span
+                                                                        style={{
+                                                                          color: '#000000',
+                                                                          fontFamily: 'monospace',
+                                                                          fontSize: '0.76rem'
+                                                                        }}
+                                                                      >
+                                                                        --
+                                                                      </span>
+                                                                    );
+                                                                  }
+                                                                  return (
+                                                                    <div
+                                                                      style={{
+                                                                        maxHeight: `${colBoxMaxH}px`,
+                                                                        overflowY: 'auto',
+                                                                        display: 'flex',
+                                                                        flexDirection: 'column',
+                                                                        gap: '3px',
+                                                                        boxSizing: 'border-box'
+                                                                      }}
+                                                                    >
+                                                                      {meterCols.map((mc) => {
+                                                                        const label = String(
+                                                                          meterMap[mc.toLowerCase()] ??
+                                                                            meterMap[mc] ??
+                                                                            ''
+                                                                        ).trim();
+                                                                        return (
+                                                                          <div
+                                                                            key={mc}
+                                                                            style={{
+                                                                              display: 'flex',
+                                                                              alignItems: 'center',
+                                                                              justifyContent: label
+                                                                                ? 'space-between'
+                                                                                : 'center',
+                                                                              gap: '6px',
+                                                                              padding: '2px 6px',
+                                                                              borderRadius: '5px',
+                                                                              border: '1px solid #bfdbfe'
+                                                                            }}
+                                                                            title={label ? `${mc}: ${label}` : mc}
+                                                                          >
+                                                                            <span
+                                                                              style={{
+                                                                                color: '#000000',
+                                                                                fontFamily: 'monospace',
+                                                                                fontWeight: 700,
+                                                                                fontSize: '0.73rem',
+                                                                                flexShrink: 0
+                                                                              }}
+                                                                            >
+                                                                              {mc}
+                                                                            </span>
+                                                                            {label && (
+                                                                              <span
+                                                                                style={{
+                                                                                  fontWeight: 600,
+                                                                                  color: '#000000',
+                                                                                  fontSize: '0.72rem',
+                                                                                  whiteSpace: 'nowrap',
+                                                                                  overflow: 'hidden',
+                                                                                  textOverflow: 'ellipsis'
+                                                                                }}
+                                                                              >
+                                                                                {label}
+                                                                              </span>
+                                                                            )}
+                                                                          </div>
+                                                                        );
+                                                                      })}
+                                                                    </div>
+                                                                  );
+                                                                })()}
+                                                              </td>
+
+                                                              {/* Điều khiển (control) */}
+                                                              <td
+                                                                rowSpan={histRows.length}
+                                                                style={{
+                                                                  position: 'sticky',
+                                                                  left: '882px',
+                                                                  zIndex: 3,
+                                                                  borderBottom: devCellBorderBottom,
+                                                                  borderLeft: '1px solid #e2e8f0',
+                                                                  padding: '4px 6px',
+                                                                  textAlign: 'center',
+                                                                  color: '#000000',
+                                                                  width: '150px',
+                                                                  minWidth: '150px',
+                                                                  maxWidth: '150px',
+                                                                  boxSizing: 'border-box'
+                                                                }}
+                                                              >
+                                                                {(() => {
+                                                                  const rawControl = String(
+                                                                    dev.control ??
+                                                                      histRows.find(
+                                                                        (r) =>
+                                                                          r.control !== undefined &&
+                                                                          r.control !== null &&
+                                                                          String(r.control).trim() !== ''
+                                                                      )?.control ??
+                                                                      ''
+                                                                  ).trim();
+                                                                  const controlMap = parseMeterControlMap(rawControl);
+                                                                  const controlCols = parseMColList(rawControl);
+                                                                  const colBoxMaxH =
+                                                                    Math.min(Math.max(histRows.length, 1), 5) * 52 - 10;
+                                                                  if (controlCols.length === 0) {
+                                                                    return (
+                                                                      <span
+                                                                        style={{
+                                                                          color: '#000000',
+                                                                          fontFamily: 'monospace',
+                                                                          fontSize: '0.76rem'
+                                                                        }}
+                                                                      >
+                                                                        --
+                                                                      </span>
+                                                                    );
+                                                                  }
+                                                                  return (
+                                                                    <div
+                                                                      style={{
+                                                                        maxHeight: `${colBoxMaxH}px`,
+                                                                        overflowY: 'auto',
+                                                                        display: 'flex',
+                                                                        flexDirection: 'column',
+                                                                        gap: '3px',
+                                                                        boxSizing: 'border-box'
+                                                                      }}
+                                                                    >
+                                                                      {controlCols.map((cc) => {
+                                                                        const label = String(
+                                                                          controlMap[cc.toLowerCase()] ??
+                                                                            controlMap[cc] ??
+                                                                            ''
+                                                                        ).trim();
+                                                                        return (
+                                                                          <div
+                                                                            key={cc}
+                                                                            style={{
+                                                                              display: 'flex',
+                                                                              alignItems: 'center',
+                                                                              justifyContent: label
+                                                                                ? 'space-between'
+                                                                                : 'center',
+                                                                              gap: '6px',
+                                                                              padding: '2px 6px',
+                                                                              borderRadius: '5px',
+                                                                              border: '1px solid #fde68a'
+                                                                            }}
+                                                                            title={label ? `${cc}: ${label}` : cc}
+                                                                          >
+                                                                            <span
+                                                                              style={{
+                                                                                color: '#000000',
+                                                                                fontFamily: 'monospace',
+                                                                                fontWeight: 700,
+                                                                                fontSize: '0.73rem',
+                                                                                flexShrink: 0
+                                                                              }}
+                                                                            >
+                                                                              {cc}
+                                                                            </span>
+                                                                            {label && (
+                                                                              <span
+                                                                                style={{
+                                                                                  fontWeight: 600,
+                                                                                  color: '#000000',
+                                                                                  fontSize: '0.72rem',
+                                                                                  whiteSpace: 'nowrap',
+                                                                                  overflow: 'hidden',
+                                                                                  textOverflow: 'ellipsis'
+                                                                                }}
+                                                                              >
+                                                                                {label}
+                                                                              </span>
+                                                                            )}
+                                                                          </div>
+                                                                        );
+                                                                      })}
+                                                                    </div>
+                                                                  );
+                                                                })()}
+                                                              </td>
+
+                                                              {/* Thao tác */}
+                                                              <td
+                                                                rowSpan={histRows.length}
+                                                                style={{
+                                                                  position: 'sticky',
+                                                                  left: '1032px',
+                                                                  zIndex: 3,
+                                                                  borderBottom: devCellBorderBottom,
+                                                                  borderLeft: '1px solid #e2e8f0',
+                                                                  padding: '6px 8px',
+                                                                  textAlign: 'center',
+                                                                  color: '#000000',
+                                                                  width: '96px',
+                                                                  minWidth: '96px',
+                                                                  maxWidth: '96px',
+                                                                  whiteSpace: 'nowrap',
+                                                                  boxSizing: 'border-box'
+                                                                }}
+                                                              >
+                                                                <button
+                                                                  type="button"
+                                                                  disabled={deletingDevId === dev.device_id}
+                                                                  onClick={() => handleDeleteDeviceTelemetry(dev)}
+                                                                  style={{
+                                                                    display: 'inline-flex',
+                                                                    alignItems: 'center',
+                                                                    gap: '4px',
+                                                                    padding: '5px 10px',
+                                                                    borderRadius: '6px',
+                                                                    border: '1px solid #fca5a5',
+                                                                    color: '#000000',
+                                                                    fontSize: '0.74rem',
+                                                                    fontWeight: 700,
+                                                                    cursor:
+                                                                      deletingDevId === dev.device_id
+                                                                        ? 'wait'
+                                                                        : 'pointer',
+                                                                    whiteSpace: 'nowrap'
+                                                                  }}
+                                                                  title="Xoá hàng tương ứng trong bảng telemetry_data"
+                                                                >
+                                                                  <Trash2 size={13} />
+                                                                  <span>
+                                                                    {deletingDevId === dev.device_id
+                                                                      ? 'Đang xoá...'
+                                                                      : 'Xoá'}
+                                                                  </span>
+                                                                </button>
+                                                              </td>
+                                                            </>
+                                                          )}
+
+                                                          {/* Cập nhật lúc */}
+                                                          <td
+                                                            style={{
+                                                              position: 'sticky',
+                                                              left: '1128px',
+                                                              zIndex: 3,
+                                                              borderBottom: cellBorderBottom,
+                                                              borderLeft: '1px solid #e2e8f0',
+                                                              padding: '6px 10px',
+                                                              textAlign: 'center',
+                                                              color: '#000000',
+                                                              fontFamily: 'monospace',
+                                                              fontSize: '0.74rem',
+                                                              whiteSpace: 'nowrap',
+                                                              width: '148px',
+                                                              minWidth: '148px',
+                                                              maxWidth: '148px',
+                                                              boxSizing: 'border-box'
+                                                            }}
+                                                          >
+                                                            {mRow.recorded_at || '--'}
+                                                          </td>
+
+                                                          {/* Cột dưới + Thêm cột - Xoá cột */}
+                                                          <td
+                                                            style={{
+                                                              position: 'sticky',
+                                                              left: '1276px',
+                                                              zIndex: 3,
+                                                              borderBottom: cellBorderBottom,
+                                                              borderLeft: '1px solid #e2e8f0',
+                                                              borderRight: '1px solid #cbd5e1',
+                                                              padding: '6px 8px',
+                                                              textAlign: 'center',
+                                                              width: '184px',
+                                                              minWidth: '184px',
+                                                              maxWidth: '184px',
+                                                              fontSize: '0.72rem',
+                                                              color: '#000000',
+                                                              fontWeight: 600,
+                                                              whiteSpace: 'nowrap',
+                                                              boxSizing: 'border-box'
+                                                            }}
+                                                          >
+                                                            {rIdx === 0 ? 'Mới nhất' : `#${rIdx + 1}`}
+                                                          </td>
+                                                        </tr>
+                                                      );
+                                                    });
+                                                  })
+                                                )}
+                                              </tbody>
+                                            </table>
+
+                                            {/* Khu vực cuộn ngang chỉ dành cho các cột m */}
+                                            <div
+                                              style={{
+                                                width: `${mVisibleWidth}px`,
+                                                minWidth: `${mVisibleWidth}px`,
+                                                maxWidth: `${mVisibleWidth}px`,
+                                                flexShrink: 0,
+                                                overflowX: hasHorizontalScroll ? 'auto' : 'hidden',
+                                                overflowY: 'hidden'
+                                              }}
+                                            >
+                                              <table
+                                                style={{
+                                                  width: `${mTotalWidth}px`,
+                                                  minWidth: `${mTotalWidth}px`,
+                                                  maxWidth: `${mTotalWidth}px`,
+                                                  tableLayout: 'fixed',
+                                                  borderCollapse: 'separate',
+                                                  borderSpacing: 0,
+                                                  fontSize: '0.82rem',
+                                                  textAlign: 'left'
+                                                }}
+                                              >
+                                                <thead>
+                                                  <tr
+                                                    style={{
+                                                      height: '40px',
+                                                      backgroundColor: '#eff6ff',
+                                                      color: '#1e40af',
+                                                      fontWeight: 700,
+                                                      fontSize: '0.73rem',
+                                                      textTransform: 'uppercase',
+                                                      letterSpacing: '0.4px'
+                                                    }}
+                                                  >
+                                                    {mCols.length === 0 ? (
+                                                      <th
+                                                        style={{
+                                                          position: 'sticky',
+                                                          top: 0,
+                                                          zIndex: 2,
+                                                          backgroundColor: '#eff6ff',
+                                                          borderBottom: '1px solid #dbeafe',
+                                                          padding: '0 8px',
+                                                          textAlign: 'center',
+                                                          color: '#94a3b8',
+                                                          width: '72px',
+                                                          minWidth: '72px',
+                                                          maxWidth: '72px',
+                                                          boxSizing: 'border-box'
+                                                        }}
+                                                      >
+                                                        --
+                                                      </th>
+                                                    ) : (
+                                                      mCols.map((mKey, mIdx) => (
+                                                        <th
+                                                          key={mKey}
+                                                          style={{
+                                                            position: 'sticky',
+                                                            top: 0,
+                                                            zIndex: 2,
+                                                            backgroundColor: '#eff6ff',
+                                                            borderBottom: '1px solid #dbeafe',
+                                                            borderRight:
+                                                              mIdx < mCols.length - 1 ? '1px solid #dbeafe' : 'none',
+                                                            padding: '0 8px',
+                                                            textAlign: 'center',
+                                                            fontFamily: 'monospace',
+                                                            color: '#1D58BB',
+                                                            textTransform: 'none',
+                                                            width: '72px',
+                                                            minWidth: '72px',
+                                                            maxWidth: '72px',
+                                                            whiteSpace: 'nowrap',
+                                                            boxSizing: 'border-box'
+                                                          }}
+                                                        >
+                                                          {mKey}
+                                                        </th>
+                                                      ))
+                                                    )}
+                                                  </tr>
+                                                </thead>
+                                                <tbody>
+                                                  {group.devices.length === 0 ? (
+                                                    <tr>
+                                                      <td
+                                                        colSpan={Math.max(mCols.length, 1)}
+                                                        style={{ height: '52px', padding: '0 8px', textAlign: 'center', color: '#94a3b8' }}
+                                                      >
+                                                        --
+                                                      </td>
+                                                    </tr>
+                                                  ) : (
+                                                    group.devices.map((dev, devIdx) => {
+                                                      const devKey = dev.device_code || String(dev.device_id);
+                                                      const rawHistRows =
+                                                        deviceRowsMap[devKey] && deviceRowsMap[devKey].length > 0
+                                                          ? deviceRowsMap[devKey]
+                                                          : [dev];
+                                                      const combinedRows = rawHistRows.some(
+                                                        (r) => r.recorded_at === dev.recorded_at
+                                                      )
+                                                        ? rawHistRows
+                                                        : [dev, ...rawHistRows];
+                                                      const histRows = sortRowsNewestFirst(combinedRows);
+                                                      const isLastDev = devIdx === group.devices.length - 1;
+                                                      const rowHeight =
+                                                        editingNoteDevId === dev.device_id && histRows.length === 1
+                                                          ? '86px'
+                                                          : '52px';
+
+                                                      return histRows.map((mRow, rIdx) => {
+                                                        const mVals = extractMValues(mRow);
+                                                        const isLastHistRow = rIdx === histRows.length - 1;
+                                                        const cellBorderBottom =
+                                                          isLastDev && isLastHistRow
+                                                            ? 'none'
+                                                            : isLastHistRow
+                                                              ? '1px solid #e2e8f0'
+                                                              : '1px solid #f1f5f9';
+
+                                                        return (
+                                                          <tr
+                                                            key={
+                                                              mRow.id
+                                                                ? `m-row-${dev.device_id}-${mRow.id}`
+                                                                : `m-row-${dev.device_id}-${rIdx}-${mRow.recorded_at}`
+                                                            }
+                                                            style={{
+                                                              height: rowHeight,
+                                                              color: '#000000',
+                                                              verticalAlign: 'middle'
+                                                            }}
+                                                          >
+                                                            {/* Các cột m */}
+                                                            {mCols.length === 0 ? (
+                                                              <td
+                                                                style={{
+                                                                  padding: '6px 8px',
+                                                                  textAlign: 'center',
+                                                                  borderBottom: cellBorderBottom,
+                                                                  color: '#000000',
+                                                                  fontFamily: 'monospace',
+                                                                  width: '72px',
+                                                                  minWidth: '72px',
+                                                                  maxWidth: '72px',
+                                                                  boxSizing: 'border-box'
+                                                                }}
+                                                              >
+                                                                --
+                                                              </td>
+                                                            ) : (
+                                                              mCols.map((mKey, mIdx) => {
+                                                                const val = mVals[mKey];
+                                                                const hasVal =
+                                                                  val !== undefined && val !== null && val !== '';
+                                                                return (
+                                                                  <td
                                                                     key={mKey}
                                                                     style={{
-                                                                      position: 'sticky',
-                                                                      top: 0,
-                                                                      zIndex: 2,
-                                                                      height: '38px',
-                                                                      backgroundColor: '#f8fafc',
-                                                                      padding: '0 8px',
-                                                                      borderBottom: '1px solid #cbd5e1',
-                                                                      borderRight: mIdx < mCols.length - 1 ? '1px solid #e2e8f0' : 'none',
+                                                                      padding: '6px 8px',
+                                                                      textAlign: 'center',
+                                                                      borderBottom: cellBorderBottom,
+                                                                      borderRight:
+                                                                        mIdx < mCols.length - 1
+                                                                          ? '1px solid #e2e8f0'
+                                                                          : 'none',
+                                                                      fontWeight: hasVal ? 700 : 400,
+                                                                      color: '#000000',
                                                                       fontFamily: 'monospace',
-                                                                      color: '#1D58BB',
                                                                       width: '72px',
                                                                       minWidth: '72px',
                                                                       maxWidth: '72px',
                                                                       whiteSpace: 'nowrap',
+                                                                      overflow: 'hidden',
+                                                                      textOverflow: 'ellipsis',
                                                                       boxSizing: 'border-box'
                                                                     }}
                                                                   >
-                                                                    {mKey}
-                                                                  </th>
-                                                                ))
-                                                              )}
-                                                            </tr>
-                                                          </thead>
-                                                          <tbody>
-                                                            {histRows.map((mRow, rIdx) => {
-                                                              const mVals = extractMValues(mRow);
-                                                              return (
-                                                                <tr
-                                                                  key={mRow.id ? `m-h-${mRow.id}` : `m-r-${rIdx}-${mRow.recorded_at}`}
-                                                                  style={{
-                                                                    height: '34px',
-                                                                    backgroundColor: rIdx === 0 ? '#f0fdf4' : '#ffffff'
-                                                                  }}
-                                                                >
-                                                                  {mCols.length === 0 ? (
-                                                                    <td
-                                                                      style={{
-                                                                        height: '34px',
-                                                                        padding: '0 8px',
-                                                                        borderBottom: rIdx < histRows.length - 1 ? '1px solid #f1f5f9' : 'none',
-                                                                        color: '#cbd5e1',
-                                                                        fontFamily: 'monospace',
-                                                                        boxSizing: 'border-box'
-                                                                      }}
-                                                                    >
-                                                                      --
-                                                                    </td>
-                                                                  ) : (
-                                                                    mCols.map((mKey, mIdx) => {
-                                                                      const val = mVals[mKey];
-                                                                      const hasVal = val !== undefined && val !== null && val !== '';
-                                                                      return (
-                                                                        <td
-                                                                          key={mKey}
-                                                                          style={{
-                                                                            height: '34px',
-                                                                            padding: '0 8px',
-                                                                            borderBottom: rIdx < histRows.length - 1 ? '1px solid #f1f5f9' : 'none',
-                                                                            borderRight: mIdx < mCols.length - 1 ? '1px solid #f1f5f9' : 'none',
-                                                                            fontWeight: hasVal ? 700 : 400,
-                                                                            color: hasVal ? '#0f172a' : '#cbd5e1',
-                                                                            fontFamily: 'monospace',
-                                                                            width: '72px',
-                                                                            minWidth: '72px',
-                                                                            maxWidth: '72px',
-                                                                            whiteSpace: 'nowrap',
-                                                                            overflow: 'hidden',
-                                                                            textOverflow: 'ellipsis',
-                                                                            boxSizing: 'border-box'
-                                                                          }}
-                                                                        >
-                                                                          {hasVal ? String(val) : '--'}
-                                                                        </td>
-                                                                      );
-                                                                    })
-                                                                  )}
-                                                                </tr>
-                                                              );
-                                                            })}
-                                                          </tbody>
-                                                        </table>
-                                                      </div>
-                                                    </div>
-                                                  </td>
-
-                                                  {/* Trạng thái */}
-                                                  <td style={{ padding: '12px', textAlign: 'center' }}>
-                                                    <span
-                                                      style={{
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        gap: '3px',
-                                                        padding: '2px 7px',
-                                                        borderRadius: '6px',
-                                                        backgroundColor: '#ecfdf5',
-                                                        color: '#16a34a',
-                                                        fontSize: '0.7rem',
-                                                        fontWeight: 600
-                                                      }}
-                                                    >
-                                                      <CheckCircle2 size={11} /> Online
-                                                    </span>
-                                                  </td>
-
-                                                  {/* Ghi chú */}
-                                                  <td style={{ padding: '10px 12px', textAlign: 'center' }}>
-                                                    {(() => {
-                                                      const currentNote = String(
-                                                        dev.note ??
-                                                          histRows.find((r) => r.note !== undefined && r.note !== null && String(r.note).trim() !== '')?.note ??
-                                                          ''
-                                                      ).trim();
-                                                      const isEditing = editingNoteDevId === dev.device_id;
-
-                                                      if (isEditing) {
-                                                        return (
-                                                          <div
-                                                            style={{
-                                                              display: 'flex',
-                                                              alignItems: 'center',
-                                                              justifyContent: 'center',
-                                                              gap: '8px',
-                                                              height: `${valueTableHeight}px`,
-                                                              boxSizing: 'border-box'
-                                                            }}
-                                                          >
-                                                            <textarea
-                                                              value={noteDraftText}
-                                                              onChange={(e) => setNoteDraftText(e.target.value)}
-                                                              placeholder="Nhập nội dung ghi chú..."
-                                                              style={{
-                                                                width: '165px',
-                                                                height: `${valueTableHeight}px`,
-                                                                minHeight: `${valueTableHeight}px`,
-                                                                maxHeight: `${valueTableHeight}px`,
-                                                                padding: '8px 10px',
-                                                                borderRadius: '8px',
-                                                                border: '1px solid #93c5fd',
-                                                                fontSize: '0.78rem',
-                                                                fontFamily: 'inherit',
-                                                                color: '#0f172a',
-                                                                backgroundColor: '#ffffff',
-                                                                resize: 'none',
-                                                                outline: 'none',
-                                                                boxSizing: 'border-box'
-                                                              }}
-                                                            />
-                                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', flexShrink: 0 }}>
-                                                              <button
-                                                                type="button"
-                                                                disabled={savingNoteDevId === dev.device_id}
-                                                                onClick={() => handleSaveNote(dev)}
-                                                                style={{
-                                                                  display: 'inline-flex',
-                                                                  alignItems: 'center',
-                                                                  justifyContent: 'center',
-                                                                  gap: '4px',
-                                                                  padding: '5px 12px',
-                                                                  borderRadius: '6px',
-                                                                  border: 'none',
-                                                                  backgroundColor: '#1D58BB',
-                                                                  color: '#ffffff',
-                                                                  fontSize: '0.74rem',
-                                                                  fontWeight: 700,
-                                                                  cursor: savingNoteDevId === dev.device_id ? 'wait' : 'pointer'
-                                                                }}
-                                                              >
-                                                                <span>{savingNoteDevId === dev.device_id ? 'Đang lưu...' : 'Lưu'}</span>
-                                                              </button>
-                                                              <button
-                                                                type="button"
-                                                                onClick={() => {
-                                                                  setEditingNoteDevId(null);
-                                                                  setNoteDraftText('');
-                                                                }}
-                                                                style={{
-                                                                  padding: '4px 10px',
-                                                                  borderRadius: '6px',
-                                                                  border: '1px solid #cbd5e1',
-                                                                  backgroundColor: '#ffffff',
-                                                                  color: '#64748b',
-                                                                  fontSize: '0.74rem',
-                                                                  fontWeight: 600,
-                                                                  cursor: 'pointer'
-                                                                }}
-                                                              >
-                                                                Huỷ
-                                                              </button>
-                                                            </div>
-                                                          </div>
-                                                        );
-                                                      }
-
-                                                      if (!currentNote) {
-                                                        return (
-                                                          <div
-                                                            style={{
-                                                              height: `${valueTableHeight}px`,
-                                                              display: 'flex',
-                                                              alignItems: 'center',
-                                                              justifyContent: 'center',
-                                                              boxSizing: 'border-box'
-                                                            }}
-                                                          >
-                                                            <button
-                                                              type="button"
-                                                              onClick={() => {
-                                                                setEditingNoteDevId(dev.device_id);
-                                                                setNoteDraftText('');
-                                                              }}
-                                                              style={{
-                                                                display: 'inline-flex',
-                                                                alignItems: 'center',
-                                                                gap: '4px',
-                                                                padding: '5px 12px',
-                                                                borderRadius: '6px',
-                                                                border: '1px solid #1D58BB',
-                                                                backgroundColor: '#eff6ff',
-                                                                color: '#1D58BB',
-                                                                fontSize: '0.75rem',
-                                                                fontWeight: 700,
-                                                                cursor: 'pointer'
-                                                              }}
-                                                            >
-                                                              <Plus size={13} />
-                                                              <span>Thêm</span>
-                                                            </button>
-                                                          </div>
-                                                        );
-                                                      }
-
-                                                      return (
-                                                        <div
-                                                          style={{
-                                                            display: 'flex',
-                                                            alignItems: 'center',
-                                                            justifyContent: 'center',
-                                                            gap: '8px',
-                                                            height: `${valueTableHeight}px`,
-                                                            boxSizing: 'border-box'
-                                                          }}
-                                                        >
-                                                          <div
-                                                            onClick={() =>
-                                                              setViewingNoteModal({
-                                                                device_id: dev.device_id,
-                                                                device_code: dev.device_code,
-                                                                device_name: dev.device_name,
-                                                                note: currentNote
+                                                                    {hasVal ? String(val) : '--'}
+                                                                  </td>
+                                                                );
                                                               })
-                                                            }
-                                                            title="Nhấn để mở cửa sổ xem nội dung ghi chú"
-                                                            style={{
-                                                              width: '165px',
-                                                              height: `${valueTableHeight}px`,
-                                                              minHeight: `${valueTableHeight}px`,
-                                                              maxHeight: `${valueTableHeight}px`,
-                                                              padding: '8px 10px',
-                                                              borderRadius: '8px',
-                                                              border: '1px solid #cbd5e1',
-                                                              backgroundColor: '#f8fafc',
-                                                              color: '#1e293b',
-                                                              fontSize: '0.76rem',
-                                                              lineHeight: 1.45,
-                                                              whiteSpace: 'pre-wrap',
-                                                              wordBreak: 'break-word',
-                                                              overflowY: 'auto',
-                                                              cursor: 'pointer',
-                                                              textAlign: 'left',
-                                                              boxSizing: 'border-box',
-                                                              boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
-                                                            }}
-                                                          >
-                                                            {currentNote}
-                                                          </div>
-                                                          <button
-                                                            type="button"
-                                                            onClick={() => {
-                                                              setEditingNoteDevId(dev.device_id);
-                                                              setNoteDraftText(currentNote);
-                                                            }}
-                                                            style={{
-                                                              display: 'inline-flex',
-                                                              alignItems: 'center',
-                                                              gap: '4px',
-                                                              padding: '5px 10px',
-                                                              borderRadius: '6px',
-                                                              border: '1px solid #f59e0b',
-                                                              backgroundColor: '#fffbeb',
-                                                              color: '#d97706',
-                                                              fontSize: '0.74rem',
-                                                              fontWeight: 700,
-                                                              cursor: 'pointer',
-                                                              flexShrink: 0
-                                                            }}
-                                                          >
-                                                            <span>Sửa</span>
-                                                          </button>
-                                                        </div>
-                                                      );
-                                                    })()}
-                                                  </td>
-
-                                                  {/* Thao tác */}
-                                                  <td style={{ padding: '12px', textAlign: 'center' }}>
-                                                    <button
-                                                      type="button"
-                                                      disabled={deletingDevId === dev.device_id}
-                                                      onClick={() => handleDeleteDeviceTelemetry(dev)}
-                                                      style={{
-                                                        display: 'inline-flex',
-                                                        alignItems: 'center',
-                                                        gap: '4px',
-                                                        padding: '5px 10px',
-                                                        borderRadius: '6px',
-                                                        border: '1px solid #fca5a5',
-                                                        backgroundColor: '#fef2f2',
-                                                        color: '#dc2626',
-                                                        fontSize: '0.74rem',
-                                                        fontWeight: 700,
-                                                        cursor: deletingDevId === dev.device_id ? 'wait' : 'pointer',
-                                                        whiteSpace: 'nowrap'
-                                                      }}
-                                                      title="Xoá hàng tương ứng trong bảng telemetry_data"
-                                                    >
-                                                      <Trash2 size={13} />
-                                                      <span>{deletingDevId === dev.device_id ? 'Đang xoá...' : 'Xoá'}</span>
-                                                    </button>
-                                                  </td>
-                                                </tr>
-                                              );
-                                            })
-                                          )}
-                                        </tbody>
-                                      </table>
+                                                            )}
+                                                          </tr>
+                                                        );
+                                                      });
+                                                    })
+                                                  )}
+                                                </tbody>
+                                              </table>
+                                            </div>
+                                          </div>
+                                        );
+                                      })()}
                                     </div>
                                   </div>
                                 </td>
@@ -1930,6 +2998,121 @@ export const EmployOperate: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* KHUNG CHỌN ĐO LƯỜNG HOẶC ĐIỀU KHIỂN KHI NHẤN + THÊM CỘT */}
+      {addColMenu && (
+        <>
+          <div
+            style={{
+              position: 'fixed',
+              inset: 0,
+              zIndex: 9998
+            }}
+            onClick={() => setAddColMenu(null)}
+          />
+          <div
+            style={{
+              position: 'fixed',
+              top: `${addColMenu.top}px`,
+              left: `${addColMenu.left}px`,
+              zIndex: 9999,
+              backgroundColor: '#ffffff',
+              borderRadius: '10px',
+              border: '1px solid #bfdbfe',
+              boxShadow: '0 12px 28px rgba(15, 23, 42, 0.18)',
+              padding: '8px',
+              width: '200px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '6px'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            {(() => {
+              let maxNum = 0;
+              addColMenu.currentCols.forEach((c) => {
+                const n = parseInt(c.replace(/^m/i, ''), 10) || 0;
+                if (n > maxNum) maxNum = n;
+              });
+              const nextCol = `m${maxNum + 1}`;
+              return (
+                <>
+                  <div
+                    style={{
+                      fontSize: '0.72rem',
+                      fontWeight: 700,
+                      color: '#64748b',
+                      padding: '2px 4px',
+                      borderBottom: '1px solid #f1f5f9',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <span>Chọn loại cột thêm:</span>
+                    <span
+                      style={{
+                        fontFamily: 'monospace',
+                        color: '#1D58BB',
+                        backgroundColor: '#eff6ff',
+                        padding: '1px 6px',
+                        borderRadius: '4px',
+                        border: '1px solid #bfdbfe'
+                      }}
+                    >
+                      {nextCol}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectAddColumnType('meter')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '7px',
+                      border: '1px solid #bfdbfe',
+                      backgroundColor: '#eff6ff',
+                      color: '#1D58BB',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <span>Đo lường</span>
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>+{nextCol}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectAddColumnType('control')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '7px',
+                      border: '1px solid #fde68a',
+                      backgroundColor: '#fffbeb',
+                      color: '#d97706',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <span>Điều khiển</span>
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>+{nextCol}</span>
+                  </button>
+                </>
+              );
+            })()}
+          </div>
+        </>
+      )}
 
       {/* BẢNG CHỌN CÁC CỘT M MUỐN XOÁ */}
       {deleteColModal && (
@@ -2203,23 +3386,57 @@ export const EmployOperate: React.FC = () => {
             </div>
 
             <div style={{ padding: '20px' }}>
-              <div
-                style={{
-                  padding: '14px 16px',
-                  borderRadius: '10px',
-                  border: '1px solid #cbd5e1',
-                  backgroundColor: '#f8fafc',
-                  color: '#0f172a',
-                  fontSize: '0.88rem',
-                  lineHeight: 1.6,
-                  whiteSpace: 'pre-wrap',
-                  wordBreak: 'break-word',
-                  maxHeight: '300px',
-                  overflowY: 'auto'
-                }}
-              >
-                {viewingNoteModal.note}
-              </div>
+              {(() => {
+                const modalMap = parseNoteMapping(viewingNoteModal.note);
+                const entries = Object.entries(modalMap);
+                return (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {entries.length > 0 && (
+                      <div style={{ border: '1px solid #cbd5e1', borderRadius: '10px', overflow: 'hidden' }}>
+                        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.84rem', textAlign: 'left' }}>
+                          <thead>
+                            <tr style={{ backgroundColor: '#eff6ff', borderBottom: '1px solid #cbd5e1', color: '#1e40af', fontWeight: 700 }}>
+                              <th style={{ padding: '8px 14px', width: '110px' }}>Cột m</th>
+                              <th style={{ padding: '8px 14px' }}>Thông số hiển thị trên App</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {entries.map(([k, val], idx) => (
+                              <tr key={k} style={{ borderBottom: idx < entries.length - 1 ? '1px solid #e2e8f0' : 'none' }}>
+                                <td style={{ padding: '8px 14px', fontFamily: 'monospace', fontWeight: 700, color: '#1D58BB' }}>{k}</td>
+                                <td style={{ padding: '8px 14px', fontWeight: 600, color: '#0f172a' }}>{val}</td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                    <div>
+                      <div style={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', marginBottom: '4px' }}>
+                        Dữ liệu JSON lưu trong cột note (telemetry_data):
+                      </div>
+                      <div
+                        style={{
+                          padding: '10px 14px',
+                          borderRadius: '8px',
+                          border: '1px solid #cbd5e1',
+                          backgroundColor: '#f8fafc',
+                          color: '#0f172a',
+                          fontFamily: 'monospace',
+                          fontSize: '0.8rem',
+                          lineHeight: 1.5,
+                          whiteSpace: 'pre-wrap',
+                          wordBreak: 'break-word',
+                          maxHeight: '160px',
+                          overflowY: 'auto'
+                        }}
+                      >
+                        {viewingNoteModal.note}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             <div
@@ -2240,7 +3457,7 @@ export const EmployOperate: React.FC = () => {
                   const targetNote = viewingNoteModal.note;
                   setViewingNoteModal(null);
                   setEditingNoteDevId(targetId);
-                  setNoteDraftText(targetNote);
+                  setNoteDraftMap(parseNoteMapping(targetNote));
                 }}
                 style={{
                   padding: '7px 14px',

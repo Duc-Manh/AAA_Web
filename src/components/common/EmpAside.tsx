@@ -9,6 +9,7 @@ import {
   Wallet,
   ClipboardList,
   Activity,
+  FlaskConical,
   Settings,
   Menu,
   Wrench,
@@ -215,6 +216,23 @@ export const EmpAside: React.FC<EmpAsideProps> = ({
         >
           <ClipboardList size={19} className="dash-menu-icon" />
           {!isCollapsed && <span>Quản lý công việc</span>}
+        </button>
+
+        {/* 9. Thử nghiệm -> EmployLab.tsx (#employ-lab) */}
+        <button
+          type="button"
+          className={`dash-menu-item ${isTabActive('lab', ['#employ-lab', '/employ-lab']) ? 'active' : ''}`}
+          onClick={() => {
+            setIsMobileOpen(false);
+            if (setActiveTab) {
+              setActiveTab('lab');
+            }
+            window.location.hash = '#employ-lab';
+            window.dispatchEvent(new Event('hashchange'));
+          }}
+        >
+          <FlaskConical size={19} className="dash-menu-icon" />
+          {!isCollapsed && <span>Thử nghiệm</span>}
         </button>
 
 
