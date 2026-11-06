@@ -348,6 +348,51 @@ export const EmployOperate: React.FC = () => {
 
   const wsRef = useRef<WebSocket | null>(null);
   const pollTimerRef = useRef<any>(null);
+  const meterControlCacheRef = useRef<
+    Record<string, { meter?: string; control?: string; updatedAt?: number }>
+  >((() => {
+    try {
+      const saved = localStorage.getItem('aaa_telemetry_meter_control_cache');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  })());
+
+  const saveMeterControlCache = (devKey: string, meterStr: string, controlStr: string) => {
+    meterControlCacheRef.current = {
+      ...meterControlCacheRef.current,
+      [devKey]: {
+        meter: meterStr,
+        control: controlStr,
+        updatedAt: Date.now()
+      }
+    };
+    try {
+      localStorage.setItem(
+        'aaa_telemetry_meter_control_cache',
+        JSON.stringify(meterControlCacheRef.current)
+      );
+    } catch {
+      // ignore
+    }
+  };
+
+  const resolveDeviceMeterRaw = (dev: TelemetryDeviceRow, rows: TelemetryDeviceRow[]): string => {
+    const dKey = dev.device_code || String(dev.device_id);
+    if (dev.meter && String(dev.meter).trim() !== '') return String(dev.meter).trim();
+    const fromRow = rows.find((r) => r.meter && String(r.meter).trim() !== '')?.meter;
+    if (fromRow) return String(fromRow).trim();
+    return String(meterControlCacheRef.current[dKey]?.meter || '').trim();
+  };
+
+  const resolveDeviceControlRaw = (dev: TelemetryDeviceRow, rows: TelemetryDeviceRow[]): string => {
+    const dKey = dev.device_code || String(dev.device_id);
+    if (dev.control && String(dev.control).trim() !== '') return String(dev.control).trim();
+    const fromRow = rows.find((r) => r.control && String(r.control).trim() !== '')?.control;
+    if (fromRow) return String(fromRow).trim();
+    return String(meterControlCacheRef.current[dKey]?.control || '').trim();
+  };
 
   const getDeviceMColumns = (devKey: string, rows: any[]): string[] => {
     const maxDataM = getMaxMIndex(rows);
@@ -447,14 +492,8 @@ export const EmployOperate: React.FC = () => {
     for (const dev of devices) {
       const dKey = dev.device_code || String(dev.device_id);
       const devRows = deviceRowsMap[dKey] || [dev];
-      const existingMeterRaw =
-        dev.meter ??
-        devRows.find((r) => r.meter !== undefined && r.meter !== null && String(r.meter).trim() !== '')?.meter ??
-        '';
-      const existingControlRaw =
-        dev.control ??
-        devRows.find((r) => r.control !== undefined && r.control !== null && String(r.control).trim() !== '')?.control ??
-        '';
+      const existingMeterRaw = resolveDeviceMeterRaw(dev, devRows);
+      const existingControlRaw = resolveDeviceControlRaw(dev, devRows);
 
       const meterMap = parseMeterControlMap(existingMeterRaw);
       const controlMap = parseMeterControlMap(existingControlRaw);
@@ -473,6 +512,7 @@ export const EmployOperate: React.FC = () => {
 
       const newMeterStr = serializeMeterControlMap(meterMap);
       const newControlStr = serializeMeterControlMap(controlMap);
+      saveMeterControlCache(dKey, newMeterStr, newControlStr);
 
       setTelemetryList((prev) =>
         prev.map((item) =>
@@ -536,14 +576,8 @@ export const EmployOperate: React.FC = () => {
       for (const dev of devices) {
         const dKey = dev.device_code || String(dev.device_id);
         const devRows = deviceRowsMap[dKey] || [dev];
-        const existingMeterRaw =
-          dev.meter ??
-          devRows.find((r) => r.meter !== undefined && r.meter !== null && String(r.meter).trim() !== '')?.meter ??
-          '';
-        const existingControlRaw =
-          dev.control ??
-          devRows.find((r) => r.control !== undefined && r.control !== null && String(r.control).trim() !== '')?.control ??
-          '';
+        const existingMeterRaw = resolveDeviceMeterRaw(dev, devRows);
+        const existingControlRaw = resolveDeviceControlRaw(dev, devRows);
 
         const meterMap = parseMeterControlMap(existingMeterRaw);
         const controlMap = parseMeterControlMap(existingControlRaw);
@@ -554,6 +588,7 @@ export const EmployOperate: React.FC = () => {
 
         const newMeterStr = serializeMeterControlMap(meterMap);
         const newControlStr = serializeMeterControlMap(controlMap);
+        saveMeterControlCache(dKey, newMeterStr, newControlStr);
 
         setTelemetryList((prev) =>
           prev.map((item) =>
@@ -584,14 +619,8 @@ export const EmployOperate: React.FC = () => {
     const dKey = dev.device_code || String(dev.device_id);
     const devRows = deviceRowsMap[dKey] || [dev];
 
-    const existingMeterRaw =
-      dev.meter ??
-      devRows.find((r) => r.meter !== undefined && r.meter !== null && String(r.meter).trim() !== '')?.meter ??
-      '';
-    const existingControlRaw =
-      dev.control ??
-      devRows.find((r) => r.control !== undefined && r.control !== null && String(r.control).trim() !== '')?.control ??
-      '';
+    const existingMeterRaw = resolveDeviceMeterRaw(dev, devRows);
+    const existingControlRaw = resolveDeviceControlRaw(dev, devRows);
 
     const meterMap = parseMeterControlMap(existingMeterRaw);
     const controlMap = parseMeterControlMap(existingControlRaw);
@@ -610,20 +639,22 @@ export const EmployOperate: React.FC = () => {
         Object.prototype.hasOwnProperty.call(noteDraftMap, k.toUpperCase());
       const draftVal = hasDraft ? String(noteDraftMap[k] ?? noteDraftMap[k.toUpperCase()] ?? '').trim() : undefined;
 
-      if (k in meterMap) {
-        if (draftVal !== undefined) {
-          meterMap[k] = draftVal;
-        }
-      }
       if (k in controlMap) {
         if (draftVal !== undefined) {
           controlMap[k] = draftVal;
         }
+      } else if (k in meterMap) {
+        if (draftVal !== undefined) {
+          meterMap[k] = draftVal;
+        }
+      } else if (draftVal !== undefined && draftVal !== '') {
+        meterMap[k] = draftVal;
       }
     });
 
     const newMeterStr = serializeMeterControlMap(meterMap);
     const newControlStr = serializeMeterControlMap(controlMap);
+    saveMeterControlCache(dKey, newMeterStr, newControlStr);
 
     setSavingNoteDevId(devId);
     try {
@@ -735,11 +766,44 @@ export const EmployOperate: React.FC = () => {
         });
         const uniqueLatestDevices: TelemetryDeviceRow[] = [];
         Object.keys(grouped).forEach((k) => {
-          grouped[k] = sortRowsNewestFirst(grouped[k]);
+          const sorted = sortRowsNewestFirst(grouped[k]);
+          const dbMeter = sorted.find((r) => r.meter && String(r.meter).trim() !== '')?.meter;
+          const dbControl = sorted.find((r) => r.control && String(r.control).trim() !== '')?.control;
+          const cached = meterControlCacheRef.current[k];
+          const isRecentLocalSave = cached?.updatedAt && Date.now() - cached.updatedAt < 10000;
+
+          const finalMeter = isRecentLocalSave
+            ? (cached?.meter ?? dbMeter ?? null)
+            : (dbMeter ?? cached?.meter ?? null);
+          const finalControl = isRecentLocalSave
+            ? (cached?.control ?? dbControl ?? null)
+            : (dbControl ?? cached?.control ?? null);
+
+          if (!isRecentLocalSave && (dbMeter || dbControl)) {
+            meterControlCacheRef.current[k] = {
+              meter: dbMeter ? String(dbMeter) : cached?.meter || '',
+              control: dbControl ? String(dbControl) : cached?.control || '',
+              updatedAt: cached?.updatedAt || 0
+            };
+          }
+
+          grouped[k] = sorted.map((r) => ({
+            ...r,
+            meter: r.meter && String(r.meter).trim() !== '' ? r.meter : finalMeter,
+            control: r.control && String(r.control).trim() !== '' ? r.control : finalControl
+          }));
           if (grouped[k].length > 0) {
             uniqueLatestDevices.push(grouped[k][0]);
           }
         });
+        try {
+          localStorage.setItem(
+            'aaa_telemetry_meter_control_cache',
+            JSON.stringify(meterControlCacheRef.current)
+          );
+        } catch {
+          // ignore
+        }
         setDeviceRowsMap(grouped);
         setTelemetryList(uniqueLatestDevices);
         const now = new Date();
@@ -2097,26 +2161,8 @@ export const EmployOperate: React.FC = () => {
                                                                 }}
                                                               >
                                                                 {(() => {
-                                                                  const rawMeterForNote = String(
-                                                                    dev.meter ??
-                                                                      histRows.find(
-                                                                        (r) =>
-                                                                          r.meter !== undefined &&
-                                                                          r.meter !== null &&
-                                                                          String(r.meter).trim() !== ''
-                                                                      )?.meter ??
-                                                                      ''
-                                                                  ).trim();
-                                                                  const rawControlForNote = String(
-                                                                    dev.control ??
-                                                                      histRows.find(
-                                                                        (r) =>
-                                                                          r.control !== undefined &&
-                                                                          r.control !== null &&
-                                                                          String(r.control).trim() !== ''
-                                                                      )?.control ??
-                                                                      ''
-                                                                  ).trim();
+                                                                  const rawMeterForNote = resolveDeviceMeterRaw(dev, histRows);
+                                                                  const rawControlForNote = resolveDeviceControlRaw(dev, histRows);
                                                                   const meterMapForNote = parseMeterControlMap(rawMeterForNote);
                                                                   const controlMapForNote = parseMeterControlMap(rawControlForNote);
                                                                   const parsedMap: Record<string, string> = {
@@ -2453,16 +2499,7 @@ export const EmployOperate: React.FC = () => {
                                                                 }}
                                                               >
                                                                 {(() => {
-                                                                  const rawMeter = String(
-                                                                    dev.meter ??
-                                                                      histRows.find(
-                                                                        (r) =>
-                                                                          r.meter !== undefined &&
-                                                                          r.meter !== null &&
-                                                                          String(r.meter).trim() !== ''
-                                                                      )?.meter ??
-                                                                      ''
-                                                                  ).trim();
+                                                                  const rawMeter = resolveDeviceMeterRaw(dev, histRows);
                                                                   const meterMap = parseMeterControlMap(rawMeter);
                                                                   const meterCols = parseMColList(rawMeter);
                                                                   const colBoxMaxH =
@@ -2565,16 +2602,7 @@ export const EmployOperate: React.FC = () => {
                                                                 }}
                                                               >
                                                                 {(() => {
-                                                                  const rawControl = String(
-                                                                    dev.control ??
-                                                                      histRows.find(
-                                                                        (r) =>
-                                                                          r.control !== undefined &&
-                                                                          r.control !== null &&
-                                                                          String(r.control).trim() !== ''
-                                                                      )?.control ??
-                                                                      ''
-                                                                  ).trim();
+                                                                  const rawControl = resolveDeviceControlRaw(dev, histRows);
                                                                   const controlMap = parseMeterControlMap(rawControl);
                                                                   const controlCols = parseMColList(rawControl);
                                                                   const colBoxMaxH =

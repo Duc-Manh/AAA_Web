@@ -95,6 +95,14 @@ export const EmployLab: React.FC = () => {
           groupedByDev.get(dId)!.push(row);
         });
 
+        let localMcCache: Record<string, { meter?: string; control?: string }> = {};
+        try {
+          const savedMc = localStorage.getItem('aaa_telemetry_meter_control_cache');
+          if (savedMc) localMcCache = JSON.parse(savedMc);
+        } catch {
+          // ignore
+        }
+
         const uniqueDevices: LabTelemetryRow[] = [];
         groupedByDev.forEach((rows) => {
           const sorted = [...rows].sort((a, b) => {
@@ -102,7 +110,16 @@ export const EmployLab: React.FC = () => {
             if (diff !== 0) return diff;
             return Number(b.id || 0) - Number(a.id || 0);
           });
-          const latest = { ...sorted[0], history_rows: sorted };
+          const dKey = sorted[0]?.device_code || String(sorted[0]?.device_id || '');
+          const cachedMc = localMcCache[dKey];
+          const dbMeter = sorted.find((r) => r.meter && String(r.meter).trim() !== '')?.meter;
+          const dbControl = sorted.find((r) => r.control && String(r.control).trim() !== '')?.control;
+          const latest = {
+            ...sorted[0],
+            meter: dbMeter || cachedMc?.meter || sorted[0]?.meter || null,
+            control: dbControl || cachedMc?.control || sorted[0]?.control || null,
+            history_rows: sorted
+          };
           uniqueDevices.push(latest);
         });
 
