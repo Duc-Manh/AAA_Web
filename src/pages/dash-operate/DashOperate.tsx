@@ -1879,7 +1879,7 @@ export const DashOperate: React.FC = () => {
                                               <thead>
                                                 <tr
                                                   style={{
-                                                    height: '40px',
+                                                    height: '52px',
                                                     backgroundColor: '#eff6ff',
                                                     color: '#1e40af',
                                                     fontWeight: 700,
@@ -2070,7 +2070,7 @@ export const DashOperate: React.FC = () => {
                                                       borderBottom: '1px solid #dbeafe',
                                                       borderLeft: '1px solid #dbeafe',
                                                       borderRight: '1px solid #cbd5e1',
-                                                      padding: '0 8px',
+                                                      padding: '3px 8px',
                                                       textAlign: 'center',
                                                       width: '184px',
                                                       minWidth: '184px',
@@ -2081,7 +2081,15 @@ export const DashOperate: React.FC = () => {
                                                       boxSizing: 'border-box'
                                                     }}
                                                   >
-                                                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                                                    <div
+                                                      style={{
+                                                        display: 'inline-flex',
+                                                        flexDirection: 'column',
+                                                        alignItems: 'stretch',
+                                                        justifyContent: 'center',
+                                                        gap: '3px'
+                                                      }}
+                                                    >
                                                       <button
                                                         type="button"
                                                         onClick={(e) => {
@@ -2111,20 +2119,22 @@ export const DashOperate: React.FC = () => {
                                                         style={{
                                                           display: 'inline-flex',
                                                           alignItems: 'center',
+                                                          justifyContent: 'center',
                                                           gap: '3px',
-                                                          padding: '4px 8px',
-                                                          borderRadius: '6px',
+                                                          padding: '2px 8px',
+                                                          borderRadius: '5px',
                                                           border: '1px solid #1D58BB',
                                                           backgroundColor: '#ffffff',
                                                           color: '#1D58BB',
-                                                          fontSize: '0.72rem',
+                                                          fontSize: '0.7rem',
+                                                          lineHeight: 1.2,
                                                           fontWeight: 700,
                                                           cursor: 'pointer',
                                                           whiteSpace: 'nowrap'
                                                         }}
                                                         title="Chọn thêm cột Đo lường hoặc Điều khiển"
                                                       >
-                                                        <Plus size={12} />
+                                                        <Plus size={11} />
                                                         <span>Thêm cột</span>
                                                       </button>
                                                       <button
@@ -2147,21 +2157,23 @@ export const DashOperate: React.FC = () => {
                                                         style={{
                                                           display: 'inline-flex',
                                                           alignItems: 'center',
+                                                          justifyContent: 'center',
                                                           gap: '3px',
-                                                          padding: '4px 8px',
-                                                          borderRadius: '6px',
+                                                          padding: '2px 8px',
+                                                          borderRadius: '5px',
                                                           border: '1px solid #ef4444',
                                                           backgroundColor: mCols.length === 0 ? '#f8fafc' : '#fef2f2',
                                                           color: mCols.length === 0 ? '#cbd5e1' : '#dc2626',
                                                           borderColor: mCols.length === 0 ? '#e2e8f0' : '#fca5a5',
-                                                          fontSize: '0.72rem',
+                                                          fontSize: '0.7rem',
+                                                          lineHeight: 1.2,
                                                           fontWeight: 700,
                                                           cursor: mCols.length === 0 ? 'not-allowed' : 'pointer',
                                                           whiteSpace: 'nowrap'
                                                         }}
                                                         title="Mở bảng chọn các cột m muốn xoá"
                                                       >
-                                                        <Minus size={12} />
+                                                        <Minus size={11} />
                                                         <span>Xoá cột</span>
                                                       </button>
                                                     </div>
@@ -3132,7 +3144,7 @@ export const DashOperate: React.FC = () => {
                                                               zIndex: 3,
                                                               borderBottom: cellBorderBottom,
                                                               borderLeft: '1px solid #e2e8f0',
-                                                              padding: '6px 10px',
+                                                              padding: '4px 10px',
                                                               textAlign: 'center',
                                                               color: '#000000',
                                                               fontFamily: 'monospace',
@@ -3144,7 +3156,29 @@ export const DashOperate: React.FC = () => {
                                                               boxSizing: 'border-box'
                                                             }}
                                                           >
-                                                            {mRow.recorded_at || '--'}
+                                                            {(() => {
+                                                              const rawTime = String(mRow.recorded_at || '').trim();
+                                                              if (!rawTime || rawTime === '--') return '--';
+                                                              const normalizedTime = rawTime
+                                                                .replace('T', ' ')
+                                                                .replace(/\.\d+Z?$/, '');
+                                                              const [datePart, timePart] = normalizedTime.split(/\s+/);
+                                                              return (
+                                                                <div
+                                                                  style={{
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center',
+                                                                    lineHeight: 1.25,
+                                                                    gap: '2px'
+                                                                  }}
+                                                                >
+                                                                  <span>{datePart || '--'}</span>
+                                                                  {timePart && <span>{timePart}</span>}
+                                                                </div>
+                                                              );
+                                                            })()}
                                                           </td>
 
                                                           {/* Cột dưới + Thêm cột - Xoá cột */}
@@ -3204,7 +3238,7 @@ export const DashOperate: React.FC = () => {
                                                 <thead>
                                                   <tr
                                                     style={{
-                                                      height: '40px',
+                                                      height: '52px',
                                                       backgroundColor: '#eff6ff',
                                                       color: '#1e40af',
                                                       fontWeight: 700,
