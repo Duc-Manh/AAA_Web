@@ -2190,6 +2190,8 @@ export const EmployOperate: React.FC = () => {
                                                                   position: 'sticky',
                                                                   left: '0px',
                                                                   zIndex: 3,
+                                                                  backgroundColor: '#ffffff',
+                                                                  verticalAlign: 'top',
                                                                   borderBottom: devCellBorderBottom,
                                                                   padding: '6px 10px',
                                                                   fontWeight: 700,
@@ -2201,7 +2203,20 @@ export const EmployOperate: React.FC = () => {
                                                                   boxSizing: 'border-box'
                                                                 }}
                                                               >
-                                                                #{dev.device_id}
+                                                                <div
+                                                                  style={{
+                                                                    position: 'sticky',
+                                                                    top: '44px',
+                                                                    minHeight:
+                                                                      histRows.length === 1
+                                                                        ? '38px'
+                                                                        : `${Math.min(histRows.length, 5) * 52 - 12}px`,
+                                                                    display: 'flex',
+                                                                    alignItems: 'center'
+                                                                  }}
+                                                                >
+                                                                  #{dev.device_id}
+                                                                </div>
                                                               </td>
 
                                                               {/* Mã thiết bị */}
@@ -2211,6 +2226,8 @@ export const EmployOperate: React.FC = () => {
                                                                   position: 'sticky',
                                                                   left: '64px',
                                                                   zIndex: 3,
+                                                                  backgroundColor: '#ffffff',
+                                                                  verticalAlign: 'top',
                                                                   borderBottom: devCellBorderBottom,
                                                                   padding: '6px 10px',
                                                                   color: '#000000',
@@ -2221,20 +2238,33 @@ export const EmployOperate: React.FC = () => {
                                                                   boxSizing: 'border-box'
                                                                 }}
                                                               >
-                                                                <span
+                                                                <div
                                                                   style={{
-                                                                    display: 'inline-block',
-                                                                    padding: '3px 8px',
-                                                                    color: '#000000',
-                                                                    borderRadius: '6px',
-                                                                    fontFamily: 'monospace',
-                                                                    fontWeight: 700,
-                                                                    fontSize: '0.8rem',
-                                                                    border: '1px solid #bfdbfe'
+                                                                    position: 'sticky',
+                                                                    top: '44px',
+                                                                    minHeight:
+                                                                      histRows.length === 1
+                                                                        ? '38px'
+                                                                        : `${Math.min(histRows.length, 5) * 52 - 12}px`,
+                                                                    display: 'flex',
+                                                                    alignItems: 'center'
                                                                   }}
                                                                 >
-                                                                  {dev.device_code}
-                                                                </span>
+                                                                  <span
+                                                                    style={{
+                                                                      display: 'inline-block',
+                                                                      padding: '3px 8px',
+                                                                      color: '#000000',
+                                                                      borderRadius: '6px',
+                                                                      fontFamily: 'monospace',
+                                                                      fontWeight: 700,
+                                                                      fontSize: '0.8rem',
+                                                                      border: '1px solid #bfdbfe'
+                                                                    }}
+                                                                  >
+                                                                    {dev.device_code}
+                                                                  </span>
+                                                                </div>
                                                               </td>
 
                                                               {/* Tên IOT GATEWAY */}
@@ -2244,6 +2274,8 @@ export const EmployOperate: React.FC = () => {
                                                                   position: 'sticky',
                                                                   left: '200px',
                                                                   zIndex: 3,
+                                                                  backgroundColor: '#ffffff',
+                                                                  verticalAlign: 'top',
                                                                   borderBottom: devCellBorderBottom,
                                                                   padding: '6px 10px',
                                                                   fontWeight: 600,
@@ -2257,16 +2289,39 @@ export const EmployOperate: React.FC = () => {
                                                                   boxSizing: 'border-box'
                                                                 }}
                                                               >
-                                                                {dev.device_name}
                                                                 <div
                                                                   style={{
-                                                                    fontSize: '0.7rem',
-                                                                    color: '#000000',
-                                                                    marginTop: '2px'
+                                                                    position: 'sticky',
+                                                                    top: '44px',
+                                                                    minHeight:
+                                                                      histRows.length === 1
+                                                                        ? '38px'
+                                                                        : `${Math.min(histRows.length, 5) * 52 - 12}px`,
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    justifyContent: 'center',
+                                                                    overflow: 'hidden'
                                                                   }}
                                                                 >
-                                                                  Modbus #{dev.slave_address}{' '}
-                                                                  {dev.floor ? `(${dev.floor})` : ''}
+                                                                  <div
+                                                                    style={{
+                                                                      whiteSpace: 'nowrap',
+                                                                      overflow: 'hidden',
+                                                                      textOverflow: 'ellipsis'
+                                                                    }}
+                                                                  >
+                                                                    {dev.device_name}
+                                                                  </div>
+                                                                  <div
+                                                                    style={{
+                                                                      fontSize: '0.7rem',
+                                                                      color: '#000000',
+                                                                      marginTop: '2px'
+                                                                    }}
+                                                                  >
+                                                                    Modbus #{dev.slave_address}{' '}
+                                                                    {dev.floor ? `(${dev.floor})` : ''}
+                                                                  </div>
                                                                 </div>
                                                               </td>
 
@@ -2277,6 +2332,8 @@ export const EmployOperate: React.FC = () => {
                                                                   position: 'sticky',
                                                                   left: '380px',
                                                                   zIndex: 3,
+                                                                  backgroundColor: '#ffffff',
+                                                                  verticalAlign: 'top',
                                                                   borderBottom: devCellBorderBottom,
                                                                   padding: '6px 8px',
                                                                   textAlign: 'center',
@@ -2288,20 +2345,34 @@ export const EmployOperate: React.FC = () => {
                                                                   boxSizing: 'border-box'
                                                                 }}
                                                               >
-                                                                <span
+                                                                <div
                                                                   style={{
-                                                                    display: 'inline-flex',
+                                                                    position: 'sticky',
+                                                                    top: '44px',
+                                                                    minHeight:
+                                                                      histRows.length === 1
+                                                                        ? '38px'
+                                                                        : `${Math.min(histRows.length, 5) * 52 - 12}px`,
+                                                                    display: 'flex',
                                                                     alignItems: 'center',
-                                                                    gap: '3px',
-                                                                    padding: '2px 7px',
-                                                                    borderRadius: '6px',
-                                                                    color: '#000000',
-                                                                    fontSize: '0.7rem',
-                                                                    fontWeight: 600
+                                                                    justifyContent: 'center'
                                                                   }}
                                                                 >
-                                                                  <CheckCircle2 size={11} /> Online
-                                                                </span>
+                                                                  <span
+                                                                    style={{
+                                                                      display: 'inline-flex',
+                                                                      alignItems: 'center',
+                                                                      gap: '3px',
+                                                                      padding: '2px 7px',
+                                                                      borderRadius: '6px',
+                                                                      color: '#000000',
+                                                                      fontSize: '0.7rem',
+                                                                      fontWeight: 600
+                                                                    }}
+                                                                  >
+                                                                    <CheckCircle2 size={11} /> Online
+                                                                  </span>
+                                                                </div>
                                                               </td>
 
                                                               {/* Ghi chú */}
@@ -2311,6 +2382,8 @@ export const EmployOperate: React.FC = () => {
                                                                   position: 'sticky',
                                                                   left: '476px',
                                                                   zIndex: 3,
+                                                                  backgroundColor: '#ffffff',
+                                                                  verticalAlign: 'top',
                                                                   borderBottom: devCellBorderBottom,
                                                                   padding: '4px 8px',
                                                                   textAlign: 'center',
@@ -2321,32 +2394,223 @@ export const EmployOperate: React.FC = () => {
                                                                   boxSizing: 'border-box'
                                                                 }}
                                                               >
-                                                                {(() => {
-                                                                  const rawMeterForNote = resolveDeviceMeterRaw(dev, histRows);
-                                                                  const rawControlForNote = resolveDeviceControlRaw(dev, histRows);
-                                                                  const meterMapForNote = parseMeterControlMap(rawMeterForNote);
-                                                                  const controlMapForNote = parseMeterControlMap(rawControlForNote);
-                                                                  const parsedMap: Record<string, string> = {
-                                                                    ...meterMapForNote,
-                                                                    ...controlMapForNote
-                                                                  };
-                                                                  const nonEmptyMap: Record<string, string> = {};
-                                                                  Object.entries(parsedMap).forEach(([k, v]) => {
-                                                                    if (v && String(v).trim() !== '') {
-                                                                      nonEmptyMap[k] = String(v).trim();
-                                                                    }
-                                                                  });
-                                                                  const currentNote =
-                                                                    Object.keys(nonEmptyMap).length > 0
-                                                                      ? JSON.stringify(nonEmptyMap)
-                                                                      : '';
-                                                                  const displayMCols =
-                                                                    mCols.length > 0 ? mCols : ['m1', 'm2', 'm3'];
-                                                                  const isEditing = editingNoteDevId === dev.device_id;
-                                                                  const noteBoxMaxH =
-                                                                    Math.min(Math.max(histRows.length, 1), 5) * 52 - 10;
+                                                                <div
+                                                                  style={{
+                                                                    position: 'sticky',
+                                                                    top: '44px',
+                                                                    minHeight:
+                                                                      histRows.length === 1
+                                                                        ? '40px'
+                                                                        : `${Math.min(histRows.length, 5) * 52 - 10}px`,
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center'
+                                                                  }}
+                                                                >
+                                                                  {(() => {
+                                                                    const rawMeterForNote = resolveDeviceMeterRaw(dev, histRows);
+                                                                    const rawControlForNote = resolveDeviceControlRaw(dev, histRows);
+                                                                    const meterMapForNote = parseMeterControlMap(rawMeterForNote);
+                                                                    const controlMapForNote = parseMeterControlMap(rawControlForNote);
+                                                                    const parsedMap: Record<string, string> = {
+                                                                      ...meterMapForNote,
+                                                                      ...controlMapForNote
+                                                                    };
+                                                                    const nonEmptyMap: Record<string, string> = {};
+                                                                    Object.entries(parsedMap).forEach(([k, v]) => {
+                                                                      if (v && String(v).trim() !== '') {
+                                                                        nonEmptyMap[k] = String(v).trim();
+                                                                      }
+                                                                    });
+                                                                    const currentNote =
+                                                                      Object.keys(nonEmptyMap).length > 0
+                                                                        ? JSON.stringify(nonEmptyMap)
+                                                                        : '';
+                                                                    const displayMCols =
+                                                                      mCols.length > 0 ? mCols : ['m1', 'm2', 'm3'];
+                                                                    const isEditing = editingNoteDevId === dev.device_id;
+                                                                    const noteBoxMaxH =
+                                                                      Math.min(Math.max(histRows.length, 1), 5) * 52 - 10;
 
-                                                                  if (isEditing) {
+                                                                    if (isEditing) {
+                                                                      return (
+                                                                        <div
+                                                                          style={{
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center',
+                                                                            gap: '6px',
+                                                                            boxSizing: 'border-box'
+                                                                          }}
+                                                                        >
+                                                                          <div
+                                                                            style={{
+                                                                              width: '182px',
+                                                                              maxHeight: `${Math.max(noteBoxMaxH, 76)}px`,
+                                                                              padding: '4px 6px',
+                                                                              borderRadius: '6px',
+                                                                              border: '1px solid #93c5fd',
+                                                                              overflowY: 'auto',
+                                                                              boxSizing: 'border-box',
+                                                                              display: 'flex',
+                                                                              flexDirection: 'column',
+                                                                              gap: '4px'
+                                                                            }}
+                                                                          >
+                                                                            {displayMCols.map((mKey) => {
+                                                                              const k = mKey.toLowerCase();
+                                                                              const selectedVal =
+                                                                                noteDraftMap[k] ??
+                                                                                noteDraftMap[mKey] ??
+                                                                                '';
+                                                                              return (
+                                                                                <div
+                                                                                  key={mKey}
+                                                                                  style={{
+                                                                                    display: 'flex',
+                                                                                    alignItems: 'center',
+                                                                                    gap: '5px'
+                                                                                  }}
+                                                                                >
+                                                                                  <span
+                                                                                    style={{
+                                                                                      minWidth: '32px',
+                                                                                      padding: '1px 4px',
+                                                                                      borderRadius: '4px',
+                                                                                      border: '1px solid #bfdbfe',
+                                                                                      color: '#000000',
+                                                                                      fontFamily: 'monospace',
+                                                                                      fontWeight: 700,
+                                                                                      fontSize: '0.72rem',
+                                                                                      textAlign: 'center',
+                                                                                      flexShrink: 0
+                                                                                    }}
+                                                                                  >
+                                                                                    {mKey}
+                                                                                  </span>
+                                                                                  <input
+                                                                                    type="text"
+                                                                                    value={selectedVal}
+                                                                                    placeholder="Nhập tên..."
+                                                                                    onChange={(e) => {
+                                                                                      const val = e.target.value;
+                                                                                      setNoteDraftMap((prev) => ({
+                                                                                        ...prev,
+                                                                                        [k]: val
+                                                                                      }));
+                                                                                    }}
+                                                                                    style={{
+                                                                                      flex: 1,
+                                                                                      minWidth: 0,
+                                                                                      padding: '2px 5px',
+                                                                                      borderRadius: '4px',
+                                                                                      border: '1px solid #cbd5e1',
+                                                                                      color: '#000000',
+                                                                                      fontSize: '0.73rem',
+                                                                                      fontWeight: selectedVal ? 600 : 400,
+                                                                                      outline: 'none'
+                                                                                    }}
+                                                                                  />
+                                                                                </div>
+                                                                              );
+                                                                            })}
+                                                                          </div>
+                                                                          <div
+                                                                            style={{
+                                                                              display: 'flex',
+                                                                              flexDirection: 'column',
+                                                                              gap: '4px',
+                                                                              flexShrink: 0
+                                                                            }}
+                                                                          >
+                                                                            <button
+                                                                              type="button"
+                                                                              disabled={savingNoteDevId === dev.device_id}
+                                                                              onClick={() =>
+                                                                                handleSaveNote(dev, displayMCols)
+                                                                              }
+                                                                              style={{
+                                                                                display: 'inline-flex',
+                                                                                alignItems: 'center',
+                                                                                justifyContent: 'center',
+                                                                                padding: '3px 8px',
+                                                                                borderRadius: '5px',
+                                                                                border: '1px solid #cbd5e1',
+                                                                                color: '#000000',
+                                                                                fontSize: '0.72rem',
+                                                                                fontWeight: 700,
+                                                                                cursor:
+                                                                                  savingNoteDevId === dev.device_id
+                                                                                    ? 'wait'
+                                                                                    : 'pointer'
+                                                                              }}
+                                                                            >
+                                                                              <span>
+                                                                                {savingNoteDevId === dev.device_id
+                                                                                  ? '...'
+                                                                                  : 'Lưu'}
+                                                                              </span>
+                                                                            </button>
+                                                                            <button
+                                                                              type="button"
+                                                                              onClick={() => {
+                                                                                setEditingNoteDevId(null);
+                                                                                setNoteDraftMap({});
+                                                                              }}
+                                                                              style={{
+                                                                                padding: '3px 8px',
+                                                                                borderRadius: '5px',
+                                                                                border: '1px solid #cbd5e1',
+                                                                                color: '#000000',
+                                                                                fontSize: '0.72rem',
+                                                                                fontWeight: 600,
+                                                                                cursor: 'pointer'
+                                                                              }}
+                                                                            >
+                                                                              Huỷ
+                                                                            </button>
+                                                                          </div>
+                                                                        </div>
+                                                                      );
+                                                                    }
+
+                                                                    if (!currentNote) {
+                                                                      return (
+                                                                        <button
+                                                                          type="button"
+                                                                          onClick={() => {
+                                                                            setEditingNoteDevId(dev.device_id);
+                                                                            setNoteDraftMap(parsedMap);
+                                                                          }}
+                                                                          style={{
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
+                                                                            gap: '4px',
+                                                                            padding: '5px 12px',
+                                                                            borderRadius: '6px',
+                                                                            border: '1px solid #1D58BB',
+                                                                            color: '#000000',
+                                                                            fontSize: '0.75rem',
+                                                                            fontWeight: 700,
+                                                                            cursor: 'pointer'
+                                                                          }}
+                                                                        >
+                                                                          <Plus size={13} />
+                                                                          <span>Thêm</span>
+                                                                        </button>
+                                                                      );
+                                                                    }
+
+                                                                    const mappedEntries = displayMCols
+                                                                      .map((mKey) => ({
+                                                                        mKey,
+                                                                        label:
+                                                                          parsedMap[mKey.toLowerCase()] ||
+                                                                          parsedMap[mKey] ||
+                                                                          ''
+                                                                      }))
+                                                                      .filter((item) => item.label !== '');
+
                                                                     return (
                                                                       <div
                                                                         style={{
@@ -2358,287 +2622,110 @@ export const EmployOperate: React.FC = () => {
                                                                         }}
                                                                       >
                                                                         <div
+                                                                          onClick={() =>
+                                                                            setViewingNoteModal({
+                                                                              device_id: dev.device_id,
+                                                                              device_code: dev.device_code,
+                                                                              device_name: dev.device_name,
+                                                                              note: currentNote,
+                                                                              mCols: displayMCols
+                                                                            })
+                                                                          }
+                                                                          title="Nhấn để mở cửa sổ xem chi tiết cấu hình ghi chú (JSON)"
                                                                           style={{
-                                                                            width: '182px',
-                                                                            maxHeight: `${Math.max(noteBoxMaxH, 76)}px`,
+                                                                            width: '188px',
+                                                                            maxHeight: `${noteBoxMaxH}px`,
                                                                             padding: '4px 6px',
                                                                             borderRadius: '6px',
-                                                                            border: '1px solid #93c5fd',
+                                                                            border: '1px solid #cbd5e1',
+                                                                            color: '#000000',
+                                                                            fontSize: '0.73rem',
+                                                                            lineHeight: 1.35,
                                                                             overflowY: 'auto',
+                                                                            cursor: 'pointer',
+                                                                            textAlign: 'left',
                                                                             boxSizing: 'border-box',
                                                                             display: 'flex',
                                                                             flexDirection: 'column',
-                                                                            gap: '4px'
+                                                                            gap: '3px'
                                                                           }}
                                                                         >
-                                                                          {displayMCols.map((mKey) => {
-                                                                            const k = mKey.toLowerCase();
-                                                                            const selectedVal =
-                                                                              noteDraftMap[k] ??
-                                                                              noteDraftMap[mKey] ??
-                                                                              '';
-                                                                            return (
+                                                                          {mappedEntries.length > 0 ? (
+                                                                            mappedEntries.map(({ mKey, label }) => (
                                                                               <div
                                                                                 key={mKey}
                                                                                 style={{
                                                                                   display: 'flex',
                                                                                   alignItems: 'center',
-                                                                                  gap: '5px'
+                                                                                  justifyContent: 'space-between',
+                                                                                  gap: '6px',
+                                                                                  padding: '1px 5px',
+                                                                                  borderRadius: '4px',
+                                                                                  border: '1px solid #e2e8f0'
                                                                                 }}
                                                                               >
                                                                                 <span
                                                                                   style={{
-                                                                                    minWidth: '32px',
-                                                                                    padding: '1px 4px',
-                                                                                    borderRadius: '4px',
-                                                                                    border: '1px solid #bfdbfe',
-                                                                                    color: '#000000',
                                                                                     fontFamily: 'monospace',
                                                                                     fontWeight: 700,
-                                                                                    fontSize: '0.72rem',
-                                                                                    textAlign: 'center',
-                                                                                    flexShrink: 0
+                                                                                    color: '#000000',
+                                                                                    fontSize: '0.72rem'
                                                                                   }}
                                                                                 >
                                                                                   {mKey}
                                                                                 </span>
-                                                                                <input
-                                                                                  type="text"
-                                                                                  value={selectedVal}
-                                                                                  placeholder="Nhập tên..."
-                                                                                  onChange={(e) => {
-                                                                                    const val = e.target.value;
-                                                                                    setNoteDraftMap((prev) => ({
-                                                                                      ...prev,
-                                                                                      [k]: val
-                                                                                    }));
-                                                                                  }}
+                                                                                <span
                                                                                   style={{
-                                                                                    flex: 1,
-                                                                                    minWidth: 0,
-                                                                                    padding: '2px 5px',
-                                                                                    borderRadius: '4px',
-                                                                                    border: '1px solid #cbd5e1',
+                                                                                    fontWeight: 600,
                                                                                     color: '#000000',
-                                                                                    fontSize: '0.73rem',
-                                                                                    fontWeight: selectedVal ? 600 : 400,
-                                                                                    outline: 'none'
+                                                                                    fontSize: '0.72rem',
+                                                                                    whiteSpace: 'nowrap',
+                                                                                    overflow: 'hidden',
+                                                                                    textOverflow: 'ellipsis'
                                                                                   }}
-                                                                                />
+                                                                                >
+                                                                                  {label}
+                                                                                </span>
                                                                               </div>
-                                                                            );
-                                                                          })}
+                                                                            ))
+                                                                          ) : (
+                                                                            <span
+                                                                              style={{
+                                                                                color: '#000000',
+                                                                                whiteSpace: 'pre-wrap',
+                                                                                wordBreak: 'break-word'
+                                                                              }}
+                                                                            >
+                                                                              {currentNote}
+                                                                            </span>
+                                                                          )}
                                                                         </div>
-                                                                        <div
+                                                                        <button
+                                                                          type="button"
+                                                                          onClick={() => {
+                                                                            setEditingNoteDevId(dev.device_id);
+                                                                            setNoteDraftMap(parsedMap);
+                                                                          }}
                                                                           style={{
-                                                                            display: 'flex',
-                                                                            flexDirection: 'column',
+                                                                            display: 'inline-flex',
+                                                                            alignItems: 'center',
                                                                             gap: '4px',
+                                                                            padding: '4px 8px',
+                                                                            borderRadius: '6px',
+                                                                            border: '1px solid #f59e0b',
+                                                                            color: '#000000',
+                                                                            fontSize: '0.73rem',
+                                                                            fontWeight: 700,
+                                                                            cursor: 'pointer',
                                                                             flexShrink: 0
                                                                           }}
                                                                         >
-                                                                          <button
-                                                                            type="button"
-                                                                            disabled={savingNoteDevId === dev.device_id}
-                                                                            onClick={() =>
-                                                                              handleSaveNote(dev, displayMCols)
-                                                                            }
-                                                                            style={{
-                                                                              display: 'inline-flex',
-                                                                              alignItems: 'center',
-                                                                              justifyContent: 'center',
-                                                                              padding: '3px 8px',
-                                                                              borderRadius: '5px',
-                                                                              border: '1px solid #cbd5e1',
-                                                                              color: '#000000',
-                                                                              fontSize: '0.72rem',
-                                                                              fontWeight: 700,
-                                                                              cursor:
-                                                                                savingNoteDevId === dev.device_id
-                                                                                  ? 'wait'
-                                                                                  : 'pointer'
-                                                                            }}
-                                                                          >
-                                                                            <span>
-                                                                              {savingNoteDevId === dev.device_id
-                                                                                ? '...'
-                                                                                : 'Lưu'}
-                                                                            </span>
-                                                                          </button>
-                                                                          <button
-                                                                            type="button"
-                                                                            onClick={() => {
-                                                                              setEditingNoteDevId(null);
-                                                                              setNoteDraftMap({});
-                                                                            }}
-                                                                            style={{
-                                                                              padding: '3px 8px',
-                                                                              borderRadius: '5px',
-                                                                              border: '1px solid #cbd5e1',
-                                                                              color: '#000000',
-                                                                              fontSize: '0.72rem',
-                                                                              fontWeight: 600,
-                                                                              cursor: 'pointer'
-                                                                            }}
-                                                                          >
-                                                                            Huỷ
-                                                                          </button>
-                                                                        </div>
+                                                                          <span>Sửa</span>
+                                                                        </button>
                                                                       </div>
                                                                     );
-                                                                  }
-
-                                                                  if (!currentNote) {
-                                                                    return (
-                                                                      <button
-                                                                        type="button"
-                                                                        onClick={() => {
-                                                                          setEditingNoteDevId(dev.device_id);
-                                                                          setNoteDraftMap(parsedMap);
-                                                                        }}
-                                                                        style={{
-                                                                          display: 'inline-flex',
-                                                                          alignItems: 'center',
-                                                                          gap: '4px',
-                                                                          padding: '5px 12px',
-                                                                          borderRadius: '6px',
-                                                                          border: '1px solid #1D58BB',
-                                                                          color: '#000000',
-                                                                          fontSize: '0.75rem',
-                                                                          fontWeight: 700,
-                                                                          cursor: 'pointer'
-                                                                        }}
-                                                                      >
-                                                                        <Plus size={13} />
-                                                                        <span>Thêm</span>
-                                                                      </button>
-                                                                    );
-                                                                  }
-
-                                                                  const mappedEntries = displayMCols
-                                                                    .map((mKey) => ({
-                                                                      mKey,
-                                                                      label:
-                                                                        parsedMap[mKey.toLowerCase()] ||
-                                                                        parsedMap[mKey] ||
-                                                                        ''
-                                                                    }))
-                                                                    .filter((item) => item.label !== '');
-
-                                                                  return (
-                                                                    <div
-                                                                      style={{
-                                                                        display: 'flex',
-                                                                        alignItems: 'center',
-                                                                        justifyContent: 'center',
-                                                                        gap: '6px',
-                                                                        boxSizing: 'border-box'
-                                                                      }}
-                                                                    >
-                                                                      <div
-                                                                        onClick={() =>
-                                                                          setViewingNoteModal({
-                                                                            device_id: dev.device_id,
-                                                                            device_code: dev.device_code,
-                                                                            device_name: dev.device_name,
-                                                                            note: currentNote,
-                                                                            mCols: displayMCols
-                                                                          })
-                                                                        }
-                                                                        title="Nhấn để mở cửa sổ xem chi tiết cấu hình ghi chú (JSON)"
-                                                                        style={{
-                                                                          width: '188px',
-                                                                          maxHeight: `${noteBoxMaxH}px`,
-                                                                          padding: '4px 6px',
-                                                                          borderRadius: '6px',
-                                                                          border: '1px solid #cbd5e1',
-                                                                          color: '#000000',
-                                                                          fontSize: '0.73rem',
-                                                                          lineHeight: 1.35,
-                                                                          overflowY: 'auto',
-                                                                          cursor: 'pointer',
-                                                                          textAlign: 'left',
-                                                                          boxSizing: 'border-box',
-                                                                          display: 'flex',
-                                                                          flexDirection: 'column',
-                                                                          gap: '3px'
-                                                                        }}
-                                                                      >
-                                                                        {mappedEntries.length > 0 ? (
-                                                                          mappedEntries.map(({ mKey, label }) => (
-                                                                            <div
-                                                                              key={mKey}
-                                                                              style={{
-                                                                                display: 'flex',
-                                                                                alignItems: 'center',
-                                                                                justifyContent: 'space-between',
-                                                                                gap: '6px',
-                                                                                padding: '1px 5px',
-                                                                                borderRadius: '4px',
-                                                                                border: '1px solid #e2e8f0'
-                                                                              }}
-                                                                            >
-                                                                              <span
-                                                                                style={{
-                                                                                  fontFamily: 'monospace',
-                                                                                  fontWeight: 700,
-                                                                                  color: '#000000',
-                                                                                  fontSize: '0.72rem'
-                                                                                }}
-                                                                              >
-                                                                                {mKey}
-                                                                              </span>
-                                                                              <span
-                                                                                style={{
-                                                                                  fontWeight: 600,
-                                                                                  color: '#000000',
-                                                                                  fontSize: '0.72rem',
-                                                                                  whiteSpace: 'nowrap',
-                                                                                  overflow: 'hidden',
-                                                                                  textOverflow: 'ellipsis'
-                                                                                }}
-                                                                              >
-                                                                                {label}
-                                                                              </span>
-                                                                            </div>
-                                                                          ))
-                                                                        ) : (
-                                                                          <span
-                                                                            style={{
-                                                                              color: '#000000',
-                                                                              whiteSpace: 'pre-wrap',
-                                                                              wordBreak: 'break-word'
-                                                                            }}
-                                                                          >
-                                                                            {currentNote}
-                                                                          </span>
-                                                                        )}
-                                                                      </div>
-                                                                      <button
-                                                                        type="button"
-                                                                        onClick={() => {
-                                                                          setEditingNoteDevId(dev.device_id);
-                                                                          setNoteDraftMap(parsedMap);
-                                                                        }}
-                                                                        style={{
-                                                                          display: 'inline-flex',
-                                                                          alignItems: 'center',
-                                                                          gap: '4px',
-                                                                          padding: '4px 8px',
-                                                                          borderRadius: '6px',
-                                                                          border: '1px solid #f59e0b',
-                                                                          color: '#000000',
-                                                                          fontSize: '0.73rem',
-                                                                          fontWeight: 700,
-                                                                          cursor: 'pointer',
-                                                                          flexShrink: 0
-                                                                        }}
-                                                                      >
-                                                                        <span>Sửa</span>
-                                                                      </button>
-                                                                    </div>
-                                                                  );
-                                                                })()}
+                                                                  })()}
+                                                                </div>
                                                               </td>
 
                                                               {/* Đo lường (meter) */}
@@ -2648,6 +2735,8 @@ export const EmployOperate: React.FC = () => {
                                                                   position: 'sticky',
                                                                   left: '732px',
                                                                   zIndex: 3,
+                                                                  backgroundColor: '#ffffff',
+                                                                  verticalAlign: 'top',
                                                                   borderBottom: devCellBorderBottom,
                                                                   borderLeft: '1px solid #e2e8f0',
                                                                   padding: '4px 6px',
@@ -2659,89 +2748,130 @@ export const EmployOperate: React.FC = () => {
                                                                   boxSizing: 'border-box'
                                                                 }}
                                                               >
-                                                                {(() => {
-                                                                  const rawMeter = resolveDeviceMeterRaw(dev, histRows);
-                                                                  const meterMap = parseMeterControlMap(rawMeter);
-                                                                  const meterCols = parseMColList(rawMeter);
-                                                                  const colBoxMaxH =
-                                                                    Math.min(Math.max(histRows.length, 1), 5) * 52 - 10;
-                                                                  if (meterCols.length === 0) {
-                                                                    return (
-                                                                      <span
-                                                                        style={{
-                                                                          color: '#000000',
-                                                                          fontFamily: 'monospace',
-                                                                          fontSize: '0.76rem'
-                                                                        }}
-                                                                      >
-                                                                        --
-                                                                      </span>
-                                                                    );
-                                                                  }
-                                                                  return (
-                                                                    <div
-                                                                      style={{
-                                                                        maxHeight: `${colBoxMaxH}px`,
-                                                                        overflowY: 'auto',
-                                                                        display: 'flex',
-                                                                        flexDirection: 'column',
-                                                                        gap: '3px',
-                                                                        boxSizing: 'border-box'
-                                                                      }}
-                                                                    >
-                                                                      {meterCols.map((mc) => {
-                                                                        const label = String(
-                                                                          meterMap[mc.toLowerCase()] ??
-                                                                            meterMap[mc] ??
-                                                                            ''
-                                                                        ).trim();
+                                                                <div
+                                                                  style={{
+                                                                    position: 'sticky',
+                                                                    top: '44px',
+                                                                    minHeight:
+                                                                      histRows.length === 1
+                                                                        ? '40px'
+                                                                        : `${Math.min(histRows.length, 5) * 52 - 10}px`,
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center'
+                                                                  }}
+                                                                >
+                                                                  {(() => {
+                                                                    const rawMeter = resolveDeviceMeterRaw(dev, histRows);
+                                                                    const meterMap = parseMeterControlMap(rawMeter);
+                                                                    const meterCols = parseMColList(rawMeter);
+                                                                    const colBoxMaxH =
+                                                                      Math.min(Math.max(histRows.length, 1), 5) * 52 - 10;
+                                                                    if (meterCols.length === 0) {
+                                                                      const fallbackText = normalizeMeterControlValue(rawMeter);
+                                                                      if (fallbackText) {
                                                                         return (
                                                                           <div
-                                                                            key={mc}
                                                                             style={{
                                                                               display: 'flex',
                                                                               alignItems: 'center',
-                                                                              justifyContent: label
-                                                                                ? 'space-between'
-                                                                                : 'center',
-                                                                              gap: '6px',
+                                                                              justifyContent: 'center',
                                                                               padding: '2px 6px',
                                                                               borderRadius: '5px',
-                                                                              border: '1px solid #bfdbfe'
+                                                                              border: '1px solid #bfdbfe',
+                                                                              color: '#000000',
+                                                                              fontFamily: 'monospace',
+                                                                              fontWeight: 700,
+                                                                              fontSize: '0.73rem',
+                                                                              whiteSpace: 'nowrap',
+                                                                              overflow: 'hidden',
+                                                                              textOverflow: 'ellipsis',
+                                                                              width: '100%'
                                                                             }}
-                                                                            title={label ? `${mc}: ${label}` : mc}
+                                                                            title={fallbackText}
                                                                           >
-                                                                            <span
-                                                                              style={{
-                                                                                color: '#000000',
-                                                                                fontFamily: 'monospace',
-                                                                                fontWeight: 700,
-                                                                                fontSize: '0.73rem',
-                                                                                flexShrink: 0
-                                                                              }}
-                                                                            >
-                                                                              {mc}
-                                                                            </span>
-                                                                            {label && (
-                                                                              <span
-                                                                                style={{
-                                                                                  fontWeight: 600,
-                                                                                  color: '#000000',
-                                                                                  fontSize: '0.72rem',
-                                                                                  whiteSpace: 'nowrap',
-                                                                                  overflow: 'hidden',
-                                                                                  textOverflow: 'ellipsis'
-                                                                                }}
-                                                                              >
-                                                                                {label}
-                                                                              </span>
-                                                                            )}
+                                                                            {fallbackText}
                                                                           </div>
                                                                         );
-                                                                      })}
-                                                                    </div>
-                                                                  );
-                                                                })()}
+                                                                      }
+                                                                      return (
+                                                                        <span
+                                                                          style={{
+                                                                            color: '#000000',
+                                                                            fontFamily: 'monospace',
+                                                                            fontSize: '0.76rem'
+                                                                          }}
+                                                                        >
+                                                                          --
+                                                                        </span>
+                                                                      );
+                                                                    }
+                                                                    return (
+                                                                      <div
+                                                                        style={{
+                                                                          width: '100%',
+                                                                          maxHeight: `${colBoxMaxH}px`,
+                                                                          overflowY: 'auto',
+                                                                          display: 'flex',
+                                                                          flexDirection: 'column',
+                                                                          gap: '3px',
+                                                                          boxSizing: 'border-box'
+                                                                        }}
+                                                                      >
+                                                                        {meterCols.map((mc) => {
+                                                                          const label = String(
+                                                                            meterMap[mc.toLowerCase()] ??
+                                                                              meterMap[mc] ??
+                                                                              ''
+                                                                          ).trim();
+                                                                          return (
+                                                                            <div
+                                                                              key={mc}
+                                                                              style={{
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                justifyContent: label
+                                                                                  ? 'space-between'
+                                                                                  : 'center',
+                                                                                gap: '6px',
+                                                                                padding: '2px 6px',
+                                                                                borderRadius: '5px',
+                                                                                border: '1px solid #bfdbfe'
+                                                                              }}
+                                                                              title={label ? `${mc}: ${label}` : mc}
+                                                                            >
+                                                                              <span
+                                                                                style={{
+                                                                                  color: '#000000',
+                                                                                  fontFamily: 'monospace',
+                                                                                  fontWeight: 700,
+                                                                                  fontSize: '0.73rem',
+                                                                                  flexShrink: 0
+                                                                                }}
+                                                                              >
+                                                                                {mc}
+                                                                              </span>
+                                                                              {label && (
+                                                                                <span
+                                                                                  style={{
+                                                                                    fontWeight: 600,
+                                                                                    color: '#000000',
+                                                                                    fontSize: '0.72rem',
+                                                                                    whiteSpace: 'nowrap',
+                                                                                    overflow: 'hidden',
+                                                                                    textOverflow: 'ellipsis'
+                                                                                  }}
+                                                                                >
+                                                                                  {label}
+                                                                                </span>
+                                                                              )}
+                                                                            </div>
+                                                                          );
+                                                                        })}
+                                                                      </div>
+                                                                    );
+                                                                  })()}
+                                                                </div>
                                                               </td>
 
                                                               {/* Điều khiển (control) */}
@@ -2751,6 +2881,8 @@ export const EmployOperate: React.FC = () => {
                                                                   position: 'sticky',
                                                                   left: '882px',
                                                                   zIndex: 3,
+                                                                  backgroundColor: '#ffffff',
+                                                                  verticalAlign: 'top',
                                                                   borderBottom: devCellBorderBottom,
                                                                   borderLeft: '1px solid #e2e8f0',
                                                                   padding: '4px 6px',
@@ -2762,114 +2894,130 @@ export const EmployOperate: React.FC = () => {
                                                                   boxSizing: 'border-box'
                                                                 }}
                                                               >
-                                                                {(() => {
-                                                                  const rawControl = resolveDeviceControlRaw(dev, histRows);
-                                                                  const controlMap = parseMeterControlMap(rawControl);
-                                                                  const controlCols = parseMColList(rawControl);
-                                                                  const colBoxMaxH =
-                                                                    Math.min(Math.max(histRows.length, 1), 5) * 52 - 10;
-                                                                  if (controlCols.length === 0) {
-                                                                    const fallbackText = normalizeMeterControlValue(rawControl);
-                                                                    if (fallbackText) {
-                                                                      return (
-                                                                        <div
-                                                                          style={{
-                                                                            display: 'flex',
-                                                                            alignItems: 'center',
-                                                                            justifyContent: 'center',
-                                                                            padding: '2px 6px',
-                                                                            borderRadius: '5px',
-                                                                            border: '1px solid #fde68a',
-                                                                            color: '#000000',
-                                                                            fontFamily: 'monospace',
-                                                                            fontWeight: 700,
-                                                                            fontSize: '0.73rem',
-                                                                            whiteSpace: 'nowrap',
-                                                                            overflow: 'hidden',
-                                                                            textOverflow: 'ellipsis'
-                                                                          }}
-                                                                          title={fallbackText}
-                                                                        >
-                                                                          {fallbackText}
-                                                                        </div>
-                                                                      );
-                                                                    }
-                                                                    return (
-                                                                      <span
-                                                                        style={{
-                                                                          color: '#000000',
-                                                                          fontFamily: 'monospace',
-                                                                          fontSize: '0.76rem'
-                                                                        }}
-                                                                      >
-                                                                        --
-                                                                      </span>
-                                                                    );
-                                                                  }
-                                                                  return (
-                                                                    <div
-                                                                      style={{
-                                                                        maxHeight: `${colBoxMaxH}px`,
-                                                                        overflowY: 'auto',
-                                                                        display: 'flex',
-                                                                        flexDirection: 'column',
-                                                                        gap: '3px',
-                                                                        boxSizing: 'border-box'
-                                                                      }}
-                                                                    >
-                                                                      {controlCols.map((cc) => {
-                                                                        const label = String(
-                                                                          controlMap[cc.toLowerCase()] ??
-                                                                            controlMap[cc] ??
-                                                                            ''
-                                                                        ).trim();
+                                                                <div
+                                                                  style={{
+                                                                    position: 'sticky',
+                                                                    top: '44px',
+                                                                    minHeight:
+                                                                      histRows.length === 1
+                                                                        ? '40px'
+                                                                        : `${Math.min(histRows.length, 5) * 52 - 10}px`,
+                                                                    display: 'flex',
+                                                                    alignItems: 'center',
+                                                                    justifyContent: 'center'
+                                                                  }}
+                                                                >
+                                                                  {(() => {
+                                                                    const rawControl = resolveDeviceControlRaw(dev, histRows);
+                                                                    const controlMap = parseMeterControlMap(rawControl);
+                                                                    const controlCols = parseMColList(rawControl);
+                                                                    const colBoxMaxH =
+                                                                      Math.min(Math.max(histRows.length, 1), 5) * 52 - 10;
+                                                                    if (controlCols.length === 0) {
+                                                                      const fallbackText = normalizeMeterControlValue(rawControl);
+                                                                      if (fallbackText) {
                                                                         return (
                                                                           <div
-                                                                            key={cc}
                                                                             style={{
                                                                               display: 'flex',
                                                                               alignItems: 'center',
-                                                                              justifyContent: label
-                                                                                ? 'space-between'
-                                                                                : 'center',
-                                                                              gap: '6px',
+                                                                              justifyContent: 'center',
                                                                               padding: '2px 6px',
                                                                               borderRadius: '5px',
-                                                                              border: '1px solid #fde68a'
+                                                                              border: '1px solid #fde68a',
+                                                                              color: '#000000',
+                                                                              fontFamily: 'monospace',
+                                                                              fontWeight: 700,
+                                                                              fontSize: '0.73rem',
+                                                                              whiteSpace: 'nowrap',
+                                                                              overflow: 'hidden',
+                                                                              textOverflow: 'ellipsis',
+                                                                              width: '100%'
                                                                             }}
-                                                                            title={label ? `${cc}: ${label}` : cc}
+                                                                            title={fallbackText}
                                                                           >
-                                                                            <span
-                                                                              style={{
-                                                                                color: '#000000',
-                                                                                fontFamily: 'monospace',
-                                                                                fontWeight: 700,
-                                                                                fontSize: '0.73rem',
-                                                                                flexShrink: 0
-                                                                              }}
-                                                                            >
-                                                                              {cc}
-                                                                            </span>
-                                                                            {label && (
-                                                                              <span
-                                                                                style={{
-                                                                                  fontWeight: 600,
-                                                                                  color: '#000000',
-                                                                                  fontSize: '0.72rem',
-                                                                                  whiteSpace: 'nowrap',
-                                                                                  overflow: 'hidden',
-                                                                                  textOverflow: 'ellipsis'
-                                                                                }}
-                                                                              >
-                                                                                {label}
-                                                                              </span>
-                                                                            )}
+                                                                            {fallbackText}
                                                                           </div>
                                                                         );
-                                                                      })}
-                                                                    </div>
-                                                                  );
-                                                                })()}
+                                                                      }
+                                                                      return (
+                                                                        <span
+                                                                          style={{
+                                                                            color: '#000000',
+                                                                            fontFamily: 'monospace',
+                                                                            fontSize: '0.76rem'
+                                                                          }}
+                                                                        >
+                                                                          --
+                                                                        </span>
+                                                                      );
+                                                                    }
+                                                                    return (
+                                                                      <div
+                                                                        style={{
+                                                                          width: '100%',
+                                                                          maxHeight: `${colBoxMaxH}px`,
+                                                                          overflowY: 'auto',
+                                                                          display: 'flex',
+                                                                          flexDirection: 'column',
+                                                                          gap: '3px',
+                                                                          boxSizing: 'border-box'
+                                                                        }}
+                                                                      >
+                                                                        {controlCols.map((cc) => {
+                                                                          const label = String(
+                                                                            controlMap[cc.toLowerCase()] ??
+                                                                              controlMap[cc] ??
+                                                                              ''
+                                                                          ).trim();
+                                                                          return (
+                                                                            <div
+                                                                              key={cc}
+                                                                              style={{
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                justifyContent: label
+                                                                                  ? 'space-between'
+                                                                                  : 'center',
+                                                                                gap: '6px',
+                                                                                padding: '2px 6px',
+                                                                                borderRadius: '5px',
+                                                                                border: '1px solid #fde68a'
+                                                                              }}
+                                                                              title={label ? `${cc}: ${label}` : cc}
+                                                                            >
+                                                                              <span
+                                                                                style={{
+                                                                                  color: '#000000',
+                                                                                  fontFamily: 'monospace',
+                                                                                  fontWeight: 700,
+                                                                                  fontSize: '0.73rem',
+                                                                                  flexShrink: 0
+                                                                                }}
+                                                                              >
+                                                                                {cc}
+                                                                              </span>
+                                                                              {label && (
+                                                                                <span
+                                                                                  style={{
+                                                                                    fontWeight: 600,
+                                                                                    color: '#000000',
+                                                                                    fontSize: '0.72rem',
+                                                                                    whiteSpace: 'nowrap',
+                                                                                    overflow: 'hidden',
+                                                                                    textOverflow: 'ellipsis'
+                                                                                  }}
+                                                                                >
+                                                                                  {label}
+                                                                                </span>
+                                                                              )}
+                                                                            </div>
+                                                                          );
+                                                                        })}
+                                                                      </div>
+                                                                    );
+                                                                  })()}
+                                                                </div>
                                                               </td>
 
                                                               {/* Thao tác */}
@@ -2879,6 +3027,8 @@ export const EmployOperate: React.FC = () => {
                                                                   position: 'sticky',
                                                                   left: '1032px',
                                                                   zIndex: 3,
+                                                                  backgroundColor: '#ffffff',
+                                                                  verticalAlign: 'top',
                                                                   borderBottom: devCellBorderBottom,
                                                                   borderLeft: '1px solid #e2e8f0',
                                                                   padding: '6px 8px',
@@ -2891,35 +3041,49 @@ export const EmployOperate: React.FC = () => {
                                                                   boxSizing: 'border-box'
                                                                 }}
                                                               >
-                                                                <button
-                                                                  type="button"
-                                                                  disabled={deletingDevId === dev.device_id}
-                                                                  onClick={() => handleDeleteDeviceTelemetry(dev)}
+                                                                <div
                                                                   style={{
-                                                                    display: 'inline-flex',
+                                                                    position: 'sticky',
+                                                                    top: '44px',
+                                                                    minHeight:
+                                                                      histRows.length === 1
+                                                                        ? '38px'
+                                                                        : `${Math.min(histRows.length, 5) * 52 - 12}px`,
+                                                                    display: 'flex',
                                                                     alignItems: 'center',
-                                                                    gap: '4px',
-                                                                    padding: '5px 10px',
-                                                                    borderRadius: '6px',
-                                                                    border: '1px solid #fca5a5',
-                                                                    color: '#000000',
-                                                                    fontSize: '0.74rem',
-                                                                    fontWeight: 700,
-                                                                    cursor:
-                                                                      deletingDevId === dev.device_id
-                                                                        ? 'wait'
-                                                                        : 'pointer',
-                                                                    whiteSpace: 'nowrap'
+                                                                    justifyContent: 'center'
                                                                   }}
-                                                                  title="Xoá hàng tương ứng trong bảng telemetry_data"
                                                                 >
-                                                                  <Trash2 size={13} />
-                                                                  <span>
-                                                                    {deletingDevId === dev.device_id
-                                                                      ? 'Đang xoá...'
-                                                                      : 'Xoá'}
-                                                                  </span>
-                                                                </button>
+                                                                  <button
+                                                                    type="button"
+                                                                    disabled={deletingDevId === dev.device_id}
+                                                                    onClick={() => handleDeleteDeviceTelemetry(dev)}
+                                                                    style={{
+                                                                      display: 'inline-flex',
+                                                                      alignItems: 'center',
+                                                                      gap: '4px',
+                                                                      padding: '5px 10px',
+                                                                      borderRadius: '6px',
+                                                                      border: '1px solid #fca5a5',
+                                                                      color: '#000000',
+                                                                      fontSize: '0.74rem',
+                                                                      fontWeight: 700,
+                                                                      cursor:
+                                                                        deletingDevId === dev.device_id
+                                                                          ? 'wait'
+                                                                          : 'pointer',
+                                                                      whiteSpace: 'nowrap'
+                                                                    }}
+                                                                    title="Xoá hàng tương ứng trong bảng telemetry_data"
+                                                                  >
+                                                                    <Trash2 size={13} />
+                                                                    <span>
+                                                                      {deletingDevId === dev.device_id
+                                                                        ? 'Đang xoá...'
+                                                                        : 'Xoá'}
+                                                                    </span>
+                                                                  </button>
+                                                                </div>
                                                               </td>
                                                             </>
                                                           )}
