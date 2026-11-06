@@ -53,44 +53,111 @@ export interface TelemetryDeviceRow {
   recorded_at: string;
 }
 
-export const parseMeterControlMap = (raw?: string | null): Record<string, string> => {
-  if (!raw || typeof raw !== 'string') return {};
-  const trimmed = raw.trim();
-  if (!trimmed) return {};
+export const normalizeMeterControlValue = (raw: any): string => {
+  if (raw === null || raw === undefined) return '';
+  if (typeof raw === 'object') {
+    try {
+      const str = JSON.stringify(raw);
+      return str && str !== '{}' && str !== '[]' && str !== 'null' ? str : '';
+    } catch {
+      return '';
+    }
+  }
+  const trimmed = String(raw).trim();
+  if (
+    !trimmed ||
+    trimmed === '[object Object]' ||
+    trimmed === 'null' ||
+    trimmed === 'undefined' ||
+    trimmed === '{}' ||
+    trimmed === '[]'
+  ) {
+    return '';
+  }
+  return trimmed;
+};
+
+export const parseMeterControlMap = (raw?: any): Record<string, string> => {
+  if (raw === null || raw === undefined) return {};
   const map: Record<string, string> = {};
-  try {
-    const parsed = JSON.parse(trimmed);
-    if (Array.isArray(parsed)) {
-      parsed.forEach((item) => {
-        const s = String(item || '').trim().toLowerCase();
+
+  const applyParsed = (val: any): boolean => {
+    if (Array.isArray(val)) {
+      val.forEach((item) => {
+        const s = String(item || '')
+          .trim()
+          .replace(/^['"{}[\]]+|['"{}[\]]+$/g, '')
+          .toLowerCase();
         if (/^m\d+$/i.test(s)) {
           map[s] = '';
         }
       });
-      return map;
+      return true;
     }
-    if (parsed && typeof parsed === 'object') {
-      Object.entries(parsed).forEach(([k, v]) => {
-        const s = String(k || '').trim().toLowerCase();
+    if (val && typeof val === 'object') {
+      Object.entries(val).forEach(([k, v]) => {
+        const s = String(k || '')
+          .trim()
+          .replace(/^['"{}[\]]+|['"{}[\]]+$/g, '')
+          .toLowerCase();
         if (/^m\d+$/i.test(s)) {
-          map[s] = v !== null && v !== undefined ? String(v).trim() : '';
+          map[s] = v !== null && v !== undefined && typeof v !== 'object' ? String(v).trim() : '';
         }
       });
+      return true;
+    }
+    return false;
+  };
+
+  if (typeof raw === 'object') {
+    applyParsed(raw);
+    return map;
+  }
+
+  if (typeof raw !== 'string') return {};
+  let trimmed = raw.trim();
+  if (
+    !trimmed ||
+    trimmed === '[object Object]' ||
+    trimmed === 'null' ||
+    trimmed === 'undefined' ||
+    trimmed === '{}' ||
+    trimmed === '[]'
+  ) {
+    return {};
+  }
+
+  try {
+    let parsed = JSON.parse(trimmed);
+    if (typeof parsed === 'string') {
+      trimmed = parsed.trim();
+      try {
+        parsed = JSON.parse(trimmed);
+      } catch {
+        // giữ nguyên chuỗi đã giải mã lớp đầu
+      }
+    }
+    if (applyParsed(parsed)) {
       return map;
     }
   } catch {
     // fallback
   }
+
   trimmed.split(/[\r\n,;]+/).forEach((part) => {
     const line = part.trim();
     if (!line) return;
-    const kv = line.match(/^\s*(m\d+)\s*[:=-]\s*(.*)\s*$/i);
+    const kv = line.match(/^\s*['"{[]*(m\d+)['"}\]]*\s*[:=-]\s*(.*)\s*$/i);
     if (kv) {
-      map[kv[1].toLowerCase()] = kv[2].trim();
+      const cleanVal = kv[2].trim().replace(/^['"]+|['"}]+$/g, '').trim();
+      map[kv[1].toLowerCase()] = cleanVal;
       return;
     }
     line.split(/[\s|]+/).forEach((token) => {
-      const s = token.trim().toLowerCase();
+      const s = token
+        .trim()
+        .replace(/^['"{}[\]()]+|['"{}[\]()]+$/g, '')
+        .toLowerCase();
       if (/^m\d+$/i.test(s) && !(s in map)) {
         map[s] = '';
       }
@@ -112,7 +179,7 @@ export const serializeMeterControlMap = (map: Record<string, string>): string =>
   return JSON.stringify(ordered);
 };
 
-export const parseMColList = (raw?: string | null): string[] => {
+export const parseMColList = (raw?: any): string[] => {
   const map = parseMeterControlMap(raw);
   return Object.keys(map).sort((a, b) => (parseInt(a.slice(1), 10) || 0) - (parseInt(b.slice(1), 10) || 0));
 };
@@ -355,7 +422,20 @@ export const DashOperate: React.FC = () => {
   >((() => {
     try {
       const saved = localStorage.getItem('aaa_telemetry_meter_control_cache');
-      return saved ? JSON.parse(saved) : {};
+      if (!saved) return {};
+      const parsed = JSON.parse(saved);
+      if (!parsed || typeof parsed !== 'object') return {};
+      const cleaned: Record<string, { meter?: string; control?: string; updatedAt?: number }> = {};
+      Object.entries(parsed).forEach(([k, v]: [string, any]) => {
+        if (v && typeof v === 'object') {
+          cleaned[k] = {
+            meter: normalizeMeterControlValue(v.meter),
+            control: normalizeMeterControlValue(v.control),
+            updatedAt: Number(v.updatedAt) || 0
+          };
+        }
+      });
+      return cleaned;
     } catch {
       return {};
     }
@@ -365,8 +445,8 @@ export const DashOperate: React.FC = () => {
     meterControlCacheRef.current = {
       ...meterControlCacheRef.current,
       [devKey]: {
-        meter: meterStr,
-        control: controlStr,
+        meter: normalizeMeterControlValue(meterStr),
+        control: normalizeMeterControlValue(controlStr),
         updatedAt: Date.now()
       }
     };
@@ -382,18 +462,78 @@ export const DashOperate: React.FC = () => {
 
   const resolveDeviceMeterRaw = (dev: TelemetryDeviceRow, rows: TelemetryDeviceRow[]): string => {
     const dKey = dev.device_code || String(dev.device_id);
-    if (dev.meter && String(dev.meter).trim() !== '') return String(dev.meter).trim();
-    const fromRow = rows.find((r) => r.meter && String(r.meter).trim() !== '')?.meter;
-    if (fromRow) return String(fromRow).trim();
-    return String(meterControlCacheRef.current[dKey]?.meter || '').trim();
+    const cached = meterControlCacheRef.current[dKey];
+    const isRecentLocalSave = Boolean(cached?.updatedAt && Date.now() - cached.updatedAt < 10000);
+    if (isRecentLocalSave && cached && cached.meter !== undefined) {
+      return normalizeMeterControlValue(cached.meter);
+    }
+    const mergedMap: Record<string, string> = {};
+    const collect = (val: any) => {
+      const parsed = parseMeterControlMap(val);
+      Object.entries(parsed).forEach(([k, v]) => {
+        if (!(k in mergedMap) || (mergedMap[k] === '' && v !== '')) {
+          mergedMap[k] = v;
+        }
+      });
+    };
+    collect(dev?.meter);
+    if (Array.isArray(rows)) {
+      rows.forEach((r) => collect(r?.meter));
+    }
+    if (Object.keys(mergedMap).length > 0) {
+      return serializeMeterControlMap(mergedMap);
+    }
+    const cachedNorm = normalizeMeterControlValue(cached?.meter);
+    if (cachedNorm) {
+      const cachedMap = parseMeterControlMap(cachedNorm);
+      if (Object.keys(cachedMap).length > 0) {
+        return serializeMeterControlMap(cachedMap);
+      }
+    }
+    return (
+      normalizeMeterControlValue(dev?.meter) ||
+      normalizeMeterControlValue(rows?.find((r) => normalizeMeterControlValue(r?.meter) !== '')?.meter) ||
+      cachedNorm ||
+      ''
+    );
   };
 
   const resolveDeviceControlRaw = (dev: TelemetryDeviceRow, rows: TelemetryDeviceRow[]): string => {
     const dKey = dev.device_code || String(dev.device_id);
-    if (dev.control && String(dev.control).trim() !== '') return String(dev.control).trim();
-    const fromRow = rows.find((r) => r.control && String(r.control).trim() !== '')?.control;
-    if (fromRow) return String(fromRow).trim();
-    return String(meterControlCacheRef.current[dKey]?.control || '').trim();
+    const cached = meterControlCacheRef.current[dKey];
+    const isRecentLocalSave = Boolean(cached?.updatedAt && Date.now() - cached.updatedAt < 10000);
+    if (isRecentLocalSave && cached && cached.control !== undefined) {
+      return normalizeMeterControlValue(cached.control);
+    }
+    const mergedMap: Record<string, string> = {};
+    const collect = (val: any) => {
+      const parsed = parseMeterControlMap(val);
+      Object.entries(parsed).forEach(([k, v]) => {
+        if (!(k in mergedMap) || (mergedMap[k] === '' && v !== '')) {
+          mergedMap[k] = v;
+        }
+      });
+    };
+    collect(dev?.control);
+    if (Array.isArray(rows)) {
+      rows.forEach((r) => collect(r?.control));
+    }
+    if (Object.keys(mergedMap).length > 0) {
+      return serializeMeterControlMap(mergedMap);
+    }
+    const cachedNorm = normalizeMeterControlValue(cached?.control);
+    if (cachedNorm) {
+      const cachedMap = parseMeterControlMap(cachedNorm);
+      if (Object.keys(cachedMap).length > 0) {
+        return serializeMeterControlMap(cachedMap);
+      }
+    }
+    return (
+      normalizeMeterControlValue(dev?.control) ||
+      normalizeMeterControlValue(rows?.find((r) => normalizeMeterControlValue(r?.control) !== '')?.control) ||
+      cachedNorm ||
+      ''
+    );
   };
 
   const getDeviceMColumns = (devKey: string, rows: any[]): string[] => {
@@ -410,10 +550,10 @@ export const DashOperate: React.FC = () => {
     });
     rows.forEach((r) => {
       parseMColList(r?.meter).forEach((c) => {
-        if (!removed.has(c)) merged.add(c);
+        merged.add(c);
       });
       parseMColList(r?.control).forEach((c) => {
-        if (!removed.has(c)) merged.add(c);
+        merged.add(c);
       });
     });
     return Array.from(merged).sort((a, b) => {
@@ -776,30 +916,51 @@ export const DashOperate: React.FC = () => {
         const uniqueLatestDevices: TelemetryDeviceRow[] = [];
         Object.keys(grouped).forEach((k) => {
           const sorted = sortRowsNewestFirst(grouped[k]);
-          const dbMeter = sorted.find((r) => r.meter && String(r.meter).trim() !== '')?.meter;
-          const dbControl = sorted.find((r) => r.control && String(r.control).trim() !== '')?.control;
+          const dbMeterMap: Record<string, string> = {};
+          const dbControlMap: Record<string, string> = {};
+          sorted.forEach((r) => {
+            Object.entries(parseMeterControlMap(r.meter)).forEach(([mk, mv]) => {
+              if (!(mk in dbMeterMap) || (dbMeterMap[mk] === '' && mv !== '')) {
+                dbMeterMap[mk] = mv;
+              }
+            });
+            Object.entries(parseMeterControlMap(r.control)).forEach(([ck, cv]) => {
+              if (!(ck in dbControlMap) || (dbControlMap[ck] === '' && cv !== '')) {
+                dbControlMap[ck] = cv;
+              }
+            });
+          });
+          const dbMeter =
+            Object.keys(dbMeterMap).length > 0
+              ? serializeMeterControlMap(dbMeterMap)
+              : normalizeMeterControlValue(sorted.find((r) => normalizeMeterControlValue(r.meter) !== '')?.meter);
+          const dbControl =
+            Object.keys(dbControlMap).length > 0
+              ? serializeMeterControlMap(dbControlMap)
+              : normalizeMeterControlValue(sorted.find((r) => normalizeMeterControlValue(r.control) !== '')?.control);
+
           const cached = meterControlCacheRef.current[k];
-          const isRecentLocalSave = cached?.updatedAt && Date.now() - cached.updatedAt < 10000;
+          const isRecentLocalSave = Boolean(cached?.updatedAt && Date.now() - cached.updatedAt < 10000);
 
           const finalMeter = isRecentLocalSave
-            ? (cached?.meter ?? dbMeter ?? null)
-            : (dbMeter ?? cached?.meter ?? null);
+            ? (cached?.meter !== undefined ? normalizeMeterControlValue(cached.meter) : dbMeter) || null
+            : (dbMeter || normalizeMeterControlValue(cached?.meter) || null);
           const finalControl = isRecentLocalSave
-            ? (cached?.control ?? dbControl ?? null)
-            : (dbControl ?? cached?.control ?? null);
+            ? (cached?.control !== undefined ? normalizeMeterControlValue(cached.control) : dbControl) || null
+            : (dbControl || normalizeMeterControlValue(cached?.control) || null);
 
           if (!isRecentLocalSave && (dbMeter || dbControl)) {
             meterControlCacheRef.current[k] = {
-              meter: dbMeter ? String(dbMeter) : cached?.meter || '',
-              control: dbControl ? String(dbControl) : cached?.control || '',
+              meter: dbMeter || normalizeMeterControlValue(cached?.meter) || '',
+              control: dbControl || normalizeMeterControlValue(cached?.control) || '',
               updatedAt: cached?.updatedAt || 0
             };
           }
 
           grouped[k] = sorted.map((r) => ({
             ...r,
-            meter: r.meter && String(r.meter).trim() !== '' ? r.meter : finalMeter,
-            control: r.control && String(r.control).trim() !== '' ? r.control : finalControl
+            meter: finalMeter || normalizeMeterControlValue(r.meter) || null,
+            control: finalControl || normalizeMeterControlValue(r.control) || null
           }));
           if (grouped[k].length > 0) {
             uniqueLatestDevices.push(grouped[k][0]);
@@ -2649,6 +2810,31 @@ export const DashOperate: React.FC = () => {
                                                                   const colBoxMaxH =
                                                                     Math.min(Math.max(histRows.length, 1), 5) * 52 - 10;
                                                                   if (controlCols.length === 0) {
+                                                                    const fallbackText = normalizeMeterControlValue(rawControl);
+                                                                    if (fallbackText) {
+                                                                      return (
+                                                                        <div
+                                                                          style={{
+                                                                            display: 'flex',
+                                                                            alignItems: 'center',
+                                                                            justifyContent: 'center',
+                                                                            padding: '2px 6px',
+                                                                            borderRadius: '5px',
+                                                                            border: '1px solid #fde68a',
+                                                                            color: '#000000',
+                                                                            fontFamily: 'monospace',
+                                                                            fontWeight: 700,
+                                                                            fontSize: '0.73rem',
+                                                                            whiteSpace: 'nowrap',
+                                                                            overflow: 'hidden',
+                                                                            textOverflow: 'ellipsis'
+                                                                          }}
+                                                                          title={fallbackText}
+                                                                        >
+                                                                          {fallbackText}
+                                                                        </div>
+                                                                      );
+                                                                    }
                                                                     return (
                                                                       <span
                                                                         style={{

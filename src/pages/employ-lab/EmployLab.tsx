@@ -112,12 +112,18 @@ export const EmployLab: React.FC = () => {
           });
           const dKey = sorted[0]?.device_code || String(sorted[0]?.device_id || '');
           const cachedMc = localMcCache[dKey];
-          const dbMeter = sorted.find((r) => r.meter && String(r.meter).trim() !== '')?.meter;
-          const dbControl = sorted.find((r) => r.control && String(r.control).trim() !== '')?.control;
+          const isValidMc = (v: any) => {
+            if (!v) return false;
+            if (typeof v === 'object') return Object.keys(v).length > 0;
+            const s = String(v).trim();
+            return s !== '' && s !== '[object Object]' && s !== 'null' && s !== 'undefined' && s !== '{}' && s !== '[]';
+          };
+          const dbMeter = sorted.find((r) => isValidMc(r.meter))?.meter;
+          const dbControl = sorted.find((r) => isValidMc(r.control))?.control;
           const latest = {
             ...sorted[0],
-            meter: dbMeter || cachedMc?.meter || sorted[0]?.meter || null,
-            control: dbControl || cachedMc?.control || sorted[0]?.control || null,
+            meter: dbMeter || (isValidMc(cachedMc?.meter) ? cachedMc?.meter : null) || sorted[0]?.meter || null,
+            control: dbControl || (isValidMc(cachedMc?.control) ? cachedMc?.control : null) || sorted[0]?.control || null,
             history_rows: sorted
           };
           uniqueDevices.push(latest);
