@@ -1796,7 +1796,7 @@ export const EmployOperate: React.FC = () => {
                                         const mCols = getDeviceMColumns(primaryDevKey, allGroupRows);
 
                                         // Độ rộng cố định của 10 cột bên trái để neo sticky khi cuộn ngang các cột m
-                                        const leftColsWidth = 64 + 136 + 180 + 96 + 256 + 150 + 150 + 96 + 148 + 184; // 1460px
+                                        const leftColsWidth = 64 + 136 + 180 + 96 + 256 + 150 + 150 + 96 + 104 + 100; // 1332px
                                         const mTotalWidth = Math.max(mCols.length, 1) * 72;
                                         // Nếu số cột m > 3 thì hiển thị 3 cột và 1 nửa cột tiếp theo (3.5 * 72 = 252px)
                                         const mVisibleWidth = mCols.length > 3 ? 252 : mTotalWidth;
@@ -2008,11 +2008,11 @@ export const EmployOperate: React.FC = () => {
                                                       backgroundColor: '#eff6ff',
                                                       borderBottom: '1px solid #dbeafe',
                                                       borderLeft: '1px solid #dbeafe',
-                                                      padding: '0 10px',
+                                                      padding: '0 6px',
                                                       textAlign: 'center',
-                                                      width: '148px',
-                                                      minWidth: '148px',
-                                                      maxWidth: '148px',
+                                                      width: '104px',
+                                                      minWidth: '104px',
+                                                      maxWidth: '104px',
                                                       whiteSpace: 'nowrap',
                                                       boxSizing: 'border-box'
                                                     }}
@@ -2023,17 +2023,17 @@ export const EmployOperate: React.FC = () => {
                                                     style={{
                                                       position: 'sticky',
                                                       top: 0,
-                                                      left: '1276px',
+                                                      left: '1232px',
                                                       zIndex: 4,
                                                       backgroundColor: '#eff6ff',
                                                       borderBottom: '1px solid #dbeafe',
                                                       borderLeft: '1px solid #dbeafe',
                                                       borderRight: '1px solid #cbd5e1',
-                                                      padding: '3px 8px',
+                                                      padding: '3px 6px',
                                                       textAlign: 'center',
-                                                      width: '184px',
-                                                      minWidth: '184px',
-                                                      maxWidth: '184px',
+                                                      width: '100px',
+                                                      minWidth: '100px',
+                                                      maxWidth: '100px',
                                                       whiteSpace: 'nowrap',
                                                       textTransform: 'none',
                                                       letterSpacing: 'normal',
@@ -3108,15 +3108,15 @@ export const EmployOperate: React.FC = () => {
                                                               zIndex: 3,
                                                               borderBottom: cellBorderBottom,
                                                               borderLeft: '1px solid #e2e8f0',
-                                                              padding: '4px 10px',
+                                                              padding: '4px 6px',
                                                               textAlign: 'center',
                                                               color: '#000000',
                                                               fontFamily: 'monospace',
                                                               fontSize: '0.74rem',
                                                               whiteSpace: 'nowrap',
-                                                              width: '148px',
-                                                              minWidth: '148px',
-                                                              maxWidth: '148px',
+                                                              width: '104px',
+                                                              minWidth: '104px',
+                                                              maxWidth: '104px',
                                                               boxSizing: 'border-box'
                                                             }}
                                                           >
@@ -3149,16 +3149,16 @@ export const EmployOperate: React.FC = () => {
                                                           <td
                                                             style={{
                                                               position: 'sticky',
-                                                              left: '1276px',
+                                                              left: '1232px',
                                                               zIndex: 3,
                                                               borderBottom: cellBorderBottom,
                                                               borderLeft: '1px solid #e2e8f0',
                                                               borderRight: '1px solid #cbd5e1',
-                                                              padding: '6px 8px',
+                                                              padding: '6px 6px',
                                                               textAlign: 'center',
-                                                              width: '184px',
-                                                              minWidth: '184px',
-                                                              maxWidth: '184px',
+                                                              width: '100px',
+                                                              minWidth: '100px',
+                                                              maxWidth: '100px',
                                                               fontSize: '0.72rem',
                                                               color: '#000000',
                                                               fontWeight: 600,
