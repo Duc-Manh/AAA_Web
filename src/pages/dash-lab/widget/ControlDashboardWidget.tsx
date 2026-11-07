@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import {
   MapPin,
   ChevronDown,
@@ -45,6 +45,9 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
   const [deviceStates, setDeviceStates] = useState<Record<string, boolean>>({});
   const [deviceTemps, setDeviceTemps] = useState<Record<string, number>>({});
   const [expandedAreas, setExpandedAreas] = useState<Record<string, boolean>>({});
+  const userCommandLockRef = useRef<
+    Record<string, { boolVal?: boolean; tempVal?: number; until: number }>
+  >({});
 
   // Dựng danh sách thẻ điều khiển từ cột control bảng telemetry_data
   const controlCards = useMemo<ControlCardItem[]>(() => {
@@ -70,7 +73,29 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
       collectCtrl(dev.control);
       historyRows.forEach((r) => collectCtrl(r.control));
 
-      const latestVals = extractMValuesFromRow(dev);
+      // Gộp giá trị kênh từ hàng mới nhất về cũ để giữ nguyên trạng thái ON/OFF đã chốt
+      const allRowsToScan: LabTelemetryRow[] = [
+        dev,
+        ...historyRows.filter((r) => r !== dev)
+      ];
+      const mergedChannelNums: Record<string, number> = {};
+      allRowsToScan.forEach((row) => {
+        const rowVals = extractMValuesFromRow(row);
+        Object.entries(rowVals).forEach(([k, rv]) => {
+          const lk = k.trim().toLowerCase();
+          if (lk in mergedChannelNums) return;
+          const n =
+            typeof rv === 'number'
+              ? rv
+              : rv !== null && rv !== undefined && String(rv).trim() !== ''
+              ? Number(String(rv).trim())
+              : NaN;
+          if (!Number.isNaN(n)) {
+            mergedChannelNums[lk] = n;
+          }
+        });
+      });
+
       const sortedChannels = Object.keys(controlMap).sort((a, b) => {
         const na = parseInt(a.replace(/[^0-9]/g, ''), 10) || 0;
         const nb = parseInt(b.replace(/[^0-9]/g, ''), 10) || 0;
@@ -78,14 +103,7 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
       });
 
       sortedChannels.forEach((channel) => {
-        const rawVal = latestVals[channel];
-        const parsedNum =
-          typeof rawVal === 'number'
-            ? rawVal
-            : rawVal !== null && rawVal !== undefined && String(rawVal).trim() !== ''
-            ? Number(String(rawVal).trim())
-            : null;
-        const validNum = parsedNum !== null && !Number.isNaN(parsedNum) ? parsedNum : null;
+        const validNum = channel in mergedChannelNums ? mergedChannelNums[channel] : null;
 
         const label = (controlMap[channel] || '').trim();
         const lowerLabel = label.toLowerCase();
@@ -134,7 +152,7 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
     return cards.filter((c) => c.inControl);
   }, [devices]);
 
-  // Lắng nghe trực tiếp sự kiện WebSocket TELEMETRY_DATA_SAVED từ HiveMQ Bridge (MQTTBox) để phản hồi tức thì 2 chiều
+  // Lắng nghe sự kiện lệnh điều khiển thực sự (is_control_command === true) qua WebSocket để đồng bộ 2 chiều giữa EmployLab / DashLab / AAA_Mobile (không bị gói đo lường đảo trạng thái)
   useEffect(() => {
     let ws: WebSocket | null = null;
     try {
@@ -149,8 +167,25 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
       ws.onmessage = (event) => {
         try {
           const msg = JSON.parse(event.data);
-          if (msg.type === 'TELEMETRY_DATA_SAVED' && msg.device_code && msg.show) {
+          if (
+            msg.type === 'TELEMETRY_DATA_SAVED' &&
+            msg.is_control_command === true &&
+            msg.device_code
+          ) {
             const devCode = String(msg.device_code).trim().toUpperCase();
+            if (msg.control_channel !== undefined && msg.control_value !== undefined) {
+              const lk = String(msg.control_channel).trim().toLowerCase();
+              const num = Number(msg.control_value);
+              if (/^m\d+$/i.test(lk) && !Number.isNaN(num)) {
+                const key = `${devCode}_${lk}`;
+                setDeviceStates((prev) => ({ ...prev, [key]: num > 0 }));
+                setDeviceTemps((prev) => ({
+                  ...prev,
+                  [key]: Math.min(Math.max(Math.round(num), 0), 100)
+                }));
+              }
+              return;
+            }
             const showMap = typeof msg.show === 'object' && msg.show ? msg.show : {};
             setDeviceStates((prev) => {
               const next = { ...prev };
@@ -191,11 +226,17 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
     };
   }, []);
 
-  // Đồng bộ giá trị từ dữ liệu telemetry_data mới nhất
+  // Đồng bộ giá trị từ dữ liệu telemetry_data nhưng tôn trọng khoá thao tác của người dùng (ON chỉ OFF khi có người OFF, OFF chỉ ON khi có người ON)
   useEffect(() => {
+    const now = Date.now();
     setDeviceStates((prev) => {
       const next = { ...prev };
       controlCards.forEach((c) => {
+        const lock = userCommandLockRef.current[c.code];
+        if (lock && lock.until > now && typeof lock.boolVal === 'boolean') {
+          next[c.code] = lock.boolVal;
+          return;
+        }
         if (c.category === 'fan') {
           next[c.code] = c.initialBool;
         } else {
@@ -207,6 +248,11 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
     setDeviceTemps((prev) => {
       const next = { ...prev };
       controlCards.forEach((c) => {
+        const lock = userCommandLockRef.current[c.code];
+        if (lock && lock.until > now && typeof lock.tempVal === 'number') {
+          next[c.code] = lock.tempVal;
+          return;
+        }
         if (c.category === 'temp') {
           next[c.code] = c.initialTemp;
         }
@@ -253,6 +299,10 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
     const nextVal = !currentVal;
     const numericPayload = nextVal ? 1 : 0;
 
+    userCommandLockRef.current[card.code] = {
+      boolVal: nextVal,
+      until: Date.now() + 6000
+    };
     setDeviceStates((prev) => ({ ...prev, [card.code]: nextVal }));
     sendControlCommand(
       card.targetDeviceCode,
@@ -264,6 +314,10 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
 
   const handleSetTemperature = (card: ControlCardItem, newTemp: number, commit: boolean) => {
     const clamped = Math.min(Math.max(Math.round(newTemp), 0), 100);
+    userCommandLockRef.current[card.code] = {
+      tempVal: clamped,
+      until: Date.now() + 6000
+    };
     setDeviceTemps((prev) => ({ ...prev, [card.code]: clamped }));
     if (commit) {
       sendControlCommand(
