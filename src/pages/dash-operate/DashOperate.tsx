@@ -50,6 +50,7 @@ export interface TelemetryDeviceRow {
   note?: string | null;
   meter?: string | null;
   control?: string | null;
+  setup?: string | null;
   recorded_at: string;
 }
 
@@ -259,6 +260,13 @@ export const getMaxMIndex = (rows: any[]): number => {
         if (num > maxIdx) maxIdx = num;
       }
     });
+    parseMColList(r?.setup).forEach((k) => {
+      const match = k.match(/^m(\d+)$/i);
+      if (match) {
+        const num = parseInt(match[1], 10);
+        if (num > maxIdx) maxIdx = num;
+      }
+    });
   });
   return maxIdx;
 };
@@ -418,19 +426,20 @@ export const DashOperate: React.FC = () => {
   const wsRef = useRef<WebSocket | null>(null);
   const pollTimerRef = useRef<any>(null);
   const meterControlCacheRef = useRef<
-    Record<string, { meter?: string; control?: string; updatedAt?: number }>
+    Record<string, { meter?: string; control?: string; setup?: string; updatedAt?: number }>
   >((() => {
     try {
       const saved = localStorage.getItem('aaa_telemetry_meter_control_cache');
       if (!saved) return {};
       const parsed = JSON.parse(saved);
       if (!parsed || typeof parsed !== 'object') return {};
-      const cleaned: Record<string, { meter?: string; control?: string; updatedAt?: number }> = {};
+      const cleaned: Record<string, { meter?: string; control?: string; setup?: string; updatedAt?: number }> = {};
       Object.entries(parsed).forEach(([k, v]: [string, any]) => {
         if (v && typeof v === 'object') {
           cleaned[k] = {
             meter: normalizeMeterControlValue(v.meter),
             control: normalizeMeterControlValue(v.control),
+            setup: normalizeMeterControlValue(v.setup),
             updatedAt: Number(v.updatedAt) || 0
           };
         }
@@ -441,12 +450,13 @@ export const DashOperate: React.FC = () => {
     }
   })());
 
-  const saveMeterControlCache = (devKey: string, meterStr: string, controlStr: string) => {
+  const saveMeterControlCache = (devKey: string, meterStr: string, controlStr: string, setupStr = '') => {
     meterControlCacheRef.current = {
       ...meterControlCacheRef.current,
       [devKey]: {
         meter: normalizeMeterControlValue(meterStr),
         control: normalizeMeterControlValue(controlStr),
+        setup: normalizeMeterControlValue(setupStr),
         updatedAt: Date.now()
       }
     };
@@ -536,6 +546,44 @@ export const DashOperate: React.FC = () => {
     );
   };
 
+  const resolveDeviceSetupRaw = (dev: TelemetryDeviceRow, rows: TelemetryDeviceRow[]): string => {
+    const dKey = dev.device_code || String(dev.device_id);
+    const cached = meterControlCacheRef.current[dKey];
+    const isRecentLocalSave = Boolean(cached?.updatedAt && Date.now() - cached.updatedAt < 10000);
+    if (isRecentLocalSave && cached && cached.setup !== undefined) {
+      return normalizeMeterControlValue(cached.setup);
+    }
+    const mergedMap: Record<string, string> = {};
+    const collect = (val: any) => {
+      const parsed = parseMeterControlMap(val);
+      Object.entries(parsed).forEach(([k, v]) => {
+        if (!(k in mergedMap) || (mergedMap[k] === '' && v !== '')) {
+          mergedMap[k] = v;
+        }
+      });
+    };
+    collect(dev?.setup);
+    if (Array.isArray(rows)) {
+      rows.forEach((r) => collect(r?.setup));
+    }
+    if (Object.keys(mergedMap).length > 0) {
+      return serializeMeterControlMap(mergedMap);
+    }
+    const cachedNorm = normalizeMeterControlValue(cached?.setup);
+    if (cachedNorm) {
+      const cachedMap = parseMeterControlMap(cachedNorm);
+      if (Object.keys(cachedMap).length > 0) {
+        return serializeMeterControlMap(cachedMap);
+      }
+    }
+    return (
+      normalizeMeterControlValue(dev?.setup) ||
+      normalizeMeterControlValue(rows?.find((r) => normalizeMeterControlValue(r?.setup) !== '')?.setup) ||
+      cachedNorm ||
+      ''
+    );
+  };
+
   const getDeviceMColumns = (devKey: string, rows: any[]): string[] => {
     const maxDataM = getMaxMIndex(rows);
     const defaultCols = Array.from({ length: Math.max(3, maxDataM) }, (_, i) => `m${i + 1}`);
@@ -555,6 +603,9 @@ export const DashOperate: React.FC = () => {
       parseMColList(r?.control).forEach((c) => {
         merged.add(c);
       });
+      parseMColList(r?.setup).forEach((c) => {
+        merged.add(c);
+      });
     });
     return Array.from(merged).sort((a, b) => {
       const na = parseInt(a.replace(/^m/i, ''), 10) || 0;
@@ -563,7 +614,10 @@ export const DashOperate: React.FC = () => {
     });
   };
 
-  const persistMeterControlToDb = async (deviceIds: number[], payload: { meter?: string; control?: string }) => {
+  const persistMeterControlToDb = async (
+    deviceIds: number[],
+    payload: { meter?: string; control?: string; setup?: string }
+  ) => {
     if (!deviceIds || deviceIds.length === 0) return;
     const primaryId = deviceIds[0];
     const isLocal =
@@ -592,7 +646,7 @@ export const DashOperate: React.FC = () => {
     }
   };
 
-  const handleSelectAddColumnType = async (colType: 'meter' | 'control') => {
+  const handleSelectAddColumnType = async (colType: 'meter' | 'control' | 'setup') => {
     if (!addColMenu) return;
     const { groupDevKeys, devices, currentCols } = addColMenu;
     let maxNum = 0;
@@ -630,36 +684,47 @@ export const DashOperate: React.FC = () => {
       return next;
     });
 
-    // Cập nhật cột meter hoặc control cho các thiết bị trong nhóm và lưu xuống database 3ahome
+    // Cập nhật cột meter, control hoặc setup cho các thiết bị trong nhóm và lưu xuống database 3ahome
     for (const dev of devices) {
       const dKey = dev.device_code || String(dev.device_id);
       const devRows = deviceRowsMap[dKey] || [dev];
       const existingMeterRaw = resolveDeviceMeterRaw(dev, devRows);
       const existingControlRaw = resolveDeviceControlRaw(dev, devRows);
+      const existingSetupRaw = resolveDeviceSetupRaw(dev, devRows);
 
       const meterMap = parseMeterControlMap(existingMeterRaw);
       const controlMap = parseMeterControlMap(existingControlRaw);
+      const setupMap = parseMeterControlMap(existingSetupRaw);
 
       if (colType === 'meter') {
         if (!(nextCol in meterMap)) {
-          meterMap[nextCol] = controlMap[nextCol] || '';
+          meterMap[nextCol] = controlMap[nextCol] || setupMap[nextCol] || '';
         }
         delete controlMap[nextCol];
-      } else {
+        delete setupMap[nextCol];
+      } else if (colType === 'control') {
         if (!(nextCol in controlMap)) {
-          controlMap[nextCol] = meterMap[nextCol] || '';
+          controlMap[nextCol] = meterMap[nextCol] || setupMap[nextCol] || '';
         }
         delete meterMap[nextCol];
+        delete setupMap[nextCol];
+      } else {
+        if (!(nextCol in setupMap)) {
+          setupMap[nextCol] = meterMap[nextCol] || controlMap[nextCol] || '';
+        }
+        delete meterMap[nextCol];
+        delete controlMap[nextCol];
       }
 
       const newMeterStr = serializeMeterControlMap(meterMap);
       const newControlStr = serializeMeterControlMap(controlMap);
-      saveMeterControlCache(dKey, newMeterStr, newControlStr);
+      const newSetupStr = serializeMeterControlMap(setupMap);
+      saveMeterControlCache(dKey, newMeterStr, newControlStr, newSetupStr);
 
       setTelemetryList((prev) =>
         prev.map((item) =>
           item.device_id === dev.device_id
-            ? { ...item, meter: newMeterStr, control: newControlStr }
+            ? { ...item, meter: newMeterStr, control: newControlStr, setup: newSetupStr }
             : item
         )
       );
@@ -667,13 +732,14 @@ export const DashOperate: React.FC = () => {
         if (!prev[dKey]) return prev;
         return {
           ...prev,
-          [dKey]: prev[dKey].map((r) => ({ ...r, meter: newMeterStr, control: newControlStr }))
+          [dKey]: prev[dKey].map((r) => ({ ...r, meter: newMeterStr, control: newControlStr, setup: newSetupStr }))
         };
       });
 
       await persistMeterControlToDb([dev.device_id], {
         meter: newMeterStr,
-        control: newControlStr
+        control: newControlStr,
+        setup: newSetupStr
       });
     }
   };
@@ -720,22 +786,26 @@ export const DashOperate: React.FC = () => {
         const devRows = deviceRowsMap[dKey] || [dev];
         const existingMeterRaw = resolveDeviceMeterRaw(dev, devRows);
         const existingControlRaw = resolveDeviceControlRaw(dev, devRows);
+        const existingSetupRaw = resolveDeviceSetupRaw(dev, devRows);
 
         const meterMap = parseMeterControlMap(existingMeterRaw);
         const controlMap = parseMeterControlMap(existingControlRaw);
+        const setupMap = parseMeterControlMap(existingSetupRaw);
         toRemoveSet.forEach((remKey) => {
           delete meterMap[remKey];
           delete controlMap[remKey];
+          delete setupMap[remKey];
         });
 
         const newMeterStr = serializeMeterControlMap(meterMap);
         const newControlStr = serializeMeterControlMap(controlMap);
-        saveMeterControlCache(dKey, newMeterStr, newControlStr);
+        const newSetupStr = serializeMeterControlMap(setupMap);
+        saveMeterControlCache(dKey, newMeterStr, newControlStr, newSetupStr);
 
         setTelemetryList((prev) =>
           prev.map((item) =>
             item.device_id === dev.device_id
-              ? { ...item, meter: newMeterStr, control: newControlStr }
+              ? { ...item, meter: newMeterStr, control: newControlStr, setup: newSetupStr }
               : item
           )
         );
@@ -743,19 +813,20 @@ export const DashOperate: React.FC = () => {
           if (!prev[dKey]) return prev;
           return {
             ...prev,
-            [dKey]: prev[dKey].map((r) => ({ ...r, meter: newMeterStr, control: newControlStr }))
+            [dKey]: prev[dKey].map((r) => ({ ...r, meter: newMeterStr, control: newControlStr, setup: newSetupStr }))
           };
         });
 
         await persistMeterControlToDb([dev.device_id], {
           meter: newMeterStr,
-          control: newControlStr
+          control: newControlStr,
+          setup: newSetupStr
         });
       }
     }
   };
 
-  // Lưu tên nhập trong cột Ghi chú dạng JSON mapping vào cột meter (nếu m thuộc meter) hoặc cột control (nếu m thuộc control) của bảng telemetry_data
+  // Lưu tên nhập trong cột Ghi chú dạng JSON mapping vào cột meter (nếu m thuộc meter), control (nếu m thuộc control) hoặc setup (nếu m thuộc setup) của bảng telemetry_data
   const handleSaveNote = async (dev: TelemetryDeviceRow, mCols: string[]) => {
     const devId = dev.device_id;
     const dKey = dev.device_code || String(dev.device_id);
@@ -763,9 +834,11 @@ export const DashOperate: React.FC = () => {
 
     const existingMeterRaw = resolveDeviceMeterRaw(dev, devRows);
     const existingControlRaw = resolveDeviceControlRaw(dev, devRows);
+    const existingSetupRaw = resolveDeviceSetupRaw(dev, devRows);
 
     const meterMap = parseMeterControlMap(existingMeterRaw);
     const controlMap = parseMeterControlMap(existingControlRaw);
+    const setupMap = parseMeterControlMap(existingSetupRaw);
 
     const allKeys = Array.from(
       new Set([
@@ -781,7 +854,11 @@ export const DashOperate: React.FC = () => {
         Object.prototype.hasOwnProperty.call(noteDraftMap, k.toUpperCase());
       const draftVal = hasDraft ? String(noteDraftMap[k] ?? noteDraftMap[k.toUpperCase()] ?? '').trim() : undefined;
 
-      if (k in controlMap) {
+      if (k in setupMap) {
+        if (draftVal !== undefined) {
+          setupMap[k] = draftVal;
+        }
+      } else if (k in controlMap) {
         if (draftVal !== undefined) {
           controlMap[k] = draftVal;
         }
@@ -796,19 +873,21 @@ export const DashOperate: React.FC = () => {
 
     const newMeterStr = serializeMeterControlMap(meterMap);
     const newControlStr = serializeMeterControlMap(controlMap);
-    saveMeterControlCache(dKey, newMeterStr, newControlStr);
+    const newSetupStr = serializeMeterControlMap(setupMap);
+    saveMeterControlCache(dKey, newMeterStr, newControlStr, newSetupStr);
 
     setSavingNoteDevId(devId);
     try {
       await persistMeterControlToDb([devId], {
         meter: newMeterStr,
-        control: newControlStr
+        control: newControlStr,
+        setup: newSetupStr
       });
 
       setTelemetryList((prev) =>
         prev.map((item) =>
           item.device_id === devId
-            ? { ...item, meter: newMeterStr, control: newControlStr }
+            ? { ...item, meter: newMeterStr, control: newControlStr, setup: newSetupStr }
             : item
         )
       );
@@ -816,7 +895,7 @@ export const DashOperate: React.FC = () => {
         if (!prev[dKey]) return prev;
         return {
           ...prev,
-          [dKey]: prev[dKey].map((r) => ({ ...r, meter: newMeterStr, control: newControlStr }))
+          [dKey]: prev[dKey].map((r) => ({ ...r, meter: newMeterStr, control: newControlStr, setup: newSetupStr }))
         };
       });
       setEditingNoteDevId(null);
@@ -918,6 +997,7 @@ export const DashOperate: React.FC = () => {
           const sorted = sortRowsNewestFirst(grouped[k]);
           const dbMeterMap: Record<string, string> = {};
           const dbControlMap: Record<string, string> = {};
+          const dbSetupMap: Record<string, string> = {};
           sorted.forEach((r) => {
             Object.entries(parseMeterControlMap(r.meter)).forEach(([mk, mv]) => {
               if (!(mk in dbMeterMap) || (dbMeterMap[mk] === '' && mv !== '')) {
@@ -929,6 +1009,11 @@ export const DashOperate: React.FC = () => {
                 dbControlMap[ck] = cv;
               }
             });
+            Object.entries(parseMeterControlMap(r.setup)).forEach(([sk, sv]) => {
+              if (!(sk in dbSetupMap) || (dbSetupMap[sk] === '' && sv !== '')) {
+                dbSetupMap[sk] = sv;
+              }
+            });
           });
           const dbMeter =
             Object.keys(dbMeterMap).length > 0
@@ -938,6 +1023,10 @@ export const DashOperate: React.FC = () => {
             Object.keys(dbControlMap).length > 0
               ? serializeMeterControlMap(dbControlMap)
               : normalizeMeterControlValue(sorted.find((r) => normalizeMeterControlValue(r.control) !== '')?.control);
+          const dbSetup =
+            Object.keys(dbSetupMap).length > 0
+              ? serializeMeterControlMap(dbSetupMap)
+              : normalizeMeterControlValue(sorted.find((r) => normalizeMeterControlValue(r.setup) !== '')?.setup);
 
           const cached = meterControlCacheRef.current[k];
           const isRecentLocalSave = Boolean(cached?.updatedAt && Date.now() - cached.updatedAt < 10000);
@@ -948,11 +1037,15 @@ export const DashOperate: React.FC = () => {
           const finalControl = isRecentLocalSave
             ? (cached?.control !== undefined ? normalizeMeterControlValue(cached.control) : dbControl) || null
             : (dbControl || normalizeMeterControlValue(cached?.control) || null);
+          const finalSetup = isRecentLocalSave
+            ? (cached?.setup !== undefined ? normalizeMeterControlValue(cached.setup) : dbSetup) || null
+            : (dbSetup || normalizeMeterControlValue(cached?.setup) || null);
 
-          if (!isRecentLocalSave && (dbMeter || dbControl)) {
+          if (!isRecentLocalSave && (dbMeter || dbControl || dbSetup)) {
             meterControlCacheRef.current[k] = {
               meter: dbMeter || normalizeMeterControlValue(cached?.meter) || '',
               control: dbControl || normalizeMeterControlValue(cached?.control) || '',
+              setup: dbSetup || normalizeMeterControlValue(cached?.setup) || '',
               updatedAt: cached?.updatedAt || 0
             };
           }
@@ -960,7 +1053,8 @@ export const DashOperate: React.FC = () => {
           grouped[k] = sorted.map((r) => ({
             ...r,
             meter: finalMeter || normalizeMeterControlValue(r.meter) || null,
-            control: finalControl || normalizeMeterControlValue(r.control) || null
+            control: finalControl || normalizeMeterControlValue(r.control) || null,
+            setup: finalSetup || normalizeMeterControlValue(r.setup) || null
           }));
           if (grouped[k].length > 0) {
             uniqueLatestDevices.push(grouped[k][0]);
@@ -1836,8 +1930,8 @@ export const DashOperate: React.FC = () => {
                                         });
                                         const mCols = getDeviceMColumns(primaryDevKey, allGroupRows);
 
-                                        // Độ rộng cố định của 10 cột bên trái để neo sticky khi cuộn ngang các cột m
-                                        const leftColsWidth = 64 + 136 + 180 + 96 + 256 + 96 + 96 + 96 + 104 + 100; // 1224px
+                                        // Độ rộng cố định của 11 cột bên trái để neo sticky khi cuộn ngang các cột m
+                                        const leftColsWidth = 64 + 136 + 180 + 96 + 256 + 96 + 96 + 96 + 96 + 104 + 100; // 1320px
                                         const mTotalWidth = Math.max(mCols.length, 1) * 72;
                                         // Nếu số cột m > 3 thì hiển thị 3 cột và 1 nửa cột tiếp theo (3.5 * 72 = 252px)
                                         const mVisibleWidth = mCols.length > 3 ? 252 : mTotalWidth;
@@ -2018,13 +2112,33 @@ export const DashOperate: React.FC = () => {
                                                       boxSizing: 'border-box'
                                                     }}
                                                   >
-                                                    Điều khiển
+                                                    Công tắc
                                                   </th>
                                                   <th
                                                     style={{
                                                       position: 'sticky',
                                                       top: 0,
                                                       left: '924px',
+                                                      zIndex: 4,
+                                                      backgroundColor: '#eff6ff',
+                                                      borderBottom: '1px solid #dbeafe',
+                                                      borderLeft: '1px solid #dbeafe',
+                                                      padding: '0 6px',
+                                                      textAlign: 'center',
+                                                      width: '96px',
+                                                      minWidth: '96px',
+                                                      maxWidth: '96px',
+                                                      whiteSpace: 'nowrap',
+                                                      boxSizing: 'border-box'
+                                                    }}
+                                                  >
+                                                    Dải nhiệt độ
+                                                  </th>
+                                                  <th
+                                                    style={{
+                                                      position: 'sticky',
+                                                      top: 0,
+                                                      left: '1020px',
                                                       zIndex: 4,
                                                       backgroundColor: '#eff6ff',
                                                       borderBottom: '1px solid #dbeafe',
@@ -2044,7 +2158,7 @@ export const DashOperate: React.FC = () => {
                                                     style={{
                                                       position: 'sticky',
                                                       top: 0,
-                                                      left: '1020px',
+                                                      left: '1116px',
                                                       zIndex: 4,
                                                       backgroundColor: '#eff6ff',
                                                       borderBottom: '1px solid #dbeafe',
@@ -2064,7 +2178,7 @@ export const DashOperate: React.FC = () => {
                                                     style={{
                                                       position: 'sticky',
                                                       top: 0,
-                                                      left: '1124px',
+                                                      left: '1220px',
                                                       zIndex: 4,
                                                       backgroundColor: '#eff6ff',
                                                       borderBottom: '1px solid #dbeafe',
@@ -2184,7 +2298,7 @@ export const DashOperate: React.FC = () => {
                                                 {group.devices.length === 0 ? (
                                                   <tr>
                                                     <td
-                                                      colSpan={10}
+                                                      colSpan={11}
                                                       style={{ height: '52px', padding: '0 20px', textAlign: 'center', color: '#94a3b8' }}
                                                     >
                                                       Dự án này chưa có thiết bị nào truyền dữ liệu
@@ -2462,11 +2576,14 @@ export const DashOperate: React.FC = () => {
                                                                   {(() => {
                                                                     const rawMeterForNote = resolveDeviceMeterRaw(dev, histRows);
                                                                     const rawControlForNote = resolveDeviceControlRaw(dev, histRows);
+                                                                    const rawSetupForNote = resolveDeviceSetupRaw(dev, histRows);
                                                                     const meterMapForNote = parseMeterControlMap(rawMeterForNote);
                                                                     const controlMapForNote = parseMeterControlMap(rawControlForNote);
+                                                                    const setupMapForNote = parseMeterControlMap(rawSetupForNote);
                                                                     const parsedMap: Record<string, string> = {
                                                                       ...meterMapForNote,
-                                                                      ...controlMapForNote
+                                                                      ...controlMapForNote,
+                                                                      ...setupMapForNote
                                                                     };
                                                                     const nonEmptyMap: Record<string, string> = {};
                                                                     Object.entries(parsedMap).forEach(([k, v]) => {
@@ -2924,7 +3041,7 @@ export const DashOperate: React.FC = () => {
                                                                 </div>
                                                               </td>
 
-                                                              {/* Điều khiển (control) */}
+                                                              {/* Công tắc (control) */}
                                                               <td
                                                                 rowSpan={histRows.length}
                                                                 style={{
@@ -3068,12 +3185,156 @@ export const DashOperate: React.FC = () => {
                                                                 </div>
                                                               </td>
 
-                                                              {/* Thao tác */}
+                                                              {/* Dải nhiệt độ (setup) */}
                                                               <td
                                                                 rowSpan={histRows.length}
                                                                 style={{
                                                                   position: 'sticky',
                                                                   left: '924px',
+                                                                  zIndex: 3,
+                                                                  backgroundColor: '#ffffff',
+                                                                  verticalAlign: 'top',
+                                                                  borderBottom: devCellBorderBottom,
+                                                                  borderLeft: '1px solid #e2e8f0',
+                                                                  padding: '4px 6px',
+                                                                  textAlign: 'center',
+                                                                  color: '#000000',
+                                                                  width: '96px',
+                                                                  minWidth: '96px',
+                                                                  maxWidth: '96px',
+                                                                  boxSizing: 'border-box'
+                                                                }}
+                                                              >
+                                                                <div
+                                                                  style={{
+                                                                    position: 'sticky',
+                                                                    top: '44px',
+                                                                    minHeight:
+                                                                      histRows.length === 1
+                                                                        ? '42px'
+                                                                        : `${Math.min(histRows.length, 5) * 52 - 12}px`,
+                                                                    display: 'flex',
+                                                                    flexDirection: 'column',
+                                                                    justifyContent: 'center'
+                                                                  }}
+                                                                >
+                                                                  {(() => {
+                                                                    const rawSetup = resolveDeviceSetupRaw(dev, histRows);
+                                                                    const setupMap = parseMeterControlMap(rawSetup);
+                                                                    const setupCols = parseMColList(rawSetup);
+                                                                    const colBoxMaxH =
+                                                                      Math.min(Math.max(histRows.length, 1), 5) * 52 - 10;
+                                                                    if (setupCols.length === 0) {
+                                                                      const fallbackText = normalizeMeterControlValue(rawSetup);
+                                                                      if (fallbackText) {
+                                                                        return (
+                                                                          <div
+                                                                            style={{
+                                                                              display: 'flex',
+                                                                              alignItems: 'center',
+                                                                              justifyContent: 'center',
+                                                                              padding: '2px 6px',
+                                                                              borderRadius: '5px',
+                                                                              border: '1px solid #a7f3d0',
+                                                                              color: '#000000',
+                                                                              fontFamily: 'monospace',
+                                                                              fontWeight: 700,
+                                                                              fontSize: '0.73rem',
+                                                                              whiteSpace: 'nowrap',
+                                                                              overflow: 'hidden',
+                                                                              textOverflow: 'ellipsis'
+                                                                            }}
+                                                                            title={fallbackText}
+                                                                          >
+                                                                            {fallbackText}
+                                                                          </div>
+                                                                        );
+                                                                      }
+                                                                      return (
+                                                                        <span
+                                                                          style={{
+                                                                            color: '#000000',
+                                                                            fontFamily: 'monospace',
+                                                                            fontSize: '0.76rem'
+                                                                          }}
+                                                                        >
+                                                                          --
+                                                                        </span>
+                                                                      );
+                                                                    }
+                                                                    return (
+                                                                      <div
+                                                                        style={{
+                                                                          maxHeight: `${colBoxMaxH}px`,
+                                                                          overflowY: 'auto',
+                                                                          display: 'flex',
+                                                                          flexDirection: 'column',
+                                                                          gap: '3px',
+                                                                          boxSizing: 'border-box'
+                                                                        }}
+                                                                      >
+                                                                        {setupCols.map((sc) => {
+                                                                          const label = String(
+                                                                            setupMap[sc.toLowerCase()] ??
+                                                                              setupMap[sc] ??
+                                                                              ''
+                                                                          ).trim();
+                                                                          return (
+                                                                            <div
+                                                                              key={sc}
+                                                                              style={{
+                                                                                display: 'flex',
+                                                                                alignItems: 'center',
+                                                                                justifyContent: label
+                                                                                  ? 'space-between'
+                                                                                  : 'center',
+                                                                                gap: '6px',
+                                                                                padding: '2px 6px',
+                                                                                borderRadius: '5px',
+                                                                                border: '1px solid #a7f3d0'
+                                                                              }}
+                                                                              title={label ? `${sc}: ${label}` : sc}
+                                                                            >
+                                                                              <span
+                                                                                style={{
+                                                                                  color: '#000000',
+                                                                                  fontFamily: 'monospace',
+                                                                                  fontWeight: 700,
+                                                                                  fontSize: '0.73rem',
+                                                                                  flexShrink: 0
+                                                                                }}
+                                                                              >
+                                                                                {sc}
+                                                                              </span>
+                                                                              {label && (
+                                                                                <span
+                                                                                  style={{
+                                                                                    fontWeight: 600,
+                                                                                    color: '#000000',
+                                                                                    fontSize: '0.72rem',
+                                                                                    whiteSpace: 'nowrap',
+                                                                                    overflow: 'hidden',
+                                                                                    textOverflow: 'ellipsis'
+                                                                                  }}
+                                                                                >
+                                                                                  {label}
+                                                                                </span>
+                                                                              )}
+                                                                            </div>
+                                                                          );
+                                                                        })}
+                                                                      </div>
+                                                                    );
+                                                                  })()}
+                                                                </div>
+                                                              </td>
+
+                                                              {/* Thao tác */}
+                                                              <td
+                                                                rowSpan={histRows.length}
+                                                                style={{
+                                                                  position: 'sticky',
+                                                                  left: '1020px',
                                                                   zIndex: 3,
                                                                   backgroundColor: '#ffffff',
                                                                   verticalAlign: 'top',
@@ -3140,7 +3401,7 @@ export const DashOperate: React.FC = () => {
                                                           <td
                                                             style={{
                                                               position: 'sticky',
-                                                              left: '1020px',
+                                                              left: '1116px',
                                                               zIndex: 3,
                                                               borderBottom: cellBorderBottom,
                                                               borderLeft: '1px solid #e2e8f0',
@@ -3185,7 +3446,7 @@ export const DashOperate: React.FC = () => {
                                                           <td
                                                             style={{
                                                               position: 'sticky',
-                                                              left: '1124px',
+                                                              left: '1220px',
                                                               zIndex: 3,
                                                               borderBottom: cellBorderBottom,
                                                               borderLeft: '1px solid #e2e8f0',
@@ -3552,7 +3813,29 @@ export const DashOperate: React.FC = () => {
                       textAlign: 'left'
                     }}
                   >
-                    <span>Điều khiển</span>
+                    <span>Công tắc</span>
+                    <span style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>+{nextCol}</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectAddColumnType('setup')}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      padding: '8px 10px',
+                      borderRadius: '7px',
+                      border: '1px solid #a7f3d0',
+                      backgroundColor: '#ecfdf5',
+                      color: '#059669',
+                      fontSize: '0.8rem',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      textAlign: 'left'
+                    }}
+                  >
+                    <span>Dải nhiệt độ</span>
                     <span style={{ fontFamily: 'monospace', fontSize: '0.75rem' }}>+{nextCol}</span>
                   </button>
                 </>

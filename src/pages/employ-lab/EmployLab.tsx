@@ -95,7 +95,7 @@ export const EmployLab: React.FC = () => {
           groupedByDev.get(dId)!.push(row);
         });
 
-        let localMcCache: Record<string, { meter?: string; control?: string }> = {};
+        let localMcCache: Record<string, { meter?: string; control?: string; setup?: string }> = {};
         try {
           const savedMc = localStorage.getItem('aaa_telemetry_meter_control_cache');
           if (savedMc) localMcCache = JSON.parse(savedMc);
@@ -120,10 +120,12 @@ export const EmployLab: React.FC = () => {
           };
           const dbMeter = sorted.find((r) => isValidMc(r.meter))?.meter;
           const dbControl = sorted.find((r) => isValidMc(r.control))?.control;
+          const dbSetup = sorted.find((r) => isValidMc(r.setup))?.setup;
           const latest = {
             ...sorted[0],
             meter: dbMeter || (isValidMc(cachedMc?.meter) ? cachedMc?.meter : null) || sorted[0]?.meter || null,
             control: dbControl || (isValidMc(cachedMc?.control) ? cachedMc?.control : null) || sorted[0]?.control || null,
+            setup: dbSetup || (isValidMc(cachedMc?.setup) ? cachedMc?.setup : null) || sorted[0]?.setup || null,
             history_rows: sorted
           };
           uniqueDevices.push(latest);

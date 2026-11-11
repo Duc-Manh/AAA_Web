@@ -19,6 +19,7 @@ export interface LabTelemetryRow {
   raw_data?: any;
   meter?: string | null;
   control?: string | null;
+  setup?: string | null;
   recorded_at: string;
   history_rows?: LabTelemetryRow[];
 }

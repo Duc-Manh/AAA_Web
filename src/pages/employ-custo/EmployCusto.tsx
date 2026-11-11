@@ -67,6 +67,7 @@ export const EmployCusto: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [hoveredPassId, setHoveredPassId] = useState<number | null>(null);
   const [currentUser, setCurrentUser] = useState<CurrentUserData | null>(null);
 
   // Danh sách dự án (100% dữ liệu thực từ database 3ahome)
@@ -949,7 +950,7 @@ export const EmployCusto: React.FC = () => {
             }}
           >
             <div className="dash-table-wrapper" style={{ overflowX: 'auto' }}>
-              <table className="dash-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <table className="dash-table" style={{ width: '100%', borderCollapse: 'collapse', color: '#000000' }}>
                 <thead>
                   <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
                     <th style={{ width: '50px', textAlign: 'center', padding: '12px 10px' }}>STT</th>
@@ -967,7 +968,7 @@ export const EmployCusto: React.FC = () => {
                   {filteredProjects.length === 0 ? (
                     <tr>
                       <td colSpan={9} style={{ textAlign: 'center', padding: '40px 16px' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: '#94a3b8' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', color: '#000000' }}>
                           <AlertCircle size={32} />
                           <span style={{ fontSize: '0.92rem', fontWeight: 500 }}>Không tìm thấy dự án nào phù hợp!</span>
                           <button
@@ -980,11 +981,11 @@ export const EmployCusto: React.FC = () => {
                             style={{
                               marginTop: '6px',
                               padding: '6px 14px',
-                              backgroundColor: '#f1f5f9',
+                              backgroundColor: 'transparent',
                               border: '1px solid #cbd5e1',
                               borderRadius: '8px',
                               fontSize: '0.82rem',
-                              color: '#1D58BB',
+                              color: '#000000',
                               fontWeight: 600,
                               cursor: 'pointer'
                             }}
@@ -1002,78 +1003,82 @@ export const EmployCusto: React.FC = () => {
                       );
 
                       return (
-                        <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <tr key={item.id} style={{ borderBottom: '1px solid #f1f5f9', color: '#000000' }}>
                           {/* 1. STT */}
-                          <td style={{ textAlign: 'center', padding: '14px 10px' }}>
-                            <span className="dash-stt-badge">{index + 1}</span>
+                          <td style={{ textAlign: 'center', padding: '14px 10px', color: '#000000' }}>
+                            <span className="dash-stt-badge" style={{ backgroundColor: 'transparent', color: '#000000' }}>{index + 1}</span>
                           </td>
 
                           {/* 2. Tên dự án */}
-                          <td style={{ padding: '14px' }}>
+                          <td style={{ padding: '14px', color: '#000000' }}>
                             <div>
-                              <span style={{ fontWeight: 600, color: '#0f172a', fontSize: '0.88rem', display: 'block' }}>
+                              <span style={{ fontWeight: 600, color: '#000000', fontSize: '0.88rem', display: 'block' }}>
                                 {item.projectName}
                               </span>
-                              <span style={{ fontSize: '0.74rem', color: '#94a3b8' }}>
+                              <span style={{ fontSize: '0.74rem', color: '#000000' }}>
                                 Mã Vị Trí: #{item.id}
                               </span>
                             </div>
                           </td>
 
                           {/* 3. Địa chỉ */}
-                          <td style={{ padding: '14px' }}>
-                            <span style={{ fontSize: '0.84rem', lineHeight: 1.4, color: '#475569' }}>{item.address}</span>
+                          <td style={{ padding: '14px', color: '#000000' }}>
+                            <span style={{ fontSize: '0.84rem', lineHeight: 1.4, color: '#000000' }}>{item.address}</span>
                           </td>
 
                           {/* 4. Liên hệ khách hàng */}
-                          <td style={{ padding: '14px' }}>
+                          <td style={{ padding: '14px', color: '#000000' }}>
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#475569' }}>
-                                <Phone size={13} color="#64748b" />
-                                <span style={{ fontSize: '0.84rem', fontWeight: 500, color: '#1D58BB' }}>{item.phone}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#000000' }}>
+                                <Phone size={13} color="#000000" />
+                                <span style={{ fontSize: '0.84rem', fontWeight: 500, color: '#000000' }}>{item.phone}</span>
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#64748b' }}>
-                                <Mail size={13} color="#94a3b8" />
-                                <span style={{ fontSize: '0.8rem' }}>{item.email}</span>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#000000' }}>
+                                <Mail size={13} color="#000000" />
+                                <span style={{ fontSize: '0.8rem', color: '#000000' }}>{item.email}</span>
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: '#059669' }}>
-                                <KeyRound size={12} color="#059669" />
-                                <span style={{ fontSize: '0.78rem', fontWeight: 600, fontFamily: 'monospace' }}>Pass: {item.customer_pass || '3AH@me'}</span>
+                              <div
+                                onMouseEnter={() => setHoveredPassId(item.id)}
+                                onMouseLeave={() => setHoveredPassId(null)}
+                                title="Mật khẩu mặc định: 3AH@me"
+                                style={{
+                                  position: 'relative',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: '6px',
+                                  color: '#000000',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <KeyRound size={12} color="#000000" />
+                                <span style={{ fontSize: '0.78rem', fontWeight: 600, fontFamily: 'monospace', color: '#000000' }}>
+                                  Pass: {hoveredPassId === item.id ? '3AH@me' : (item.customer_pass || '3AH@me')}
+                                </span>
                               </div>
                             </div>
                           </td>
 
                           {/* 5. Gateway IoT (Serial + IP + Status) */}
-                          <td style={{ padding: '14px' }}>
+                          <td style={{ padding: '14px', color: '#000000' }}>
                             <div
                               style={{
                                 display: 'inline-flex',
                                 flexDirection: 'column',
                                 gap: '4px',
                                 padding: '6px 10px',
-                                backgroundColor: item.gateway.status === 'online' ? '#f0fdf4' : '#f8fafc',
                                 border: `1px solid ${item.gateway.status === 'online' ? '#bbf7d0' : '#e2e8f0'}`,
                                 borderRadius: '8px'
                               }}
                             >
                               <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                                <div
-                                  style={{
-                                    width: '7px',
-                                    height: '7px',
-                                    borderRadius: '50%',
-                                    backgroundColor: item.gateway.status === 'online' ? '#10b981' : '#94a3b8',
-                                    boxShadow: item.gateway.status === 'online' ? '0 0 6px rgba(16, 185, 129, 0.7)' : 'none'
-                                  }}
-                                />
-                                <span style={{ fontFamily: 'monospace', fontSize: '0.84rem', fontWeight: 700, color: '#0f172a' }}>
+                                <span style={{ fontFamily: 'monospace', fontSize: '0.84rem', fontWeight: 700, color: '#000000' }}>
                                   {item.gateway.gateway_sn}
                                 </span>
                               </div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.74rem', color: '#64748b' }}>
-                                <Network size={11} color="#64748b" />
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.74rem', color: '#000000' }}>
+                                <Network size={11} color="#000000" />
                                 <span>{item.gateway.ip_address}</span>
-                                <span style={{ marginLeft: 'auto', fontWeight: 600, color: item.gateway.status === 'online' ? '#16a34a' : '#64748b' }}>
+                                <span style={{ marginLeft: 'auto', fontWeight: 600, color: '#000000' }}>
                                   {item.gateway.status === 'online' ? 'Online' : 'Offline'}
                                 </span>
                               </div>
@@ -1081,7 +1086,7 @@ export const EmployCusto: React.FC = () => {
                           </td>
 
                           {/* 6. Thiết bị kết nối */}
-                          <td style={{ padding: '14px', textAlign: 'center' }}>
+                          <td style={{ padding: '14px', textAlign: 'center', color: '#000000' }}>
                             <button
                               type="button"
                               title="Xem và Quản lý danh mục thiết bị con"
@@ -1091,12 +1096,12 @@ export const EmployCusto: React.FC = () => {
                                 alignItems: 'center',
                                 justifyContent: 'center',
                                 padding: '5px 14px',
-                                backgroundColor: '#eff6ff',
+                                backgroundColor: 'transparent',
                                 border: '1px solid #bfdbfe',
                                 borderRadius: '6px',
                                 fontSize: '0.78rem',
                                 fontWeight: 600,
-                                color: '#1D58BB',
+                                color: '#000000',
                                 cursor: 'pointer'
                               }}
                             >
@@ -1105,7 +1110,7 @@ export const EmployCusto: React.FC = () => {
                           </td>
 
                           {/* 7. Khu vực / Tầng */}
-                          <td style={{ padding: '14px' }}>
+                          <td style={{ padding: '14px', color: '#000000' }}>
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '170px' }}>
                               {uniqueLocations.length > 0 ? (
                                 uniqueLocations.map((loc, lIdx) => (
@@ -1114,8 +1119,7 @@ export const EmployCusto: React.FC = () => {
                                     style={{
                                       fontSize: '0.74rem',
                                       padding: '2px 7px',
-                                      backgroundColor: '#f1f5f9',
-                                      color: '#334155',
+                                      color: '#000000',
                                       borderRadius: '4px',
                                       fontWeight: 500
                                     }}
@@ -1124,32 +1128,32 @@ export const EmployCusto: React.FC = () => {
                                   </span>
                                 ))
                               ) : (
-                                <span style={{ fontSize: '0.78rem', color: '#94a3b8' }}>Chưa phân tầng</span>
+                                <span style={{ fontSize: '0.78rem', color: '#000000' }}>Chưa phân tầng</span>
                               )}
                             </div>
                           </td>
 
                           {/* 8. Trạng thái dự án */}
-                          <td style={{ padding: '14px' }}>
+                          <td style={{ padding: '14px', color: '#000000' }}>
                             {item.status === 'active' && (
-                              <span style={{ fontSize: '0.84rem', fontWeight: 600, color: '#059669' }}>
+                              <span style={{ fontSize: '0.84rem', fontWeight: 600, color: '#000000' }}>
                                 Vận hành
                               </span>
                             )}
                             {item.status === 'installing' && (
-                              <span style={{ fontSize: '0.84rem', fontWeight: 600, color: '#2563eb' }}>
+                              <span style={{ fontSize: '0.84rem', fontWeight: 600, color: '#000000' }}>
                                 Lắp đặt
                               </span>
                             )}
                             {item.status === 'maintenance' && (
-                              <span style={{ fontSize: '0.84rem', fontWeight: 600, color: '#d97706' }}>
+                              <span style={{ fontSize: '0.84rem', fontWeight: 600, color: '#000000' }}>
                                 Bảo trì
                               </span>
                             )}
                           </td>
 
                           {/* 9. Thao tác */}
-                          <td style={{ textAlign: 'center', padding: '14px' }}>
+                          <td style={{ textAlign: 'center', padding: '14px', color: '#000000' }}>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
                               <button
                                 type="button"
@@ -1159,9 +1163,9 @@ export const EmployCusto: React.FC = () => {
                                   width: '32px',
                                   height: '32px',
                                   borderRadius: '6px',
-                                  backgroundColor: '#eff6ff',
+                                  backgroundColor: 'transparent',
                                   border: '1px solid #bfdbfe',
-                                  color: '#1D58BB',
+                                  color: '#000000',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
@@ -1178,9 +1182,9 @@ export const EmployCusto: React.FC = () => {
                                   width: '32px',
                                   height: '32px',
                                   borderRadius: '6px',
-                                  backgroundColor: '#fef2f2',
+                                  backgroundColor: 'transparent',
                                   border: '1px solid #fecaca',
-                                  color: '#ef4444',
+                                  color: '#000000',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',

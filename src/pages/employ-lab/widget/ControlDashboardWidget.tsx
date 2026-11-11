@@ -73,6 +73,33 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
       collectCtrl(dev.control);
       historyRows.forEach((r) => collectCtrl(r.control));
 
+      const setupMap: Record<string, string> = {};
+      const collectSetup = (rawSetup: any) => {
+        const parsed = parseMeterMapping(rawSetup);
+        Object.entries(parsed).forEach(([k, v]) => {
+          if (!(k in setupMap) || (setupMap[k] === '' && v !== '')) {
+            setupMap[k] = v;
+          }
+        });
+        if (Object.keys(parsed).length === 0 && typeof rawSetup === 'string') {
+          const trimmed = rawSetup.trim();
+          if (
+            trimmed !== '' &&
+            trimmed !== '{}' &&
+            trimmed !== '[]' &&
+            trimmed.toLowerCase() !== 'null' &&
+            trimmed.toLowerCase() !== 'undefined'
+          ) {
+            if (!('m1' in setupMap)) {
+              setupMap['m1'] = trimmed;
+            }
+          }
+        }
+      };
+
+      collectSetup(dev.setup);
+      historyRows.forEach((r) => collectSetup(r.setup));
+
       // Gộp giá trị kênh từ hàng mới nhất về cũ để giữ nguyên trạng thái ON/OFF đã chốt
       const allRowsToScan: LabTelemetryRow[] = [
         dev,
@@ -144,7 +171,34 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
           category: isTempCtrl ? 'temp' : 'fan',
           inControl: true,
           initialBool: (validNum ?? 0) > 0,
-          initialTemp: Math.min(Math.max(Math.round(validNum ?? 24), 0), 100)
+          initialTemp: Math.min(Math.max(Math.round(validNum ?? 24), 0), 50)
+        });
+      });
+
+      // Tạo thêm nút Cài đặt nhiệt độ / Điều khiển dải nhiệt độ nếu cột setup bảng telemetry_data có giá trị
+      const sortedSetupChannels = Object.keys(setupMap).sort((a, b) => {
+        const na = parseInt(a.replace(/[^0-9]/g, ''), 10) || 0;
+        const nb = parseInt(b.replace(/[^0-9]/g, ''), 10) || 0;
+        return na - nb;
+      });
+
+      sortedSetupChannels.forEach((channel) => {
+        const validNum = channel in mergedChannelNums ? mergedChannelNums[channel] : null;
+        const label = (setupMap[channel] || '').trim();
+        const displayLabel = label !== '' ? label : channel;
+        const cardCode =
+          channel in controlMap ? `${devCode}_setup_${channel}` : `${devCode}_${channel}`;
+
+        cards.push({
+          code: cardCode,
+          targetDeviceCode: devCode,
+          channel,
+          name: displayLabel,
+          room: areaName,
+          category: 'temp',
+          inControl: true,
+          initialBool: true,
+          initialTemp: Math.min(Math.max(Math.round(validNum ?? 24), 0), 50)
         });
       });
     });
@@ -178,10 +232,13 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
               const num = Number(msg.control_value);
               if (/^m\d+$/i.test(lk) && !Number.isNaN(num)) {
                 const key = `${devCode}_${lk}`;
+                const setupKey = `${devCode}_setup_${lk}`;
+                const clampedTemp = Math.min(Math.max(Math.round(num), 0), 50);
                 setDeviceStates((prev) => ({ ...prev, [key]: num > 0 }));
                 setDeviceTemps((prev) => ({
                   ...prev,
-                  [key]: Math.min(Math.max(Math.round(num), 0), 100)
+                  [key]: clampedTemp,
+                  [setupKey]: clampedTemp
                 }));
               }
               return;
@@ -207,7 +264,9 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
                 if (/^m\d+$/i.test(lk)) {
                   const num = Number(val);
                   if (!Number.isNaN(num)) {
-                    next[`${devCode}_${lk}`] = Math.min(Math.max(Math.round(num), 0), 100);
+                    const clampedTemp = Math.min(Math.max(Math.round(num), 0), 50);
+                    next[`${devCode}_${lk}`] = clampedTemp;
+                    next[`${devCode}_setup_${lk}`] = clampedTemp;
                   }
                 }
               });
@@ -313,7 +372,7 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
   };
 
   const handleSetTemperature = (card: ControlCardItem, newTemp: number, commit: boolean) => {
-    const clamped = Math.min(Math.max(Math.round(newTemp), 0), 100);
+    const clamped = Math.min(Math.max(Math.round(newTemp), 0), 50);
     userCommandLockRef.current[card.code] = {
       tempVal: clamped,
       until: Date.now() + 6000
@@ -673,8 +732,11 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
                           );
                         }
 
-                        // Thẻ 2: Thanh trượt Cài đặt nhiệt độ (0°C - 50°C)
-                        const currentTemp = deviceTemps[card.code] ?? card.initialTemp;
+                        // Thẻ 2: Thanh trượt Cài đặt nhiệt độ (0°C - 50°C, tương tự control_dashboard_screen.dart)
+                        const currentTemp = Math.min(
+                          Math.max(deviceTemps[card.code] ?? card.initialTemp, 0),
+                          50
+                        );
                         return (
                           <div
                             key={card.code}
@@ -714,11 +776,12 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
                               </span>
                               <div
                                 style={{
-                                  padding: '5px 12px',
+                                  padding: '5px 10px',
                                   borderRadius: '10px',
-                                  backgroundColor: 'rgba(29, 88, 187, 0.12)',
+                                  backgroundColor: '#EFF6FF',
+                                  border: '1px solid #BFDBFE',
                                   color: activeColor,
-                                  fontSize: '16px',
+                                  fontSize: '14px',
                                   fontWeight: 700
                                 }}
                               >
@@ -738,8 +801,8 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
                                 disabled={currentTemp <= 0}
                                 onClick={() => handleSetTemperature(card, currentTemp - 1, true)}
                                 style={{
-                                  width: '32px',
-                                  height: '32px',
+                                  width: '30px',
+                                  height: '30px',
                                   borderRadius: '8px',
                                   border: '1px solid #E2E8F0',
                                   backgroundColor: '#F8FAFC',
@@ -751,13 +814,24 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
                                   flexShrink: 0
                                 }}
                               >
-                                <Minus size={16} />
+                                <Minus size={15} />
                               </button>
+
+                              <span
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  color: '#64748B',
+                                  flexShrink: 0
+                                }}
+                              >
+                                0°C
+                              </span>
 
                               <input
                                 type="range"
                                 min={0}
-                                max={Math.max(50, currentTemp)}
+                                max={50}
                                 step={1}
                                 value={currentTemp}
                                 onChange={(e) =>
@@ -784,25 +858,36 @@ export const ControlDashboardWidget: React.FC<ControlDashboardWidgetProps> = ({
                                 }}
                               />
 
+                              <span
+                                style={{
+                                  fontSize: '11px',
+                                  fontWeight: 600,
+                                  color: '#64748B',
+                                  flexShrink: 0
+                                }}
+                              >
+                                50°C
+                              </span>
+
                               <button
                                 type="button"
-                                disabled={currentTemp >= 100}
+                                disabled={currentTemp >= 50}
                                 onClick={() => handleSetTemperature(card, currentTemp + 1, true)}
                                 style={{
-                                  width: '32px',
-                                  height: '32px',
+                                  width: '30px',
+                                  height: '30px',
                                   borderRadius: '8px',
                                   border: '1px solid #E2E8F0',
                                   backgroundColor: '#F8FAFC',
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'center',
-                                  cursor: currentTemp < 100 ? 'pointer' : 'not-allowed',
-                                  color: currentTemp < 100 ? activeColor : '#CBD5E1',
+                                  cursor: currentTemp < 50 ? 'pointer' : 'not-allowed',
+                                  color: currentTemp < 50 ? activeColor : '#CBD5E1',
                                   flexShrink: 0
                                 }}
                               >
-                                <Plus size={16} />
+                                <Plus size={15} />
                               </button>
                             </div>
                           </div>
